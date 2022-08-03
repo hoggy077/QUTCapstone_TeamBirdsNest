@@ -344,6 +344,9 @@
 -r:"Library/Bee/artifacts/500b0aE.dag/UnityEngine.UI.ref.dll"
 -r:"Library/Bee/artifacts/500b0aE.dag/UnityEngine.XR.LegacyInputHelpers.ref.dll"
 "Assets/Curviture.cs"
+"Assets/Scripts/GameStateManager.cs"
+"Assets/Scripts/Logger.cs"
+"Assets/Scripts/loggerInit.cs"
 -langversion:9.0
 
 /deterministic

@@ -57,6 +57,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Curviture.cs" />
+    <Compile Include="Assets\Scripts\GameStateManager.cs" />
+    <Compile Include="Assets\Scripts\Logger.cs" />
+    <Compile Include="Assets\Scripts\loggerInit.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
