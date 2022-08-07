@@ -61,6 +61,8 @@
     <Compile Include="Assets\Scripts\GameStateManager.cs" />
     <Compile Include="Assets\Curviture.cs" />
     <Compile Include="Assets\Scripts\UI\ScorecardUI.cs" />
+    <Compile Include="Assets\Scripts\UI\GradientBackground.cs" />
+    <Compile Include="Assets\Scripts\UI\MenuSystem.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

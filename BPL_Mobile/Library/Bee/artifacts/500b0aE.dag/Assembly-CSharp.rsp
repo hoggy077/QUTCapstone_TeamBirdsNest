@@ -365,6 +365,8 @@
 "Assets/Scripts/GameStateManager.cs"
 "Assets/Scripts/Logger.cs"
 "Assets/Scripts/loggerInit.cs"
+"Assets/Scripts/UI/GradientBackground.cs"
+"Assets/Scripts/UI/MenuSystem.cs"
 "Assets/Scripts/UI/ScorecardUI.cs"
 -langversion:9.0
 
