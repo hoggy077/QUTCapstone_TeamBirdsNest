@@ -16,6 +16,7 @@ public class MenuSystem : MonoBehaviour
     public GameObject[] selectTeam;
     public GameObject[] selectBowls;
     public GameObject[] postMatchBreakdown;
+    public GameObject[] theBPL;
     private List<GameObject[]> allScreens = new List<GameObject[]>();
 
     [Header("Current Screen")]
@@ -24,7 +25,7 @@ public class MenuSystem : MonoBehaviour
 
     [Header("Takeaways")]
     public bool multiplayer = false;
-    public bool secondPlayerSelected = false;
+    public bool secondPlayerSelecting = false;
 
     // Variable to manage background gradient effect
     private GradientBackground bg;
@@ -41,7 +42,8 @@ public class MenuSystem : MonoBehaviour
         QuickPlay = 7,
         SelectTeam = 8,
         SelectBowls = 9,
-        PostMatchBreakdown = 10
+        PostMatchBreakdown = 10,
+        TheBPL = 11
     }
 
     // Start is called before the first frame update
@@ -59,9 +61,10 @@ public class MenuSystem : MonoBehaviour
         allScreens.Add(selectTeam);
         allScreens.Add(selectBowls);
         allScreens.Add(postMatchBreakdown);
+        allScreens.Add(theBPL);
 
         // Saving gradient background for later use
-        if(FindObjectOfType<GradientBackground>())
+        if (FindObjectOfType<GradientBackground>())
         {
             bg = FindObjectOfType<GradientBackground>();
         }
@@ -81,11 +84,67 @@ public class MenuSystem : MonoBehaviour
                 UpdateMenuDisplay(MenuState.MainMenu);
             }
         }
+    }
 
-        // Main Menu
-        else if (currentScreen.Equals(MenuState.MainMenu))
+    // Function to move to play menu
+    public void ButtonPress(string targetAction)
+    {
+        // Depending on command, perform action
+        switch(targetAction)
         {
-            
+            case "PlayMenu":
+                UpdateMenuDisplay(MenuState.PlayMenu);
+                break;
+
+            case "TitleScreen":
+                UpdateMenuDisplay(MenuState.TitleScreen);
+                break;
+
+            case "BPL":
+                UpdateMenuDisplay(MenuState.TheBPL);
+                break;
+
+            case "Options":
+                UpdateMenuDisplay(MenuState.Options);
+                break;
+
+            case "MenuScreen":
+                UpdateMenuDisplay(MenuState.MainMenu);
+                break;
+
+            case "QuickPlay":
+                UpdateMenuDisplay(MenuState.QuickPlay);
+                break;
+
+            case "Tournament":
+                UpdateMenuDisplay(MenuState.Tournament);
+                multiplayer = false;
+                break;
+
+            case "Career":
+                UpdateMenuDisplay(MenuState.CareerMenu);
+                break;
+
+            case "Tutorial":
+                UpdateMenuDisplay(MenuState.Tutorial);
+                break;
+
+            case "SelectTeam_1P":
+                UpdateMenuDisplay(MenuState.SelectTeam);
+                multiplayer = false;
+                break;
+
+            case "SelectTeam_2P":
+                UpdateMenuDisplay(MenuState.SelectTeam);
+                multiplayer = true;
+                secondPlayerSelecting = false;
+                break;
+
+            case "":
+                break;
+
+            default:
+                break;
         }
     }
 

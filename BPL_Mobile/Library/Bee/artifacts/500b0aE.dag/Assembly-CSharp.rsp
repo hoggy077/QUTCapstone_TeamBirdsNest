@@ -327,6 +327,7 @@
 -r:"D:/Unity Editors/2021.3.6f1/Editor/Data/PlaybackEngines/iOSSupport/UnityEditor.iOS.Extensions.Common.dll"
 -r:"D:/Unity Editors/2021.3.6f1/Editor/Data/PlaybackEngines/iOSSupport/UnityEditor.iOS.Extensions.Xcode.dll"
 -r:"Library/Bee/artifacts/500b0aE.dag/PPv2URPConverters.ref.dll"
+-r:"Library/Bee/artifacts/500b0aE.dag/Unity.2D.Sprite.Editor.ref.dll"
 -r:"Library/Bee/artifacts/500b0aE.dag/Unity.Burst.Editor.ref.dll"
 -r:"Library/Bee/artifacts/500b0aE.dag/Unity.Burst.ref.dll"
 -r:"Library/Bee/artifacts/500b0aE.dag/Unity.Mathematics.Editor.ref.dll"
