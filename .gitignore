@@ -1,3 +1,5 @@
-/BPL_Mobile/*
-!/BPL_Mobile/Assets/
-!/BPL_Mobile/ProjectSettings/
+BPL_Mobile/*
+!BPL_Mobile/Assets/
+!BPL_Mobile/ProjectSettings/
+!BPL_Mobile/Packages
+
