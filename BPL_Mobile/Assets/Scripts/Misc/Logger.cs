@@ -17,8 +17,18 @@ public class Logger
     public static Logger Instance { get { if (Instance_ == null) { Instance_ = new Logger(); } return Instance_; } }
     static Logger Instance_ = null;
 
+
+    public static bool RunOnLaunch = false;
+
+
+    [RuntimeInitializeOnLoadMethod]
+    static void OnRun() => _ = Instance;
+
     public Logger()
     {
+        if (!RunOnLaunch)
+            return;
+
         Application.logMessageReceived += Log;
         Application.quitting += () => LogFileWriter.Close();
     }
@@ -31,6 +41,8 @@ public class Logger
 
     public static void Log(string Log, string trace, LogType type)
     {
+        if (!RunOnLaunch)
+            return;
         LogFileWriter.WriteLine($"[{type.ToString()} - {DateTime.Now.ToString("HH:mm:ss")}] {Log}");
     }
 }
