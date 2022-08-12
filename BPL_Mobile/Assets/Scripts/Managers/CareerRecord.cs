@@ -3,17 +3,11 @@ using System.IO;
 using System.Xml.Serialization;
 using UnityEngine;
 
-public class CareerRecordManager
+public static class CareerRecordManager
 {
 
-#if UNITY_EDITOR
-    public static readonly string PersistentPath = $"{Environment.CurrentDirectory}\\gameInfo";
-#else
-    public static readonly string PersistentPath = $"{Application.persistentDataPath}\\gameInfo";
-#endif
-
     public static PlayerCareer playerCareer { get; private set; } = new PlayerCareer();
-    public static void UpdateValues(string name, uint? gamesWon, uint? bowlsRolled, uint? roundsWon)
+    public static void UpdateCareerValues(string name, uint? gamesWon, uint? bowlsRolled, uint? roundsWon)
     {
         if (name != null)
             playerCareer.Name = name;
@@ -30,39 +24,47 @@ public class CareerRecordManager
     }
 
 
-    public static void SaveCareer() => HandleInteraction(true);
+    public static void SaveCareer() => SaveSystem.saveGeneric(playerCareer, "careerInfo.career"); //PlayerCareerInteraction(true, "careerInfo.career");
 
-    public static void LoadCareer() => playerCareer = HandleInteraction(false);
+    public static void LoadCareer() => playerCareer = SaveSystem.loadGeneric<PlayerCareer>(false, "careerInfo.career"); //playerCareer = PlayerCareerInteraction(false, "careerInfo.career");
 
 
-    private static PlayerCareer HandleInteraction(bool isSave)
+
+    /// <summary>
+    /// Provides an internal common for loading or saving a career file in any definable extension
+    /// </summary>
+    /// <param name="isSave">Defines the type of operation</param>
+    /// <param name="FileName">Excludes path, must include the extension</param>
+    /// <returns></returns>
+    [Obsolete("Method is obsolete, please refer to SaveSystem.saveGeneric and SaveSystem.loadGeneric")]
+    private static PlayerCareer PlayerCareerInteraction(bool isSave, string FileName)
     {
-        XmlSerializer serializer = new XmlSerializer(typeof(PlayerCareer));
-        using (MemoryStream stream = new MemoryStream())
-        {
-            if (isSave)
-            {
-                serializer.Serialize(stream, playerCareer);
-                using FileStream fStream = File.OpenWrite($"{PersistentPath}\\careerInfo.cbf");
-                fStream.Write(stream.ToArray());
-                fStream.Close();
-                return null;
-            }
-            else
-            {
-                if(!Directory.Exists(PersistentPath))
-                    Directory.CreateDirectory(PersistentPath);
+        throw new Exception("Function obsolete and no valid");
+        //XmlSerializer serializer = new XmlSerializer(typeof(PlayerCareer));
+        //using (MemoryStream stream = new MemoryStream())
+        //{
+        //    if (isSave)
+        //    {
+        //        serializer.Serialize(stream, playerCareer);
+        //        using FileStream fStream = File.OpenWrite($"{PersistentPath}\\{FileName}");
+        //        fStream.Write(stream.ToArray());
+        //        fStream.Close();
+        //        return null;
+        //    }
+        //    else
+        //    {
+        //        verifyDirectory();
 
-                if (!File.Exists($"{PersistentPath}\\careerInfo.cbf"))
-                {
-                    File.Create($"{PersistentPath}\\careerInfo.cbf");
-                    return new PlayerCareer();
-                }
+        //        if (!File.Exists($"{PersistentPath}\\{FileName}"))
+        //        {
+        //            File.Create($"{PersistentPath}\\{FileName}");
+        //            return new PlayerCareer();
+        //        }
 
-                using FileStream fStream = File.OpenRead($"{PersistentPath}\\careerInfo.cbf");
-                return (PlayerCareer)serializer.Deserialize(fStream);
-            }
-        }
+        //        using FileStream fStream = File.OpenRead($"{PersistentPath}\\{FileName}");
+        //        return (PlayerCareer)serializer.Deserialize(fStream);
+        //    }
+        //}
     }
 }
 

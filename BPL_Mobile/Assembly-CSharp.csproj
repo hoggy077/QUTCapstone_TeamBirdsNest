@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Misc\Logger.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\BowlSpawner.cs" />
     <Compile Include="Assets\Scripts\Gameplay\BowlsScriptable.cs" />
     <Compile Include="Assets\Scripts\UI\GradientBackground.cs" />
     <Compile Include="Assets\Scripts\Managers\ManagerInitalizer.cs" />
@@ -66,6 +67,10 @@
     <Compile Include="Assets\Scripts\Managers\CareerRecord.cs" />
     <Compile Include="Assets\Scripts\UI\MenuSystem.cs" />
     <Compile Include="Assets\Curviture.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\BowlLauncher.cs" />
+    <Compile Include="Assets\Scripts\Misc\SaveSystem.cs" />
+    <Compile Include="Assets\Scripts\Misc\CareerBuilder.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\GamemodeInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
