@@ -24,9 +24,19 @@ public static class CareerRecordManager
     }
 
 
-    public static void SaveCareer() => SaveSystem.saveGeneric(playerCareer, "careerInfo.career"); //PlayerCareerInteraction(true, "careerInfo.career");
+    public static void SaveCareer() => SaveSystem.saveGeneric(playerCareer, "careerInfo.career");
 
-    public static void LoadCareer() => playerCareer = SaveSystem.loadGeneric<PlayerCareer>(false, "careerInfo.career"); //playerCareer = PlayerCareerInteraction(false, "careerInfo.career");
+    public static void LoadCareer()
+    {
+        try
+        {
+            playerCareer = SaveSystem.loadGeneric<PlayerCareer>(false, "careerInfo.career");
+        }
+        catch(Exception e)
+        {
+            playerCareer = new PlayerCareer();
+        }
+    }
 
 
 
