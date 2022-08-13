@@ -25,7 +25,32 @@ public class MenuSystem : MonoBehaviour
 
     [Header("Takeaways")]
     public bool multiplayer = false;
-    public bool secondPlayerSelecting = false;
+    public int player1TeamIndex = 0;
+    public int player2TeamIndex = 0;
+    private bool firstPlayerSelected = false;
+    private bool bothPlayersSelected = false;
+
+    // Variables to manage swiping
+    private Vector2 fingerDownPosition;
+    private Vector2 fingerUpPosition;
+
+    [Header("Team Selection Screen")]
+    [SerializeField] private UnityEngine.UI.Image logoDisplay;
+    private Vector3 logo1OGPosition;
+    private Vector3 logo1OGScale;
+
+    // Variables to handle logo 2's animations
+    [SerializeField] private UnityEngine.UI.Image logoDisplay2;
+    [SerializeField] private UnityEngine.UI.Image vsImage;
+    [SerializeField] private TMPro.TextMeshProUGUI selectTeamText;
+    private Vector3 logo2OGPosition;
+    private Vector3 logo2OGScale;
+    private int currentTeamIndex = 0;
+
+    // Team Information
+    [SerializeField]private Sprite[] teamLogos;
+    [SerializeField]private Color[] teamColours1;
+    [SerializeField]private Color[] teamColours2;
 
     // Variable to manage background gradient effect
     private GradientBackground bg;
@@ -71,17 +96,140 @@ public class MenuSystem : MonoBehaviour
 
         // Overriding Main Menu for game start
         UpdateMenuDisplay(MenuState.TitleScreen, true);
+
+        // Setting Logo 2's Original Variables
+        logo1OGPosition = logoDisplay.rectTransform.localPosition;
+        logo1OGScale = logoDisplay.rectTransform.localScale;
+
+        // Setting Logo 2's Original Variables
+        logo2OGPosition = logoDisplay2.rectTransform.localPosition;
+        logo2OGScale = logoDisplay2.rectTransform.localScale;
     }
 
     // Update is called once per frame
     void Update()
     {
-        // Title Screen
-        if(currentScreen.Equals(MenuState.TitleScreen))
+        int previousTeamIndex = currentTeamIndex;
+
+        // Touch Detection and Management
+        foreach (Touch touch in Input.touches)
         {
-            if(Input.GetMouseButtonDown(0))
+            // If touch has just begun
+            if (touch.phase == TouchPhase.Began)
             {
-                UpdateMenuDisplay(MenuState.MainMenu);
+                // Title Screen
+                if (currentScreen.Equals(MenuState.TitleScreen))
+                {
+                    UpdateMenuDisplay(MenuState.MainMenu);
+                }
+
+                fingerUpPosition = touch.position;
+                fingerDownPosition = touch.position;
+            }
+
+            // If touch has moved
+            if(touch.phase == TouchPhase.Moved)
+            {
+                fingerUpPosition = touch.position;
+            }
+
+            // If touch has ended
+            if (touch.phase == TouchPhase.Ended)
+            {
+                float swipeDirection = GetSwipeDirection(fingerDownPosition, fingerUpPosition);
+
+                // Team Selection Screen
+                if(currentScreen.Equals(MenuState.SelectTeam))
+                {
+                    // If Swipe Left
+                    if (swipeDirection == 180f)
+                    {
+                        currentTeamIndex++;
+                    }
+
+                    // If Swipe Right
+                    else if(swipeDirection == 0f)
+                    {
+                        currentTeamIndex--;
+                    }
+                }
+            }
+        }
+
+        // If in team selection screen, perform associated tasks
+        if(currentScreen.Equals(MenuState.SelectTeam))
+        {
+            // If player has swiped to a different team and is allowed to, handle it for both directions
+            if (previousTeamIndex != currentTeamIndex && !bothPlayersSelected)
+            {
+                if (previousTeamIndex > currentTeamIndex)
+                {
+                    currentTeamIndex = previousTeamIndex;
+                    NextTeam(-1);
+                }
+                else
+                {
+                    currentTeamIndex = previousTeamIndex;
+                    NextTeam(1);
+                }
+
+                UpdateTeamSelectionScreen();
+                previousTeamIndex = currentTeamIndex;
+            }
+
+            currentTeamIndex = previousTeamIndex;
+
+            // If Player 1 has selected a team, preform screen animations for logo
+            if (firstPlayerSelected && multiplayer)
+            {
+                logoDisplay2.enabled = true;
+                logoDisplay2.sprite = teamLogos[player1TeamIndex];
+
+                if(bothPlayersSelected)
+                {
+                    logoDisplay2.color = Color.Lerp(logoDisplay2.color, Color.white, 5f * Time.deltaTime);
+                }
+                else
+                {
+                    logoDisplay2.color = Color.Lerp(logoDisplay2.color, new Color(0f, 0f, 0f, 34f / 255f), 5f * Time.deltaTime);
+                }
+
+                logoDisplay2.rectTransform.localPosition = Vector3.Lerp(logoDisplay2.rectTransform.localPosition, new Vector3(-187f, 389f, 0f), 5f * Time.deltaTime);
+                logoDisplay2.rectTransform.localScale = Vector3.Lerp(logoDisplay2.rectTransform.localScale, new Vector3(4.3f, 4.3f, 4.3f), 5f * Time.deltaTime);
+                selectTeamText.text = "Select Team 2";
+            }
+            else
+            {
+                logoDisplay2.enabled = false;
+                logoDisplay2.rectTransform.localPosition = logo2OGPosition;
+                logoDisplay2.rectTransform.localScale = logo2OGScale;
+                logoDisplay2.color = Color.white;
+                
+
+                if(multiplayer)
+                {
+                    selectTeamText.text = "Select Team 1";
+                }
+                else
+                {
+                    selectTeamText.text = "Select Team";
+                }
+            }
+
+            // If Player 2 has selected, display both selected teams in a head to head
+            if (bothPlayersSelected && multiplayer)
+            {
+                logoDisplay.sprite = teamLogos[player2TeamIndex];
+                logoDisplay.rectTransform.localPosition = Vector3.Lerp(logoDisplay.rectTransform.localPosition, new Vector3(180f, 155f, 0f), 5f * Time.deltaTime);
+                logoDisplay.rectTransform.localScale = Vector3.Lerp(logoDisplay.rectTransform.localScale, new Vector3(4.3f, 4.3f, 4.3f), 5f * Time.deltaTime);
+                vsImage.enabled = true;
+                selectTeamText.text = "Confirm Teams";
+            }
+            else
+            {
+                logoDisplay.rectTransform.localPosition = logo1OGPosition;
+                logoDisplay.rectTransform.localScale = logo1OGScale;
+                vsImage.enabled = false;
             }
         }
     }
@@ -90,7 +238,7 @@ public class MenuSystem : MonoBehaviour
     public void ButtonPress(string targetAction)
     {
         // Depending on command, perform action
-        switch(targetAction)
+        switch (targetAction)
         {
             case "PlayMenu":
                 UpdateMenuDisplay(MenuState.PlayMenu);
@@ -114,6 +262,9 @@ public class MenuSystem : MonoBehaviour
 
             case "QuickPlay":
                 UpdateMenuDisplay(MenuState.QuickPlay);
+                firstPlayerSelected = false;
+                bothPlayersSelected = false;
+                bg.ResetColours();
                 break;
 
             case "Tournament":
@@ -132,12 +283,16 @@ public class MenuSystem : MonoBehaviour
             case "SelectTeam_1P":
                 UpdateMenuDisplay(MenuState.SelectTeam);
                 multiplayer = false;
+                currentTeamIndex = 0;
+                UpdateTeamSelectionScreen();
                 break;
 
             case "SelectTeam_2P":
                 UpdateMenuDisplay(MenuState.SelectTeam);
                 multiplayer = true;
-                secondPlayerSelecting = false;
+                currentTeamIndex = 0;
+                UpdateTeamSelectionScreen();
+                firstPlayerSelected = false;
                 break;
 
             case "":
@@ -151,7 +306,7 @@ public class MenuSystem : MonoBehaviour
     // Function to manage updating of menu display
     public void UpdateMenuDisplay(MenuState newState, bool forceReset = false)
     {
-        if(currentScreen != newState || forceReset)
+        if (currentScreen != newState || forceReset)
         {
             currentScreen = newState;
 
@@ -171,10 +326,114 @@ public class MenuSystem : MonoBehaviour
             }
 
             // Null Check background before randomising
-            if(bg && !forceReset)
+            if (bg && !forceReset)
             {
                 bg.RandomiseGradient();
             }
+        }
+    }
+
+    // Get Swipe Direction
+    private float GetSwipeDirection(Vector2 start, Vector2 end)
+    {
+        // Right
+        if(start.x < end.x)
+        {
+            return 0f;
+        }
+
+        // Left
+        else if(end.x < start.x)
+        {
+            return 180f;
+        }
+
+        return 69f;
+    }
+
+    // If on team selection screen roll through to correct team and colours
+    private void UpdateTeamSelectionScreen()
+    {
+        // Setting Correct BG Gradient
+        if(currentTeamIndex < teamColours1.Length && currentTeamIndex >= 0 && currentTeamIndex < teamColours2.Length)
+        {
+            bg.ChangeColours(teamColours1[currentTeamIndex], teamColours2[currentTeamIndex]);
+        }
+
+        // Setting Correct Logo
+        if(teamLogos.Length > 0)
+        {
+            logoDisplay.sprite = teamLogos[currentTeamIndex];
+        }
+    }
+
+    // Function to handle the selecting of teams
+    public void SelectTeam()
+    {
+        // If singleplayer, set team and move on
+        if(!multiplayer)
+        {
+            player1TeamIndex = currentTeamIndex;
+            UpdateMenuDisplay(MenuState.SelectBowls);
+        }
+
+        // If multiplayer, and second player has not selected yet
+        else if(!firstPlayerSelected)
+        {
+            player1TeamIndex = currentTeamIndex;
+            currentTeamIndex++;
+
+            // If Index out of range, loop back around
+            if (currentTeamIndex >= teamLogos.Length)
+            {
+                currentTeamIndex = 0;
+            }
+            else if (currentTeamIndex < 0)
+            {
+                currentTeamIndex = teamLogos.Length - 1;
+            }
+
+            UpdateTeamSelectionScreen();
+            UpdateMenuDisplay(MenuState.SelectTeam, true);
+            firstPlayerSelected = true;
+        }
+
+        // If second player has just selected, move on
+        else if(firstPlayerSelected && !bothPlayersSelected)
+        {
+            player2TeamIndex = currentTeamIndex;
+            bothPlayersSelected = true;
+            UpdateMenuDisplay(MenuState.SelectTeam);
+        }
+
+        // If both players have selected, and the button is pressed again, progress to bowl selection
+        else if(firstPlayerSelected && bothPlayersSelected)
+        {
+            UpdateMenuDisplay(MenuState.SelectBowls);
+        }
+    }
+
+    // Roll To Next Team
+    private void NextTeam(int direction)
+    {
+        bool adjustIndex = true;
+
+        while(adjustIndex)
+        {
+            // Adjust current index
+            currentTeamIndex += direction;
+
+            // If outside bounds, adjust
+            if(currentTeamIndex >= teamLogos.Length)
+            {
+                currentTeamIndex = 0;
+            }
+            else if(currentTeamIndex < 0)
+            {
+                currentTeamIndex = teamLogos.Length - 1;
+            }
+
+            adjustIndex = multiplayer && firstPlayerSelected && player1TeamIndex == currentTeamIndex;
         }
     }
 }

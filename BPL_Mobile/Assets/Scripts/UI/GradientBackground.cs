@@ -6,7 +6,9 @@ public class GradientBackground : MonoBehaviour
 {
     [Header("Default Colours (use 'ChangeColours()' to change at runtime)")]
     public Color colour1;
+    private Color defaultColour1;
     public Color colour2;
+    private Color defaultColour2;
 
     private float targetRotation = -70f;
     private bool flipColours = false;
@@ -22,6 +24,8 @@ public class GradientBackground : MonoBehaviour
         display = GetComponent<UnityEngine.UI.Image>();
         flipColours = true;
         targetRotation = -70f;
+        defaultColour1 = colour1;
+        defaultColour2 = colour2;
     }
 
     // Update is called once per frame
@@ -74,5 +78,13 @@ public class GradientBackground : MonoBehaviour
         }
 
         targetRotation = Random.Range(-90f, 20f);
+    }
+
+    // Function to return to default menu colours
+    public void ResetColours()
+    {
+        colour1 = defaultColour1;
+        colour2 = defaultColour2;
+        RandomiseGradient();
     }
 }
