@@ -27,8 +27,8 @@ public class MenuSystem : MonoBehaviour
     public bool multiplayer = false;
     public int player1TeamIndex = 0;
     public int player2TeamIndex = 0;
-    private bool firstPlayerSelected = false;
-    private bool bothPlayersSelected = false;
+    public List<BowlsScriptable> team1Bowls = new List<BowlsScriptable>();
+    public List<BowlsScriptable> team2Bowls = new List<BowlsScriptable>();
 
     // Variables to manage swiping
     private Vector2 fingerDownPosition;
@@ -45,12 +45,32 @@ public class MenuSystem : MonoBehaviour
     [SerializeField] private TMPro.TextMeshProUGUI selectTeamText;
     private Vector3 logo2OGPosition;
     private Vector3 logo2OGScale;
-    private int currentTeamIndex = 0;
+    private int currentSelectionIndex = 0;
+    private bool firstPlayerSelected = false;
+    private bool bothPlayersSelected = false;
 
     // Team Information
-    [SerializeField]private Sprite[] teamLogos;
-    [SerializeField]private Color[] teamColours1;
-    [SerializeField]private Color[] teamColours2;
+    [SerializeField] private TeamScriptable[] teams;
+
+    [Header("Bowl Selection Screen")]
+    [SerializeField] private BowlsScriptable[] bowls;
+    [SerializeField] private UnityEngine.UI.RawImage bowlLogoDisplay;
+    [SerializeField] private MeshRenderer bowlDisplay;
+    [SerializeField] private MeshRenderer bowlModelLogoDisplay;
+    [SerializeField] private TMPro.TextMeshProUGUI bowlBiasLabel;
+    [SerializeField] private UnityEngine.UI.Image[] bowlsSelectedDisplay;
+    [SerializeField] private UnityEngine.UI.RawImage[] bowlsBrandsSelectedDisplay;
+    [SerializeField] private RectTransform bowlSelectionShopfrontMenu;
+    [SerializeField] private RectTransform singleplayerSelectedItemsMenu;
+    [SerializeField] private RectTransform multiplayerSelectedItemsMenu;
+    [SerializeField] private TMPro.TextMeshProUGUI bowlSelectionButtonText;
+
+    // Variables to store selection summary UI of each possible case
+    [SerializeField] private SelectionsSummaryUI singleplayerSS;
+    [SerializeField] private SelectionsSummaryUI player1SS;
+    [SerializeField] private SelectionsSummaryUI player2SS;
+
+
 
     // Variable to manage background gradient effect
     private GradientBackground bg;
@@ -109,7 +129,7 @@ public class MenuSystem : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        int previousTeamIndex = currentTeamIndex;
+        int previousSelectionIndex = currentSelectionIndex;
 
         // Touch Detection and Management
         foreach (Touch touch in Input.touches)
@@ -139,18 +159,18 @@ public class MenuSystem : MonoBehaviour
                 float swipeDirection = GetSwipeDirection(fingerDownPosition, fingerUpPosition);
 
                 // Team Selection Screen
-                if(currentScreen.Equals(MenuState.SelectTeam))
+                if(currentScreen.Equals(MenuState.SelectTeam) || currentScreen.Equals(MenuState.SelectBowls))
                 {
                     // If Swipe Left
                     if (swipeDirection == 180f)
                     {
-                        currentTeamIndex++;
+                        currentSelectionIndex++;
                     }
 
                     // If Swipe Right
                     else if(swipeDirection == 0f)
                     {
-                        currentTeamIndex--;
+                        currentSelectionIndex--;
                     }
                 }
             }
@@ -160,30 +180,30 @@ public class MenuSystem : MonoBehaviour
         if(currentScreen.Equals(MenuState.SelectTeam))
         {
             // If player has swiped to a different team and is allowed to, handle it for both directions
-            if (previousTeamIndex != currentTeamIndex && !bothPlayersSelected)
+            if (previousSelectionIndex != currentSelectionIndex && !bothPlayersSelected)
             {
-                if (previousTeamIndex > currentTeamIndex)
+                if (previousSelectionIndex > currentSelectionIndex)
                 {
-                    currentTeamIndex = previousTeamIndex;
+                    currentSelectionIndex = previousSelectionIndex;
                     NextTeam(-1);
                 }
                 else
                 {
-                    currentTeamIndex = previousTeamIndex;
+                    currentSelectionIndex = previousSelectionIndex;
                     NextTeam(1);
                 }
 
                 UpdateTeamSelectionScreen();
-                previousTeamIndex = currentTeamIndex;
+                previousSelectionIndex = currentSelectionIndex;
             }
 
-            currentTeamIndex = previousTeamIndex;
+            currentSelectionIndex = previousSelectionIndex;
 
             // If Player 1 has selected a team, preform screen animations for logo
             if (firstPlayerSelected && multiplayer)
             {
                 logoDisplay2.enabled = true;
-                logoDisplay2.sprite = teamLogos[player1TeamIndex];
+                logoDisplay2.sprite = teams[player1TeamIndex].TeamIcon;
 
                 if(bothPlayersSelected)
                 {
@@ -219,7 +239,7 @@ public class MenuSystem : MonoBehaviour
             // If Player 2 has selected, display both selected teams in a head to head
             if (bothPlayersSelected && multiplayer)
             {
-                logoDisplay.sprite = teamLogos[player2TeamIndex];
+                logoDisplay.sprite = teams[player2TeamIndex].TeamIcon;
                 logoDisplay.rectTransform.localPosition = Vector3.Lerp(logoDisplay.rectTransform.localPosition, new Vector3(180f, 155f, 0f), 5f * Time.deltaTime);
                 logoDisplay.rectTransform.localScale = Vector3.Lerp(logoDisplay.rectTransform.localScale, new Vector3(4.3f, 4.3f, 4.3f), 5f * Time.deltaTime);
                 vsImage.enabled = true;
@@ -231,6 +251,141 @@ public class MenuSystem : MonoBehaviour
                 logoDisplay.rectTransform.localScale = logo1OGScale;
                 vsImage.enabled = false;
             }
+        }
+
+        // If in bowl selection screen, perform associated tasks
+        if (currentScreen.Equals(MenuState.SelectBowls))
+        {
+            // If player has swiped to a different team and is allowed to, handle it for both directions
+            if (previousSelectionIndex != currentSelectionIndex && !bothPlayersSelected)
+            {
+                if (previousSelectionIndex > currentSelectionIndex)
+                {
+                    currentSelectionIndex = previousSelectionIndex;
+                    NextBowl(-1);
+                }
+                else
+                {
+                    currentSelectionIndex = previousSelectionIndex;
+                    NextBowl(1);
+                }
+
+                UpdateBowlSelectionScreen();
+                previousSelectionIndex = currentSelectionIndex;
+            }
+
+            currentSelectionIndex = previousSelectionIndex;
+
+            int currentIndex = 0;
+            float shopfrontScreenTargetLocation = 1000f;
+            float singleFinalPreviewTargetX = -1000f;
+            float multiFinalPreviewTargetX = 1000f;
+            // Resetting Bowl Selected Display
+            foreach (UnityEngine.UI.Image bowlImage in bowlsSelectedDisplay)
+            {
+                bowlImage.color = new Color(0f, 0f, 0f, 128f / 255f);
+                bowlsBrandsSelectedDisplay[currentIndex].enabled = false;
+                bowlImage.enabled = true;
+                currentIndex++;
+            }
+
+            // Display Current Bowl Selection Phase for player currently choosing
+            if(!firstPlayerSelected && !bothPlayersSelected)
+            {
+                currentIndex = 0;
+                shopfrontScreenTargetLocation = 0f;
+                while (currentIndex < team1Bowls.Count)
+                {
+                    bowlsSelectedDisplay[currentIndex].color = new Color(1f, 1f, 1f, 128f / 255f);
+                    bowlsBrandsSelectedDisplay[currentIndex].enabled = true;
+                    bowlsBrandsSelectedDisplay[currentIndex].texture = team1Bowls[currentIndex].BowlTexture;
+                    currentIndex++;
+                }
+
+                if(team1Bowls.Count < 3)
+                {
+                    bowlSelectionButtonText.text = "Select Bowl";
+                }
+                else
+                {
+                    bowlSelectionButtonText.text = "CONFIRM SELECTION";
+                }
+            }
+            else if(multiplayer && firstPlayerSelected && !bothPlayersSelected)
+            {
+                currentIndex = 0;
+                shopfrontScreenTargetLocation = 0f;
+                while (currentIndex < team2Bowls.Count)
+                {
+                    bowlsSelectedDisplay[currentIndex].color = new Color(1f, 1f, 1f, 128f / 255f);
+                    bowlsBrandsSelectedDisplay[currentIndex].enabled = true;
+                    bowlsBrandsSelectedDisplay[currentIndex].texture = team2Bowls[currentIndex].BowlTexture;
+                    currentIndex++;
+                }
+
+                if (team2Bowls.Count < 3)
+                {
+                    bowlSelectionButtonText.text = "Select Bowl";
+                }
+                else
+                {
+                    bowlSelectionButtonText.text = "CONFIRM SELECTION";
+                }
+            }
+
+            // If bowls have all been selected, display a final summary before progressing to the game
+            else if(firstPlayerSelected && bothPlayersSelected)
+            {
+                currentIndex = 0;
+                // Resetting Bowl Selected Display
+                foreach (UnityEngine.UI.Image bowlImage in bowlsSelectedDisplay)
+                {
+                    bowlsBrandsSelectedDisplay[currentIndex].enabled = false;
+                    bowlImage.enabled = false;
+                    currentIndex++;
+                }
+
+                if(multiplayer)
+                {
+                    multiFinalPreviewTargetX = 0f;
+                    currentIndex = 0;
+                    foreach (BowlsScriptable bowl in team1Bowls)
+                    {
+                        player1SS.brands[currentIndex].texture = bowl.BowlTexture;
+                        currentIndex++;
+                    }
+
+                    player1SS.teamLogo.sprite = teams[player1TeamIndex].TeamIcon;
+
+                    currentIndex = 0;
+                    foreach (BowlsScriptable bowl in team2Bowls)
+                    {
+                        player2SS.brands[currentIndex].texture = bowl.BowlTexture;
+                        currentIndex++;
+                    }
+
+                    player2SS.teamLogo.sprite = teams[player2TeamIndex].TeamIcon;
+                }
+                else
+                {
+                    singleFinalPreviewTargetX = 0f;
+                    currentIndex = 0;
+                    foreach(BowlsScriptable bowl in team1Bowls)
+                    {
+                        singleplayerSS.brands[currentIndex].texture = bowl.BowlTexture;
+                        currentIndex++;
+                    }
+
+                    singleplayerSS.teamLogo.sprite = teams[player1TeamIndex].TeamIcon;
+                }
+
+                bowlSelectionButtonText.text = "START MATCH";
+            }
+
+            // Moving Bowl Selection Sub Menus To Correct Positions
+            bowlSelectionShopfrontMenu.anchoredPosition = Vector3.Lerp(bowlSelectionShopfrontMenu.anchoredPosition, new Vector3(0f, shopfrontScreenTargetLocation, 0f), 5f * Time.deltaTime);
+            singleplayerSelectedItemsMenu.anchoredPosition = Vector3.Lerp(singleplayerSelectedItemsMenu.anchoredPosition, new Vector3(singleFinalPreviewTargetX, 0f, 0f), 5f * Time.deltaTime);
+            multiplayerSelectedItemsMenu.anchoredPosition = Vector3.Lerp(multiplayerSelectedItemsMenu.anchoredPosition, new Vector3(multiFinalPreviewTargetX, 0f, 0f), 5f * Time.deltaTime);
         }
     }
 
@@ -283,14 +438,14 @@ public class MenuSystem : MonoBehaviour
             case "SelectTeam_1P":
                 UpdateMenuDisplay(MenuState.SelectTeam);
                 multiplayer = false;
-                currentTeamIndex = 0;
+                currentSelectionIndex = 0;
                 UpdateTeamSelectionScreen();
                 break;
 
             case "SelectTeam_2P":
                 UpdateMenuDisplay(MenuState.SelectTeam);
                 multiplayer = true;
-                currentTeamIndex = 0;
+                currentSelectionIndex = 0;
                 UpdateTeamSelectionScreen();
                 firstPlayerSelected = false;
                 break;
@@ -354,43 +509,104 @@ public class MenuSystem : MonoBehaviour
     // If on team selection screen roll through to correct team and colours
     private void UpdateTeamSelectionScreen()
     {
-        // Setting Correct BG Gradient
-        if(currentTeamIndex < teamColours1.Length && currentTeamIndex >= 0 && currentTeamIndex < teamColours2.Length)
+        // Setting Correct Logo
+        if (teams.Length > 0)
         {
-            bg.ChangeColours(teamColours1[currentTeamIndex], teamColours2[currentTeamIndex]);
+            logoDisplay.sprite = teams[currentSelectionIndex].TeamIcon;
+            bg.ChangeColours(teams[currentSelectionIndex].TeamColors[0], teams[currentSelectionIndex].TeamColors[1]);
         }
 
+        team1Bowls = new List<BowlsScriptable>();
+        team2Bowls = new List<BowlsScriptable>();
+    }
+
+    // If on bowl selection screen roll through to correct team and colours
+    private void UpdateBowlSelectionScreen()
+    {
         // Setting Correct Logo
-        if(teamLogos.Length > 0)
+        if (bowls.Length > 0)
         {
-            logoDisplay.sprite = teamLogos[currentTeamIndex];
+            bowlLogoDisplay.texture = bowls[currentSelectionIndex].BowlTexture;
+            bowlModelLogoDisplay.material.mainTexture = bowls[currentSelectionIndex].BowlTexture;
+
+            // Updating Bias Tooltip Text
+            string biasText = "NO BIAS";
+            switch(currentSelectionIndex)
+            {
+                case 0:
+                    biasText = "LOWEST BIAS";
+                    break;
+
+                case 1:
+                    biasText = "LOW BIAS";
+                    break;
+
+                case 2:
+                    biasText = "MEDIAN BIAS";
+                    break;
+
+                case 3:
+                    biasText = "HIGH BIAS";
+                    break;
+
+                case 4:
+                    biasText = "HIGHEST BIAS";
+                    break;
+            }
+
+            bowlBiasLabel.text = biasText;
+
+            // Setting correct background and bowl colours
+            if (!firstPlayerSelected)
+            {
+                bg.ChangeColours(teams[player1TeamIndex].TeamColors[0], teams[player1TeamIndex].TeamColors[1]);
+                bowlDisplay.materials[2].color = teams[player1TeamIndex].TeamColors[1];
+                bowlDisplay.materials[1].SetColor("_BaseColour", teams[player1TeamIndex].TeamColors[0]);
+                bowlDisplay.materials[0].SetColor("_BaseColour", teams[player1TeamIndex].TeamColors[0]);
+            }
+            else if (!bothPlayersSelected)
+            {
+                bg.ChangeColours(teams[player2TeamIndex].TeamColors[0], teams[player2TeamIndex].TeamColors[1]);
+                bowlDisplay.materials[2].color = teams[player2TeamIndex].TeamColors[1];
+                bowlDisplay.materials[1].SetColor("_BaseColour", teams[player2TeamIndex].TeamColors[0]);
+                bowlDisplay.materials[0].SetColor("_BaseColour", teams[player2TeamIndex].TeamColors[0]);
+            }
         }
     }
 
     // Function to handle the selecting of teams
-    public void SelectTeam()
+    public void SelectTeam() 
     {
         // If singleplayer, set team and move on
         if(!multiplayer)
         {
-            player1TeamIndex = currentTeamIndex;
+            player1TeamIndex = currentSelectionIndex;
+            team1Bowls = new List<BowlsScriptable>();
+            team2Bowls = new List<BowlsScriptable>();
+            firstPlayerSelected = false;
+            bothPlayersSelected = false;
+            bowlSelectionShopfrontMenu.anchoredPosition = Vector3.zero;
+            singleplayerSelectedItemsMenu.anchoredPosition = new Vector3(-1000f, 0f, 0f);
+            multiplayerSelectedItemsMenu.anchoredPosition = new Vector3(1000f, 0f, 0f);
             UpdateMenuDisplay(MenuState.SelectBowls);
+            currentSelectionIndex = 0;
+            UpdateBowlSelectionScreen();
         }
 
         // If multiplayer, and second player has not selected yet
         else if(!firstPlayerSelected)
         {
-            player1TeamIndex = currentTeamIndex;
-            currentTeamIndex++;
+            player1TeamIndex = currentSelectionIndex;
+            currentSelectionIndex++;
 
             // If Index out of range, loop back around
-            if (currentTeamIndex >= teamLogos.Length)
+            if (currentSelectionIndex >= teams.Length)
             {
-                currentTeamIndex = 0;
+                currentSelectionIndex = 0;
             }
-            else if (currentTeamIndex < 0)
+            else if (currentSelectionIndex < 0)
             {
-                currentTeamIndex = teamLogos.Length - 1;
+                currentSelectionIndex = teams.Length - 1;
             }
 
             UpdateTeamSelectionScreen();
@@ -401,7 +617,7 @@ public class MenuSystem : MonoBehaviour
         // If second player has just selected, move on
         else if(firstPlayerSelected && !bothPlayersSelected)
         {
-            player2TeamIndex = currentTeamIndex;
+            player2TeamIndex = currentSelectionIndex;
             bothPlayersSelected = true;
             UpdateMenuDisplay(MenuState.SelectTeam);
         }
@@ -409,7 +625,83 @@ public class MenuSystem : MonoBehaviour
         // If both players have selected, and the button is pressed again, progress to bowl selection
         else if(firstPlayerSelected && bothPlayersSelected)
         {
+            firstPlayerSelected = false;
+            bothPlayersSelected = false;
             UpdateMenuDisplay(MenuState.SelectBowls);
+            bowlSelectionShopfrontMenu.anchoredPosition = Vector3.zero;
+            singleplayerSelectedItemsMenu.anchoredPosition = new Vector3(-1000f, 0f, 0f);
+            multiplayerSelectedItemsMenu.anchoredPosition = new Vector3(1000f, 0f, 0f);
+            team1Bowls = new List<BowlsScriptable>();
+            team2Bowls = new List<BowlsScriptable>();
+            currentSelectionIndex = 0;
+            UpdateBowlSelectionScreen();
+        }
+    }
+
+    // Function to handle the selecting of bowls
+    public void SelectBowl()
+    {
+        // If singleplayer, set bowls and move on
+        if (!multiplayer && !bothPlayersSelected)
+        {
+            if(team1Bowls.Count < 3)
+            {
+                team1Bowls.Add(bowls[currentSelectionIndex]);
+            }
+
+            // If three bowls selected, move on
+            if(team1Bowls.Count == 3)
+            {
+                firstPlayerSelected = true;
+                bothPlayersSelected = true;
+            }
+
+            UpdateMenuDisplay(MenuState.SelectBowls, true);
+            UpdateBowlSelectionScreen();
+        }
+
+        // If multiplayer, and second player has not selected yet
+        else if (!firstPlayerSelected && !bothPlayersSelected)
+        {
+            if (team1Bowls.Count < 3)
+            {
+                team1Bowls.Add(bowls[currentSelectionIndex]);
+            }
+
+            // If three bowls selected, move on
+            if (team1Bowls.Count == 3)
+            {
+                firstPlayerSelected = true;
+            }
+
+            UpdateMenuDisplay(MenuState.SelectBowls, true);
+            UpdateBowlSelectionScreen();
+        }
+
+        // If second player has just selected, move on
+        else if (firstPlayerSelected && !bothPlayersSelected)
+        {
+            if (team2Bowls.Count < 3)
+            {
+                team2Bowls.Add(bowls[currentSelectionIndex]);
+            }
+
+            // If three bowls selected, move on
+            if (team2Bowls.Count == 3)
+            {
+                bothPlayersSelected = true;
+            }
+
+            UpdateMenuDisplay(MenuState.SelectBowls, true);
+            UpdateBowlSelectionScreen();
+        }
+
+        // If both players have selected, and the button is pressed again, progress to game
+        else if (firstPlayerSelected && bothPlayersSelected)
+        {
+            firstPlayerSelected = false;
+            bothPlayersSelected = false;
+            UpdateMenuDisplay(MenuState.PostMatchBreakdown);
         }
     }
 
@@ -421,19 +713,147 @@ public class MenuSystem : MonoBehaviour
         while(adjustIndex)
         {
             // Adjust current index
-            currentTeamIndex += direction;
+            currentSelectionIndex += direction;
 
             // If outside bounds, adjust
-            if(currentTeamIndex >= teamLogos.Length)
+            if(currentSelectionIndex >= teams.Length)
             {
-                currentTeamIndex = 0;
+                currentSelectionIndex = 0;
             }
-            else if(currentTeamIndex < 0)
+            else if(currentSelectionIndex < 0)
             {
-                currentTeamIndex = teamLogos.Length - 1;
+                currentSelectionIndex = teams.Length - 1;
             }
 
-            adjustIndex = multiplayer && firstPlayerSelected && player1TeamIndex == currentTeamIndex;
+            adjustIndex = multiplayer && firstPlayerSelected && player1TeamIndex == currentSelectionIndex;
+        }
+    }
+
+    // Roll To Next Team
+    private void NextBowl(int direction)
+    {
+        bool adjustIndex = true;
+
+        while (adjustIndex)
+        {
+            // Adjust current index
+            currentSelectionIndex += direction;
+
+            // If outside bounds, adjust
+            if (currentSelectionIndex >= bowls.Length)
+            {
+                currentSelectionIndex = 0;
+            }
+            else if (currentSelectionIndex < 0)
+            {
+                currentSelectionIndex = bowls.Length - 1;
+            }
+
+            adjustIndex = false;
+        }
+    }
+
+    // Function to handle moving backwards in the team menu
+    public void BackButtonInTeamSelect()
+    {
+        // If singleplayer, set team and move on
+        if (!multiplayer || !firstPlayerSelected)
+        {
+            ButtonPress("QuickPlay");
+        }
+
+        // If first player has just selected, move back to them
+        else if (firstPlayerSelected && !bothPlayersSelected)
+        {
+            firstPlayerSelected = false;
+            bothPlayersSelected = false;
+            UpdateMenuDisplay(MenuState.SelectTeam, true);
+            currentSelectionIndex = player1TeamIndex;
+            UpdateTeamSelectionScreen();
+        }
+
+        // If both players have selected, and the button is pressed again, progress to bowl selection
+        else if (firstPlayerSelected && bothPlayersSelected)
+        {
+            firstPlayerSelected = true;
+            bothPlayersSelected = false;
+            UpdateMenuDisplay(MenuState.SelectTeam, true);
+            currentSelectionIndex = player2TeamIndex;
+            UpdateTeamSelectionScreen();
+        }
+    }
+
+    // Function to handle the selecting of bowls
+    public void BackButtonInBowlSelect()
+    {
+        // If singleplayer, remove bowls or move back to teams if required
+        if (!multiplayer && !bothPlayersSelected)
+        {
+            // If no bowls left, return to select team menu
+            if(team1Bowls.Count < 1)
+            {
+                firstPlayerSelected = false;
+                bothPlayersSelected = false;
+                UpdateMenuDisplay(MenuState.SelectTeam, true);
+                currentSelectionIndex = player1TeamIndex;
+                UpdateTeamSelectionScreen();
+            }
+            // If bowls remain, remove one
+            else
+            {
+                team1Bowls.RemoveAt(team1Bowls.Count - 1);
+                UpdateMenuDisplay(MenuState.SelectBowls, true);
+                UpdateBowlSelectionScreen();
+            }
+
+        }
+
+        // If multiplayer, and first player presses back button, remove bowl or move back to teams if required
+        else if (!firstPlayerSelected && !bothPlayersSelected)
+        {
+            // If no bowls left, return to select team menu
+            if (team1Bowls.Count < 1)
+            {
+                firstPlayerSelected = true;
+                bothPlayersSelected = true;
+                UpdateMenuDisplay(MenuState.SelectTeam, true);
+                currentSelectionIndex = player2TeamIndex;
+                UpdateTeamSelectionScreen();
+            }
+            // If bowls remain, remove one
+            else
+            {
+                team1Bowls.RemoveAt(team1Bowls.Count - 1);
+                UpdateMenuDisplay(MenuState.SelectBowls, true);
+                UpdateBowlSelectionScreen();
+            }
+        }
+
+        // If second player has pressed the back button, remove a bowl or flick back to first player selection
+        else if (firstPlayerSelected && !bothPlayersSelected)
+        {
+            // If no bowls left, return to select team menu
+            if (team2Bowls.Count < 1)
+            {
+                firstPlayerSelected = false;
+                bothPlayersSelected = false;
+                UpdateMenuDisplay(MenuState.SelectBowls, true);
+                UpdateBowlSelectionScreen();
+            }
+            // If bowls remain, remove one
+            else
+            {
+                team2Bowls.RemoveAt(team2Bowls.Count - 1);
+                UpdateMenuDisplay(MenuState.SelectBowls, true);
+                UpdateBowlSelectionScreen();
+            }
+        }
+
+        // If both players have selected, move back to second player selection
+        else if (firstPlayerSelected && bothPlayersSelected)
+        {
+            firstPlayerSelected = multiplayer;
+            bothPlayersSelected = false;
         }
     }
 }
