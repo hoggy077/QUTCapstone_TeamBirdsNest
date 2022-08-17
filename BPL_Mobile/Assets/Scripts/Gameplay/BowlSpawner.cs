@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
 public class BowlSpawner : MonoBehaviour
 {
     public GameObject bowlPrefab;
@@ -29,8 +28,6 @@ public class BowlSpawner : MonoBehaviour
         pos.y = bounds.extents.y;
 
         tf.position = pos;
-        //tf.
-        //tf.localScale = new Vector3(10f, 10f, 10f);
     }
 
     // Update is called once per frame
