@@ -105,27 +105,12 @@ public class BowlLauncher : MonoBehaviour
             Vector3 euler_angles = transform.localEulerAngles;
             
             Vector3 direction = BowlPhysics.GetCurrentDirection(initialVelocity, deliveryAngle, 0, time);
-            float angle = Vector3.Angle(Vector3.forward, direction);
-            Debug.Log(angle);
-            // Quaternion rotation = Quaternion.LookRotation(direction.normalized, Vector3.zero);
-            // Debug.Log(String.Format("{0}, {1}, {2}", rotation.eulerAngles.x, rotation.eulerAngles.y, rotation.eulerAngles.z));
-            // transform.rotation = rotation;
             
-            //rotate the bowl around the y-axis so its faceing the correct way
-            // float rotation;
-            // if(deliveryAngle < 0){ // left bias
-            //     rotation = conditions.BowlAngle - transform.rotation.eulerAngles.y;
-            // }
-            // else{ // right bias
-            //     rotation = -((transform.rotation.eulerAngles.y - 360) + conditions.BowlAngle);
-            // }
-            //transform.eulerAngles = euler_angles;
-            //transform.Rotate(new Vector3(0, angle ,0), Space.World);
-            //euler_angles.y = conditions.BowlAngle;
+            float angle = BowlPhysics.GetBowlAngle(direction);
+            
             euler_angles.y = angle;
             euler_angles.x += (pos_diff.magnitude/BowlRadius) / (Mathf.PI/180);
             transform.localEulerAngles = euler_angles;
-            //transform.Rotate(rotationChange, 0, 0, Space.Self);
         }
     }
 

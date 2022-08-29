@@ -12,6 +12,17 @@ public class BowlPhysics{
         return new Vector3(v3.x, v3.y, v3.z - 9);
     }      
 
+    public static float GetBowlAngle(Vector3 direction){
+        float angle = Vector3.Angle(Vector3.forward, direction);
+           
+        if(direction.x > 0){
+            return angle;
+        }
+        else{
+            return -angle;
+        }
+    }
+
     // get the bounding box of the bowl at a given time step
     // public static Vector2[] GetMovingBowlBounds(float initVel, float angle, float MuScale, float t){
     //     Vector3 position = DeliveryPath(initVel, angle, MuScale, t);
@@ -81,7 +92,7 @@ public class BowlPhysics{
         float next_time = t + 0.5f;
 
         if(next_time > end_time){
-            next_time = end_time;
+            next_time = end_time-0.01f;
         }
 
         Vector3 first_point = DeliveryPath(init_vel, angle, mu_scale, t);
