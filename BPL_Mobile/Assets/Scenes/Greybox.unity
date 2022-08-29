@@ -1673,7 +1673,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48675edf42035d44a94a5aa2959a2a98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sounds: []
+  sounds:
+  - name: MainMenuClick
+    clip: {fileID: 8300000, guid: f7610bfbadbeb4f42a7bee4d215aa032, type: 3}
+    volume: 0.5
+    pitch: 4.89
+    loop: 0
+    source: {fileID: 0}
 --- !u!1 &1658028945
 GameObject:
   m_ObjectHideFlags: 0
