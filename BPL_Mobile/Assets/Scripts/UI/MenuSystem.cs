@@ -1,9 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MenuSystem : MonoBehaviour
 {
+    [Header("Flow into Game")]
+    public string gameScene = "";
+    private Gamemode gamemode;
+    private enum Gamemode
+    {
+        Tournament,
+        Quickplay
+    }
+
     [Header("Menu Screens")]
     public GameObject[] titleScreen;
     public GameObject[] mainMenu;
@@ -69,8 +79,6 @@ public class MenuSystem : MonoBehaviour
     [SerializeField] private SelectionsSummaryUI singleplayerSS;
     [SerializeField] private SelectionsSummaryUI player1SS;
     [SerializeField] private SelectionsSummaryUI player2SS;
-
-
 
     // Variable to manage background gradient effect
     private GradientBackground bg;
@@ -417,6 +425,7 @@ public class MenuSystem : MonoBehaviour
 
             case "QuickPlay":
                 UpdateMenuDisplay(MenuState.QuickPlay);
+                gamemode = Gamemode.Quickplay;
                 firstPlayerSelected = false;
                 bothPlayersSelected = false;
                 bg.ResetColours();
@@ -701,7 +710,7 @@ public class MenuSystem : MonoBehaviour
         {
             firstPlayerSelected = false;
             bothPlayersSelected = false;
-            UpdateMenuDisplay(MenuState.PostMatchBreakdown);
+            HandoverToGameScene();
         }
     }
 
@@ -854,6 +863,26 @@ public class MenuSystem : MonoBehaviour
         {
             firstPlayerSelected = multiplayer;
             bothPlayersSelected = false;
+        }
+    }
+
+    private void HandoverToGameScene()
+    {
+        // If we are in quickplay, head to quick play
+        if (gamemode == Gamemode.Quickplay)
+        {
+            GameStateManager.Instance.UpdateTeam(1, teams[player1TeamIndex]);
+
+            if (multiplayer)
+            {
+                GameStateManager.Instance.UpdateTeam(2, teams[player2TeamIndex]);
+            }
+
+            SceneManager.LoadScene(gameScene);
+        }
+        else
+        {
+            SceneManager.LoadScene(gameScene);
         }
     }
 }
