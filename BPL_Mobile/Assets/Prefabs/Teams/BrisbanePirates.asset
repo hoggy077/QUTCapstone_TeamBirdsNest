@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: BrisbanePirates
   m_EditorClassIdentifier: 
   TeamIcon: {fileID: 21300000, guid: 4e46ae7e81d27b941b2c325c329459c8, type: 3}
-  TeamName: Brisbane Pirates
+  TeamName: Pirates
   TeamColors:
   - serializedVersion: 2
     rgba: 4282192251

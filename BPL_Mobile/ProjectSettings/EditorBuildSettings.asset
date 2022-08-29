@@ -4,7 +4,13 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/Menu.unity
+    guid: f849e390cf6929148a5110267da26a23
+  - enabled: 1
+    path: Assets/Scenes/TempQuickPlay.unity
+    guid: 75303d88a73f7254499fc733109fd36d
   m_configObjects:
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 574529c677099444ab6674aca51042f9,
       type: 2}

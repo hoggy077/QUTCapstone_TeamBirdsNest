@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: MoamaSteamers
   m_EditorClassIdentifier: 
   TeamIcon: {fileID: 21300000, guid: f119651226edd8a4c8354107d1e1f616, type: 3}
-  TeamName: Moama Steamers
+  TeamName: Steamers
   TeamColors:
   - serializedVersion: 2
     rgba: 4284403619

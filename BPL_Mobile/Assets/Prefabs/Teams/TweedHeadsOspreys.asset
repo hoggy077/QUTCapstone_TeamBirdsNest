@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: TweedHeadsOspreys
   m_EditorClassIdentifier: 
   TeamIcon: {fileID: 21300000, guid: 3315d3733cd49124e9c412de46a9f394, type: 3}
-  TeamName: Tweed Heads Ospreys
+  TeamName: Ospreys
   TeamColors:
   - serializedVersion: 2
     rgba: 4288761101

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: GoldCoastHawks
   m_EditorClassIdentifier: 
   TeamIcon: {fileID: 21300000, guid: e5676cd6dbe24e4428703274a8a5608f, type: 3}
-  TeamName: Gold Coast Hawks
+  TeamName: Hawks
   TeamColors:
   - serializedVersion: 2
     rgba: 4290295925

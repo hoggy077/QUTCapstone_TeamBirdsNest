@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: PerthSuns
   m_EditorClassIdentifier: 
   TeamIcon: {fileID: 21300000, guid: 3c8dfb7cf3838254783581767e1abbf9, type: 3}
-  TeamName: Perth Suns
+  TeamName: Suns
   TeamColors:
   - serializedVersion: 2
     rgba: 4278571518

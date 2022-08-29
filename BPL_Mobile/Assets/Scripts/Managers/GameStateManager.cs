@@ -13,7 +13,7 @@ public class GameStateManager : MonoBehaviour
             GameObject.DontDestroyOnLoad(gsm);
             return Instance_;
         }}
-    static GameStateManager Instance_ = null;
+    public static GameStateManager Instance_ = null;
 
 
     //This just tells unity to RunOn when the game loads, accessing Instance which will create one if not available

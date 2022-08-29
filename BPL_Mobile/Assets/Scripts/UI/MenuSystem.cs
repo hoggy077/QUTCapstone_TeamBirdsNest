@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 public class MenuSystem : MonoBehaviour
 {
     [Header("Flow into Game")]
-    public string gameScene = "";
+    private string gameScene = "TempQuickPlay";
     private Gamemode gamemode;
     private enum Gamemode
     {
@@ -871,11 +871,15 @@ public class MenuSystem : MonoBehaviour
         // If we are in quickplay, head to quick play
         if (gamemode == Gamemode.Quickplay)
         {
-            GameStateManager.Instance.UpdateTeam(1, teams[player1TeamIndex]);
+            GameStateManager.Instance_.UpdateTeam(1, teams[player1TeamIndex]);
 
             if (multiplayer)
             {
-                GameStateManager.Instance.UpdateTeam(2, teams[player2TeamIndex]);
+                GameStateManager.Instance_.UpdateTeam(2, teams[player2TeamIndex]);
+            }
+            else
+            {
+                GameStateManager.Instance_.UpdateTeam(2, GetRandomUnpickedTeam());
             }
 
             SceneManager.LoadScene(gameScene);
@@ -884,5 +888,20 @@ public class MenuSystem : MonoBehaviour
         {
             SceneManager.LoadScene(gameScene);
         }
+    }
+
+    // Gets Random Team for Multiplayer
+    private TeamScriptable GetRandomUnpickedTeam()
+    {
+        List<TeamScriptable> possibleTeams = new List<TeamScriptable>();
+
+        foreach(TeamScriptable team in teams)
+        {
+            possibleTeams.Add(team);
+        }
+
+        possibleTeams.Remove(teams[player1TeamIndex]);
+
+        return possibleTeams[Random.Range(0, possibleTeams.Count)];
     }
 }
