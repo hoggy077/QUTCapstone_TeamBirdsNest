@@ -6,7 +6,7 @@ using UnityEngine;
 public class AI
 {
     //private bool HavePowerPlay = true;
-    private GameStateManager gsm = GameStateManager.Instance;
+    private GameStateManager gsm = GameStateManager.Instance_;
 
     public AI(){
     }

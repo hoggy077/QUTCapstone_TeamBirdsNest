@@ -8,6 +8,11 @@ public class MatchManager : MonoBehaviour
     public GameObject bowlPrefab;
     public GameObject jackPrefab;
 
+    // Basic Management of Camera Movement for Demo
+    private Camera mainCam;
+    private Vector3 originalCameraLocation;
+    private Vector3 cameraBowlOffset;
+
     //GameStateManager gsm = GameStateManager.Instance;
     GameObject currentBowl = null;
     GameObject Jack;
@@ -20,30 +25,50 @@ public class MatchManager : MonoBehaviour
         Jack = Instantiate(jackPrefab, BowlPhysics.GameToUnityCoords(new Vector3(0, 0, 15)), Quaternion.identity);
 
         ai = new AI();
+        mainCam = Camera.main;
+
+        originalCameraLocation = mainCam.transform.position;
     }
 
     // read the head for scoring purposes
     public void ReadHead(){
+        if(FindObjectOfType<ScoringManager>())
+        {
+            FindObjectOfType<ScoringManager>().ReadTheHead();
+        }
     }
 
     void Update(){
         TestAI();
+
+        if(currentBowl == null)
+        {
+            mainCam.transform.position = originalCameraLocation;
+        }
+        else
+        {
+            mainCam.transform.position = Vector3.Lerp(mainCam.transform.position, currentBowl.transform.position + cameraBowlOffset, 0.2f);
+        }
     }
 
     private void TestAI(){
-        
-
         if(currentBowl == null){
             if(!PlayerTurn){
                 // create a new bowl
+                ReadHead();
                 currentBowl = SpawnBowl();
+                currentBowl.GetComponent<BowlID>().SetTeam(2);
 
                 Transform JackTransform = Jack.GetComponent<Transform>();
 
                 ai.TakeTurn(currentBowl, JackTransform.position, activeBowls, new List<GameObject>());
             }
             else{
+                ReadHead();
                 currentBowl = SpawnBowl();
+                mainCam.transform.position = originalCameraLocation;
+                cameraBowlOffset = originalCameraLocation - currentBowl.transform.position;
+                currentBowl.GetComponent<BowlID>().SetTeam(1);
             }
         }
         else{
@@ -75,5 +100,16 @@ public class MatchManager : MonoBehaviour
         tf.position = pos;
 
         return currentBowl;
+    }
+
+    // Functions to get jack and bowl list
+    public GameObject GetJack()
+    {
+        return Jack;
+    }
+
+    public List<GameObject> GetLiveBowls()
+    {
+        return activeBowls;
     }
 }
