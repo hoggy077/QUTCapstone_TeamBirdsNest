@@ -5,7 +5,7 @@ using UnityEngine;
 public class BowlSpawner : MonoBehaviour
 {
     public GameObject bowlPrefab;
-    public GameObject currentBowl;
+    private GameObject currentBowl;
 
     private Vector3 spawnPoint = new Vector3(0,1,-9);
 

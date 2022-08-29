@@ -5,10 +5,11 @@ using UnityEngine;
 
 public class BowlLauncher : MonoBehaviour
 {
+    public Collider rinkFloor;
     public LineRenderer lineRenderer;
+    private Rigidbody rigidbody;
     private float BowlRadius;
 
-    private bool delivered = false;
     private bool deliver = false; // when true the bowl is moving toward its resting place
     // keeping track of the bowls trajectory in relation to time
     private float DeliveryEndTime = 0;
@@ -21,7 +22,7 @@ public class BowlLauncher : MonoBehaviour
     private int pointsSize = 50;
     private Vector3[] points;
     private float PredictorTimeStep = 0.5f;
-    
+
     // angle of bowl is calculated by scaling the MAX_ROTATION
     // by finding the distance of the input from the center of the x-axis,
     // the further away from the center the higher the magnitude of the angle
@@ -41,29 +42,34 @@ public class BowlLauncher : MonoBehaviour
     // the initial velocity of the bowl is calculated by multiplying the MAX_VELOCITY with the
     // the difference between the inputs y value and VALID_Y_INPUT normalised 
     // between 0 and 1 if its bellow VALID_Y_INPUT
-    const float MAX_VELOCITY = 9;
-    
+    const float MAX_VELOCITY = 5;
+
     void Start(){
         points = new Vector3[pointsSize];
 
         Bounds bounds = GetComponent<Renderer>().bounds;
         BowlRadius = bounds.extents.y;
+
+        rigidbody = GetComponent<Rigidbody>();
     }
 
     void FixedUpdate(){
-        if(deliver && !delivered){    
-            Rigidbody rigidbody = GetComponent<Rigidbody>();
-
+        if(deliver){    
             if(time < DeliveryEndTime){
-                Conditions conditions = BowlPhysics.GetBowlConditions(initialVelocity, deliveryAngle, 1, time);
-
-                // calculate the velocity vector of the bowl at the current timestep
-                Vector3 velocity = new Vector3(Mathf.Sin(conditions.BowlAngle) * conditions.CurrentSpeed, 0, Mathf.Cos(conditions.BowlAngle) * conditions.CurrentSpeed);
+                Vector3 direction = BowlPhysics.GetCurrentDirection(initialVelocity, deliveryAngle, 0, time);
+                direction = direction.normalized;
+                Vector3 velocity = direction * BowlPhysics.GetCurrentVelocity(initialVelocity, deliveryAngle, 0, time);
                 rigidbody.velocity = velocity;
+
+                lineRenderer.positionCount = 2;
+                lineRenderer.SetPosition(0, rigidbody.position);
+                lineRenderer.SetPosition(1, rigidbody.position+velocity);
+                lineRenderer.enabled = true;
             }
             else{
-                rigidbody.velocity = new Vector3(0,0,0);
-
+                lineRenderer.enabled = false;
+                rigidbody.useGravity = true;
+                //rigidbody.velocity = new Vector3(0,0,0);
                 // delete this script off of the bowl
                 Destroy(GetComponent<BowlLauncher>());
             }
@@ -74,40 +80,56 @@ public class BowlLauncher : MonoBehaviour
     void Update()
     {
         if(deliver){ 
-           HandleDelivery();
+            HandleDelivery();
         }
-        else if(Input.touchCount > 0 && !deliver){
+        else if(Input.touchCount > 0){
             HandleInput();
         }
     }
 
-    void HandleDelivery(){
-        time += Time.deltaTime;
+    private void HandleDelivery(){
+        if(time == 0){
+            Rigidbody rigidbody = GetComponent<Rigidbody>();
+            //rigidbody.useGravity = true;
+        }
 
+        time += Time.deltaTime;
         if(time < DeliveryEndTime){
             // // find the position the bowl should currently be in
-            Vector3 pos = BowlPhysics.DeliveryPath(initialVelocity, deliveryAngle, 1, time);
+            Vector3 pos = BowlPhysics.DeliveryPath(initialVelocity, deliveryAngle, 0, time);
+            pos = BowlPhysics.GameToUnityCoords(pos);
             Vector3 pos_diff = pos - transform.position;
             transform.position = new Vector3(pos.x, transform.position.y, pos.z);
 
-            Conditions conditions = BowlPhysics.GetBowlConditions(initialVelocity, deliveryAngle, 1, time);
-
-            // rotate the bowl around the y-axis so its faceing the correct way
-            float rotation;
-            if(deliveryAngle < 0){ // left bias
-                rotation = conditions.BowlAngle - transform.rotation.eulerAngles.y;
-            }
-            else{ // right bias
-                rotation = -((transform.rotation.eulerAngles.y - 360) + conditions.BowlAngle);
-            }
-            transform.Rotate(new Vector3(0, rotation ,0), Space.World);
+            //Conditions conditions = BowlPhysics.GetBowlConditions(initialVelocity, deliveryAngle, 0, time);
+            Vector3 euler_angles = transform.localEulerAngles;
             
-            float rotationChange = (pos_diff.magnitude/BowlRadius) / (Mathf.PI/180);
-            transform.Rotate(rotationChange, 0, 0, Space.Self);
+            Vector3 direction = BowlPhysics.GetCurrentDirection(initialVelocity, deliveryAngle, 0, time);
+            float angle = Vector3.Angle(Vector3.forward, direction);
+            Debug.Log(angle);
+            // Quaternion rotation = Quaternion.LookRotation(direction.normalized, Vector3.zero);
+            // Debug.Log(String.Format("{0}, {1}, {2}", rotation.eulerAngles.x, rotation.eulerAngles.y, rotation.eulerAngles.z));
+            // transform.rotation = rotation;
+            
+            //rotate the bowl around the y-axis so its faceing the correct way
+            // float rotation;
+            // if(deliveryAngle < 0){ // left bias
+            //     rotation = conditions.BowlAngle - transform.rotation.eulerAngles.y;
+            // }
+            // else{ // right bias
+            //     rotation = -((transform.rotation.eulerAngles.y - 360) + conditions.BowlAngle);
+            // }
+            //transform.eulerAngles = euler_angles;
+            //transform.Rotate(new Vector3(0, angle ,0), Space.World);
+            //euler_angles.y = conditions.BowlAngle;
+            euler_angles.y = angle;
+            euler_angles.x += (pos_diff.magnitude/BowlRadius) / (Mathf.PI/180);
+            transform.localEulerAngles = euler_angles;
+            //transform.Rotate(rotationChange, 0, 0, Space.Self);
         }
     }
 
-    void HandleInput(){
+    private void HandleInput(){
         Touch touch = Input.GetTouch(0); 
         bool updatePredictor = true;
 
@@ -117,13 +139,11 @@ public class BowlLauncher : MonoBehaviour
                 // if the position is within the bottom (1/3)rd-ish then launch the bowl
                 // otherwise don't launch it
                 if(touch.position.y < VALID_Y_INPUT){
-                    delivered = false;
                     deliver = true;
-                    DeliveryEndTime = BowlPhysics.DeliveryEndTime(initialVelocity, deliveryAngle, 1);
+                    DeliveryEndTime = BowlPhysics.DeliveryEndTime(initialVelocity, deliveryAngle, 0);
                     lineRenderer.enabled = false;
                 }
                 break;
-
             case TouchPhase.Began:
                 goto case TouchPhase.Moved;
             case TouchPhase.Moved:
@@ -138,7 +158,7 @@ public class BowlLauncher : MonoBehaviour
                     float distFromMidX = touch.position.x - middle;
                     float distFromValidY = System.Math.Abs(touch.position.y - VALID_Y_INPUT);
 
-                    initialVelocity = MAX_VELOCITY * (distFromValidY/VALID_Y_INPUT);
+                    initialVelocity = 2 + (MAX_VELOCITY-2) * (distFromValidY/VALID_Y_INPUT);
                     deliveryAngle = -MAX_ROTATION * (distFromMidX/middle);
                     transform.rotation = Quaternion.Euler(0, deliveryAngle , 0);
                     
@@ -154,11 +174,10 @@ public class BowlLauncher : MonoBehaviour
         if(!deliver && updatePredictor){
             UpdatePathPrediction();
         }
-
     }
 
-    void UpdatePathPrediction(){
-        float PredictorEndTime = BowlPhysics.DeliveryEndTime(initialVelocity, deliveryAngle, 1);
+    private void UpdatePathPrediction(){
+        float PredictorEndTime = BowlPhysics.DeliveryEndTime(initialVelocity, deliveryAngle, 0);
         int steps = (int)Math.Ceiling(PredictorEndTime/PredictorTimeStep);
             
         // if points isn't large enough resize it so it is
@@ -167,7 +186,7 @@ public class BowlLauncher : MonoBehaviour
         }
         
         for(int step = 0; step < steps; step++){
-            points[step] = BowlPhysics.DeliveryPath(initialVelocity, deliveryAngle, 1, PredictorTimeStep * step);
+            points[step] = BowlPhysics.GameToUnityCoords(BowlPhysics.DeliveryPath(initialVelocity, deliveryAngle, 0, PredictorTimeStep * step));
         }
 
         lineRenderer.positionCount = steps;
@@ -175,7 +194,22 @@ public class BowlLauncher : MonoBehaviour
         lineRenderer.enabled = true;
     }
 
-    void OnCollisionEnter(Collision collision){
+    public void MakeDelivery(float angle, float InitVel){
+        initialVelocity = InitVel;
+        deliveryAngle = angle;
+        transform.rotation = Quaternion.Euler(0, deliveryAngle , 0);
+        deliver = true;
+        DeliveryEndTime = BowlPhysics.DeliveryEndTime(initialVelocity, deliveryAngle, 0);
+    }
 
+    void OnCollisionEnter(Collision collision){
+        if(collision.gameObject.name != "Rink"){
+            lineRenderer.enabled = false;
+            rigidbody.useGravity = true;
+            Rigidbody rb = GetComponent<Rigidbody>();
+            // delete this script off of the bowl to stop following the path and let the physics
+            // system do the rest
+            Destroy(GetComponent<BowlLauncher>());
+        }
     }
 }

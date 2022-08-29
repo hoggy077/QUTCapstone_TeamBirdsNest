@@ -51,6 +51,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5522a57d2a28540aca6d166a688a6f4f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rinkFloor: {fileID: 0}
   lineRenderer: {fileID: -5759844349258642046}
 --- !u!33 &1582703531891264014
 MeshFilter:
@@ -208,7 +209,7 @@ MeshCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2959690979795132177}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 68429102fa7d446b58650366e825a9fc, type: 2}
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 4
@@ -324,7 +325,7 @@ MeshCollider:
   m_GameObject: {fileID: 3706476208597691247}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 4
   m_Convex: 1
   m_CookingOptions: 30
@@ -422,7 +423,7 @@ MeshCollider:
   m_GameObject: {fileID: 4516596248477126648}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 4
   m_Convex: 1
   m_CookingOptions: 30

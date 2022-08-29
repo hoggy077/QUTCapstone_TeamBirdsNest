@@ -1,67 +1,79 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class MatchManager : MonoBehaviour
 {
-    [Header("Debugging")]
-    // Placeholder Team SOs to allow for quick testing without heading back to menu
-    public TeamScriptable debugTestTeam1;
-    public TeamScriptable debugTestTeam2;
+    public GameObject bowlPrefab;
+    public GameObject jackPrefab;
 
-    public MatchScore currentScore;
-    private ScorecardUI scorecard;
-    private GameStateManager gsm;
+    //GameStateManager gsm = GameStateManager.Instance;
+    GameObject currentBowl = null;
+    GameObject Jack;
+    List<GameObject> activeBowls = new List<GameObject>();
+    bool PlayerTurn = true;
+    private AI ai;
 
-    // Structure to manage current scoring variables
-    public struct MatchScore
-    {
-        public int team1EndsWon;
-        public int team1SetsWon;
-        public int team1CurrentShots;
+    void Start(){
+        // create the jack and set it in the correct position
+        Jack = Instantiate(jackPrefab, BowlPhysics.GameToUnityCoords(new Vector3(0, 0, 15)), Quaternion.identity);
 
-        public int team2EndsWon;
-        public int team2SetsWon;
-        public int team2CurrentShots;
+        ai = new AI();
     }
 
-    // Initialize Scoring 
-    private void Start()
-    {
-        currentScore = new MatchScore();
-
-        scorecard = FindObjectOfType<ScorecardUI>();
-        gsm = GameStateManager.Instance_;
-        Debug.Log(gsm.name);
-
-        // Setup Starting Scores and Teams
-        SetupStartingScore();
+    // read the head for scoring purposes
+    public void ReadHead(){
     }
 
-    // Zeroing out scores, setting teams to correct
-    public void SetupStartingScore()
-    {
-        // Resetting Scores
-        currentScore.team1EndsWon = 0;
-        currentScore.team1SetsWon = 0;
-        currentScore.team1CurrentShots = 0;
+    void Update(){
+        TestAI();
+    }
 
-        currentScore.team2EndsWon = 0;
-        currentScore.team2SetsWon = 0;
-        currentScore.team2CurrentShots = 0;
-
-        // Setting Team Information to Display, and setting placeholders if the menu has not been used
-        if(debugTestTeam1 != null)
-        {
-            gsm.UpdateTeam(1, debugTestTeam1);
-        }
+    private void TestAI(){
         
-        if(debugTestTeam2 != null)
-        {
-            gsm.UpdateTeam(2, debugTestTeam2);
-        }
 
-        scorecard.UpdateTeam1Info(gsm.Team_1.Name(), gsm.Team_1.BaseTeam.TeamColors[0]);
-        scorecard.UpdateTeam2Info(gsm.Team_2.Name(), gsm.Team_2.BaseTeam.TeamColors[0]);
+        if(currentBowl == null){
+            if(!PlayerTurn){
+                // create a new bowl
+                currentBowl = SpawnBowl();
+
+                Transform JackTransform = Jack.GetComponent<Transform>();
+
+                ai.TakeTurn(currentBowl, JackTransform.position, activeBowls, new List<GameObject>());
+            }
+            else{
+                currentBowl = SpawnBowl();
+            }
+        }
+        else{
+            if(currentBowl.GetComponent<BowlLauncher>() == null){
+                activeBowls.Add(currentBowl);
+                currentBowl = null;
+                PlayerTurn = !PlayerTurn;
+            }
+        }
+    }
+
+    private GameObject SpawnBowl(){
+        
+        // create the first bowl from the prefab, at the starting point
+        GameObject currentBowl = Instantiate(bowlPrefab, BowlPhysics.GameToUnityCoords(new Vector3(0, 0, 0)), Quaternion.identity);
+        Transform tf = currentBowl.transform;
+        
+        Bounds bounds = currentBowl.GetComponent<Renderer>().bounds;
+    
+        // rescale bowl to be 12.7 cm
+        Vector3 currentScale = tf.localScale;
+        tf.localScale = tf.localScale * 0.127f;//(0.127f/bounds.max.y);
+
+        bounds = currentBowl.GetComponent<Renderer>().bounds;
+        // position bowl so the bottom is touching the green
+        Vector3 pos = tf.position;
+        pos.y = bounds.extents.y;
+
+        tf.position = pos;
+
+        return currentBowl;
     }
 }
