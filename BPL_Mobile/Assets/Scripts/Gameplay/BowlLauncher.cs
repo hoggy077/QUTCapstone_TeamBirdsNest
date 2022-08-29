@@ -105,10 +105,12 @@ public class BowlLauncher : MonoBehaviour
             Vector3 euler_angles = transform.localEulerAngles;
             
             Vector3 direction = BowlPhysics.GetCurrentDirection(initialVelocity, deliveryAngle, 0, time);
+            if(direction.magnitude > 0.02){
+                float angle = BowlPhysics.GetBowlAngle(direction);
             
-            float angle = BowlPhysics.GetBowlAngle(direction);
-            
-            euler_angles.y = angle;
+                euler_angles.y = angle;
+            }
+            Debug.Log((pos_diff.magnitude/BowlRadius) / (Mathf.PI/180));
             euler_angles.x += (pos_diff.magnitude/BowlRadius) / (Mathf.PI/180);
             transform.localEulerAngles = euler_angles;
         }
