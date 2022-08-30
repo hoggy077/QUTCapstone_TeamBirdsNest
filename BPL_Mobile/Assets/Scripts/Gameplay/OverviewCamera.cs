@@ -6,6 +6,11 @@ public class OverviewCamera : MonoBehaviour
 {
     public Camera mainCamera, overviewCamera;
 
+    void Start()
+    {
+        cameraMain();
+    }
+
     void Update()
     {
         if (Input.GetKeyDown("left"))
