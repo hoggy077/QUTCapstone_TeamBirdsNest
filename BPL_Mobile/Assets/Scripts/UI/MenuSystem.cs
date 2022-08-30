@@ -8,7 +8,7 @@ public class MenuSystem : MonoBehaviour
     [Header("Flow into Game")]
     private string gameScene = "TempQuickPlay";
     private Gamemode gamemode;
-    private enum Gamemode
+    public enum Gamemode
     {
         Tournament,
         Quickplay

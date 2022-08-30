@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Xml.Serialization;
 using UnityEngine;
 
 public class GameStateManager : MonoBehaviour
@@ -8,23 +9,26 @@ public class GameStateManager : MonoBehaviour
     //Gameobject Singleton
     public static GameStateManager Instance { 
         get {
-            GameObject gsm = new GameObject("GameStateManager");
-            Instance_ = gsm.AddComponent<GameStateManager>();
-            GameObject.DontDestroyOnLoad(gsm);
+            if(Instance_ == null)
+            {
+                GameObject gsm = new GameObject("GameStateManager");
+                Instance_ = gsm.AddComponent<GameStateManager>();
+                GameObject.DontDestroyOnLoad(gsm);
+            }
+            Exist = true;
             return Instance_;
         }}
     public static GameStateManager Instance_ = null;
+    static bool Exist = false;
 
 
     //This just tells unity to RunOn when the game loads, accessing Instance which will create one if not available
     [RuntimeInitializeOnLoadMethod]
     static void RunOn() => _ = Instance;
 
-
+    public static bool Exists() => Exist;
 
     #region Game related variables
-
-    GamemodeInfo CurrentGamemode;
 
     #region Teams
     public Team_struct Team_1 { get; private set; }
@@ -50,18 +54,16 @@ public class GameStateManager : MonoBehaviour
     private TurnBasedManager.Turn LastValidTurn = TurnBasedManager.Turn.Team1;
     public void changeTurn(TurnBasedManager.Turn v)
     {
-        if(v != TurnBasedManager.Turn.Null)
+        if (v != TurnBasedManager.Turn.Null)
             LastValidTurn = v;
 
         TurnManager.UpdateTurn(v);
-        TurnChanged.Invoke(TurnManager.CurrentTurn);
     }
 
     [Obsolete]
     public void nextTurn()
     {
         TurnManager.UpdateTurn(TurnManager.CurrentTurn == TurnBasedManager.Turn.Team1 ? TurnBasedManager.Turn.Team2 : TurnBasedManager.Turn.Team1);
-        TurnChanged.Invoke(TurnManager.CurrentTurn);
     }
     #endregion
 
@@ -69,8 +71,58 @@ public class GameStateManager : MonoBehaviour
 
 
     #region Event Delegates for posterity
-    public delegate void turnChanged_(TurnBasedManager.Turn turn);
-    public event turnChanged_ TurnChanged;
+
+    //@Riley
+    //1. scoreboardUI if you make a "void exampleFunc(Team_struct team)" function
+    //2. in void Start() add
+    //   GameStateManager.Instance.TeamUpdated += exampleFunc
+    //3. and your good
+    public delegate void TeamUpdated_(Team_struct ATeam);//insert A team theme song here
+    public event TeamUpdated_ TeamUpdated;
+
+    //@Riley
+    //us this function so TeamUpdate works. This is additive, so you only need to pass 1 to +1
+    //call this if you want to use TeamUpdated
+    public void UpdateTeamScores(uint TeamNumber, uint? shots = null, uint? sets = null, uint? ends = null, bool? powerplay = null)
+    {
+        switch (TeamNumber)
+        {
+            case (1):
+                if (shots != null)
+                    Team_1.Shots += (uint)shots;
+
+                if (sets != null)
+                    Team_1.Sets += (uint)sets;
+
+                if (ends != null)
+                    Team_1.Ends += (uint)ends;
+
+                if (powerplay != null)
+                    Team_1.HasPowerPlay = (bool)powerplay;
+
+                TeamUpdated.Invoke(Team_1);
+                break;
+
+            case (2):
+                if (shots != null)
+                    Team_2.Shots += (uint)shots;
+
+                if (sets != null)
+                    Team_2.Sets += (uint)sets;
+
+                if (ends != null)
+                    Team_2.Ends += (uint)ends;
+
+                if (powerplay != null)
+                    Team_2.HasPowerPlay = (bool)powerplay;
+
+                TeamUpdated.Invoke(Team_2);
+                break;
+            default:
+                return;
+        }
+    }
+
     #endregion
 
 
@@ -88,20 +140,7 @@ public class GameStateManager : MonoBehaviour
         //--so on a false load the file and on a true save it
         //--only load tho, if the active scene isn't the game scene, and the use decides to resume?
 
-        GameObject[] trackings = GameObject.FindGameObjectsWithTag("Trackable");
-        TrackedObject[] tracking = new TrackedObject[trackings.Length];
-        for(int i = 0; i < trackings.Length; i++)
-            tracking[i] = new TrackedObject(trackings[i]);
 
-
-        //SaveSystem.saveGeneric(new SavedSession()
-        //{
-        //    CurrentTurn = TurnManager.CurrentTurn,
-        //    LastTurn = LastValidTurn,
-        //    Team1_state = Team_1,
-        //    Team2_state = Team_2,
-        //    trackedGameObjects = tracking
-        //}, "lastSession.sav");
     }
 
     #endregion
@@ -109,14 +148,18 @@ public class GameStateManager : MonoBehaviour
 
 #region Team and turn manager
 [Serializable]
-public struct Team_struct
+public class Team_struct
 {
-    public int Score;
+    public uint Shots;
+    public uint Sets;
+    public uint Ends;
     public TeamScriptable BaseTeam;
     public string Name() => BaseTeam.TeamName;
     public object[] ChosenPlayers;//-- this will need to change
     public bool HasPowerPlay;
-    public List<GameObject> Teams_Active_Bowls;
+
+    [XmlIgnore]
+    public List<GameObject> Teams_Active_Bowls;//we have to have this because gameobjects include transform and transform cant be serialized
 }
 
 public class TurnBasedManager
@@ -138,38 +181,3 @@ public class TurnBasedManager
 }
 #endregion
 
-#region summary Tracked
-struct SavedSession
-{
-    public TrackedObject[] trackedGameObjects;
-    public Team_struct Team1_state;
-    public Team_struct Team2_state;
-    public TurnBasedManager.Turn LastTurn;
-    public TurnBasedManager.Turn CurrentTurn;
-}
-
-struct TrackedObject
-{
-    public TrackedObject(GameObject obj)
-    {
-        Position = obj.transform.position;
-        Rotation = obj.transform.rotation;
-        Rigidbody rb = obj.GetComponent<Rigidbody>();
-        if(rb != null)
-        {
-            Velocity = rb.velocity;
-            AngularVelocity = rb.angularVelocity;
-        }
-        else
-        {
-            Velocity = Vector3.zero;
-            AngularVelocity = Vector3.zero;
-        }
-    }
-
-    public Vector3 Position;
-    public Quaternion Rotation;
-    public Vector3 Velocity;            //Including this
-    public Vector3 AngularVelocity;    //And this because in the rare case something is moving when the app loses focus we can maintain that when it comes back if available
-}
-#endregion

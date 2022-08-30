@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
+using System.Xml;
 using UnityEngine;
 
 public static class SaveSystem
@@ -42,6 +43,33 @@ public static class SaveSystem
             performDelete(FileName);
 
         return (T)Result;
+    }
+
+
+
+
+    public static bool verifyFile<T>(string FileName)
+    {
+        if(!File.Exists($"{PersistentPath}\\{FileName}"))
+            return false;
+
+        try
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(T));
+            object Result = null;
+
+            using FileStream stream = File.OpenRead($"{PersistentPath}\\{FileName}");
+            Result = serializer.Deserialize(stream);
+            stream.Close();
+
+            T casted = (T)Result;
+            return true;
+        }
+        catch (Exception err)
+        {
+            return false;
+        }
+        return false;
     }
 
     public static void performDelete(string FileName) => File.Delete($"{PersistentPath}\\{FileName}");
