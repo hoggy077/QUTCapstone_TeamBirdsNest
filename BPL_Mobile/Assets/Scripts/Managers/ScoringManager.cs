@@ -13,7 +13,8 @@ public class ScoringManager : MonoBehaviour
     public TeamScriptable debugTeam1;
     public TeamScriptable debugTeam2;
 
-    private int bowlsRolled = 0;
+    private int currentEnd = 1;
+    public int endsPerSet = 5;
 
     public struct MatchScore
     {
@@ -21,14 +22,12 @@ public class ScoringManager : MonoBehaviour
         public int team2Sets;
         public int team1Ends;
         public int team2Ends;
-        public int team1Shots;
-        public int team2Shots;
     }
 
     // Initializing Match
     private void Start()
     {
-        gsm = GameStateManager.Instance_;
+        gsm = GameStateManager.Instance;
         scorecard = FindObjectOfType<ScorecardUI>();
         mm = FindObjectOfType<MatchManager>();
         SetupStartingScores();
@@ -36,9 +35,11 @@ public class ScoringManager : MonoBehaviour
 
     public void ReadTheHead()
     {
+        // Assembling bowls and jack references
         List<GameObject> bowls = new List<GameObject>();
         GameObject jack = mm.GetJack();
 
+        // Calculating and Rearranging list from closest to furthest away from jack
         foreach(GameObject bowl in mm.GetLiveBowls())
         {
             // If its the first bowl to be read, add it on and move on
@@ -74,7 +75,42 @@ public class ScoringManager : MonoBehaviour
             }
         }
 
-        UpdateShots(bowls);
+        // Checking which team holds the shots
+        int[] teamAndScore = UpdateShots(bowls);
+
+        // Updating Current Bowls remaining for each team, finding if the end has concluded
+        bool continueEnd = UpdateShotsRemaining(mm.GetLiveBowls());
+
+        // Checking if the end is over, and if so, updating scorecard
+        if(!continueEnd)
+        {
+            // Adding current shots to end score
+            if(teamAndScore[0] == 1)
+            {
+                currentScore.team1Ends += teamAndScore[1];
+            }
+            else
+            {
+                currentScore.team2Ends += teamAndScore[1];
+            }
+
+            // Updating Scorecard End Scores
+            scorecard.UpdateEndsWon(currentScore.team1Ends, currentScore.team2Ends);
+
+            // Updating Scorecard Current End
+            currentEnd++;
+
+            // If still within set update scorecard and reset counts
+            if(currentEnd <= endsPerSet)
+            {
+                scorecard.UpdateEndNumber(currentEnd);
+                StartNewEnd();
+            }
+            else
+            {
+                StartNewSet();
+            }
+        }
     }
 
     // For the start of a new match
@@ -82,8 +118,6 @@ public class ScoringManager : MonoBehaviour
     {
         currentScore.team1Ends = 0;
         currentScore.team2Ends = 0;
-        currentScore.team1Shots = 0;
-        currentScore.team2Shots = 0;
         currentScore.team1Sets = 0;
         currentScore.team2Sets = 0;
 
@@ -103,10 +137,75 @@ public class ScoringManager : MonoBehaviour
         scorecard.UpdateTeam2Info(gsm.Team_2.Name(), gsm.Team_2.BaseTeam.TeamColors[0]);
 
         scorecard.UpdateCurrentShots(1, 0);
+
+        // Updating End Number
+        currentEnd = 1;
+        scorecard.UpdateEndNumber(currentEnd);
     }
 
-    private void UpdateShots(List<GameObject> bowls)
+    // For starting a new end
+    private void StartNewEnd(bool tiebreaker = false)
     {
+        // Delete and reset bowl list
+        mm.CleanUpBowls();
+
+        // Update Display
+        scorecard.UpdateEndNumber(currentEnd, tiebreaker);
+    }
+
+    // For the finishing and starting of a new set
+    private void StartNewSet()
+    {
+        // Determining winner of set, and updating scorecard
+        if (currentScore.team1Ends > currentScore.team2Ends)
+        {
+            currentScore.team1Sets++;
+        }
+        else if (currentScore.team1Ends < currentScore.team2Ends)
+        {
+            currentScore.team2Sets++;
+        }
+        else
+        {
+            // Resetting End for Tiebreaker
+            currentEnd--;
+            StartNewEnd();
+            scorecard.UpdateEndNumber(currentEnd, true);
+            return;
+        }
+
+        // Update Scorecard
+        scorecard.UpdateSetsWon(currentScore.team1Sets, currentScore.team2Sets);
+
+        // Resetting End Scores
+        currentScore.team1Ends = 0;
+        currentScore.team2Ends = 0;
+
+        // If two sets completed and there is a clean cut winner, end the game
+        if(currentScore.team1Sets + currentScore.team2Sets >= 2 && currentScore.team1Sets != currentScore.team2Sets)
+        {
+            FinishMatch();
+        }
+
+        // Start Tiebreaker FINALE if required
+        else if(currentScore.team1Sets + currentScore.team2Sets >= 2)
+        {
+            currentEnd--;
+            StartNewEnd(true);
+        }
+
+        // If not final set, move onto next one
+        else
+        {
+            currentEnd = 1;
+            StartNewEnd();
+        }
+    }
+
+    // Function to handle the updating and calculation of the current shots held by a leading team
+    private int[] UpdateShots(List<GameObject> bowls)
+    {
+        int[] output = new int[2];
         int currentWinningTeam = 0;
         int shots = 0;
 
@@ -125,6 +224,52 @@ public class ScoringManager : MonoBehaviour
         }
 
         scorecard.UpdateCurrentShots(currentWinningTeam, shots);
+
+        // Generating output for tracking
+        output[0] = currentWinningTeam;
+        output[1] = shots;
+
+        return output;
+    }
+
+    // Function to handle concluding of match
+    private void FinishMatch()
+    {
+
+    }
+
+    // Function to handle updating of scorecard and calculation of remaining shots for each team
+    private bool UpdateShotsRemaining(List<GameObject> bowls)
+    {
+        // Start with total shots for each team allowed
+        int team1ShotsRemaining = 6;
+        int team2ShotsRemaining = 6;
+
+        // Negate one shot for each team bowl present on the field
+        foreach(GameObject bowl in bowls)
+        {
+            if(bowl.GetComponent<BowlID>().GetTeam() == 1)
+            {
+                team1ShotsRemaining -= 1;
+            }
+            else
+            {
+                team2ShotsRemaining -= 1;
+            }
+        }
+
+        // Updating Shots on Scorecard
+        scorecard.UpdateShotsRemaining(team1ShotsRemaining, team2ShotsRemaining);
+
+        // Return true or false depending on the current shots remaining, if false, the game must move to the next end
+        if(team1ShotsRemaining == 0 && team2ShotsRemaining == 0)
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
     }
 
     private float DistanceToJack(GameObject bowl, GameObject jack)

@@ -1410,8 +1410,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4284177243
-  m_fontColor: {r: 0.3584906, g: 0.3584906, b: 0.3584906, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -2265,8 +2265,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4284177243
-  m_fontColor: {r: 0.3584906, g: 0.3584906, b: 0.3584906, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -2673,6 +2673,8 @@ MonoBehaviour:
   setsWonChangeAnimationSpeed: 5
   scorecardTailendLocation: {fileID: 5572826844183247516}
   setsWonScorecardElement: {fileID: 3208858742513792933}
+  scorecardSetsWonActiveOffset: -3
+  scorecardSetsWonInactiveOffset: 44.7
   endNumberDisplay: {fileID: 3208858741397563533}
   shotPoints:
   - {fileID: 426226640421549040}

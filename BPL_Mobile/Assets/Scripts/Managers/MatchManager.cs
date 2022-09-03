@@ -12,6 +12,7 @@ public class MatchManager : MonoBehaviour
     private Camera mainCam;
     private Vector3 originalCameraLocation;
     private Vector3 cameraBowlOffset;
+    private ScoringManager scm;
 
     //GameStateManager gsm = GameStateManager.Instance;
     GameObject currentBowl = null;
@@ -28,13 +29,14 @@ public class MatchManager : MonoBehaviour
         mainCam = Camera.main;
 
         originalCameraLocation = mainCam.transform.position;
+        scm = FindObjectOfType<ScoringManager>();
     }
 
-    // read the head for scoring purposes
+    // Read the head for scoring purposes
     public void ReadHead(){
-        if(FindObjectOfType<ScoringManager>())
+        if(scm)
         {
-            FindObjectOfType<ScoringManager>().ReadTheHead();
+            scm.ReadTheHead();
         }
     }
 
@@ -111,5 +113,22 @@ public class MatchManager : MonoBehaviour
     public List<GameObject> GetLiveBowls()
     {
         return activeBowls;
+    }
+
+    // Called Externally to reset bowls and jack for new end
+    public void CleanUpBowls()
+    {
+        // Looping through and destroying all bowls within current bowls list
+        for(int index = 0; index < activeBowls.Count; index++)
+        {
+            Destroy(activeBowls[index]);
+        }
+
+        // Resetting List
+        activeBowls = new List<GameObject>();
+
+        // Creating new Jack
+        Destroy(Jack.gameObject);
+        Jack = Instantiate(jackPrefab, BowlPhysics.GameToUnityCoords(new Vector3(0, 0, 15)), Quaternion.identity);
     }
 }
