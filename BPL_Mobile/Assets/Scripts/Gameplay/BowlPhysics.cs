@@ -2,8 +2,6 @@ using System;
 using UnityEngine;
 
 public class BowlPhysics{
-     
-
     public static Vector3 UnityToGameCoords(Vector3 v3){
         return new Vector3(v3.x, v3.y, v3.z + 9);
     }

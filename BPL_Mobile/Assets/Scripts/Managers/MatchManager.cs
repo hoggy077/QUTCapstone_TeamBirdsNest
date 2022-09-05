@@ -18,7 +18,7 @@ public class MatchManager : MonoBehaviour
     GameObject currentBowl = null;
     GameObject Jack;
     List<GameObject> activeBowls = new List<GameObject>();
-    bool PlayerTurn = false;
+    bool PlayerTurn = true;
     private AI ai;
     private bool ai_keep_looping = false;
     private bool spawnbowl = true;
@@ -28,9 +28,13 @@ public class MatchManager : MonoBehaviour
         Jack = Instantiate(jackPrefab, BowlPhysics.GameToUnityCoords(new Vector3(0, 0, 15)), Quaternion.identity);
 
         ai = new AI(linerenderer);
+        linerenderer.enabled = false;
         mainCam = Camera.main;
 
         originalCameraLocation = mainCam.transform.position;
+
+        Rigidbody JackRigidbody = Jack.GetComponent<Rigidbody>();
+        JackRigidbody.sleepThreshold = 10f;
     }
 
     // read the head for scoring purposes
@@ -42,7 +46,7 @@ public class MatchManager : MonoBehaviour
     }
 
     void Update(){
-        TestAI();
+        Play();
 
         if(currentBowl == null)
         {
@@ -54,6 +58,40 @@ public class MatchManager : MonoBehaviour
         }
     }
 
+    private void Play(){
+        if(currentBowl == null){
+            if(!PlayerTurn){
+                // create a new bowl
+                ReadHead();
+                currentBowl = SpawnBowl();
+                currentBowl.GetComponent<BowlID>().SetTeam(2);
+                mainCam.transform.position = originalCameraLocation;
+                cameraBowlOffset = originalCameraLocation - currentBowl.transform.position;
+                
+                Transform JackTransform = Jack.GetComponent<Transform>();
+                
+                ai.TakeTurn(currentBowl, JackTransform.position, activeBowls, new List<GameObject>());
+            }
+            else{
+                ReadHead();
+                currentBowl = SpawnBowl();
+                mainCam.transform.position = originalCameraLocation;
+                cameraBowlOffset = originalCameraLocation - currentBowl.transform.position;
+                currentBowl.GetComponent<BowlID>().SetTeam(1);
+            }
+        }
+        else{
+            // wait for the bowl to finish its delivery
+            if(currentBowl.GetComponent<BowlLauncher>() == null){
+                activeBowls.Add(currentBowl);
+                currentBowl = null;
+                PlayerTurn = !PlayerTurn;
+                spawnbowl = true;
+            }
+        }
+
+    }
+
     private void TestAI(){
         if(currentBowl == null || ai_keep_looping){
             if(!PlayerTurn){
@@ -61,7 +99,7 @@ public class MatchManager : MonoBehaviour
                     // create a new bowl
                     ReadHead();
                     currentBowl = SpawnBowl();
-                    //currentBowl.GetComponent<BowlID>().SetTeam(2);
+                    currentBowl.GetComponent<BowlID>().SetTeam(2);
                     spawnbowl = false;
                     mainCam.transform.position = originalCameraLocation;
                     cameraBowlOffset = originalCameraLocation - currentBowl.transform.position;
@@ -78,7 +116,7 @@ public class MatchManager : MonoBehaviour
                 currentBowl = SpawnBowl();
                 mainCam.transform.position = originalCameraLocation;
                 cameraBowlOffset = originalCameraLocation - currentBowl.transform.position;
-                //currentBowl.GetComponent<BowlID>().SetTeam(1);
+                currentBowl.GetComponent<BowlID>().SetTeam(1);
             }
         }
         else{
@@ -86,7 +124,7 @@ public class MatchManager : MonoBehaviour
             if(currentBowl.GetComponent<BowlLauncher>() == null){
                 activeBowls.Add(currentBowl);
                 currentBowl = null;
-                //PlayerTurn = !PlayerTurn;
+                PlayerTurn = !PlayerTurn;
                 spawnbowl = true;
             }
         }

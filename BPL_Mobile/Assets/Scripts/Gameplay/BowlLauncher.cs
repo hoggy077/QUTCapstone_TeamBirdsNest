@@ -72,11 +72,6 @@ public class BowlLauncher : MonoBehaviour
                 Vector3 angularVelocityVec = new Vector3(0, 0, angularVelocitySpeed);
                 
                 rigidbody.AddRelativeTorque( angularVelocityVec, ForceMode.VelocityChange);
-
-                lineRenderer.positionCount = 2;
-                lineRenderer.SetPosition(0, rigidbody.position);
-                lineRenderer.SetPosition(1, rigidbody.position+velocity);
-                lineRenderer.enabled = true;
             }
             else{
                 lineRenderer.enabled = false;
@@ -132,16 +127,12 @@ public class BowlLauncher : MonoBehaviour
             
             // rotate the bowl around the local x-axis to create the illusion of it rolling
             euler_angles = transform.localEulerAngles;
-            
             lastAngle = lastAngle % 360;
-            rotationAmount += (pos_diff.magnitude/(BowlRadius*2*Mathf.PI)) * 360;
-            if(rotationAmount > 5){
-                euler_angles.x = lastAngle + rotationAmount;
-                lastAngle = euler_angles.x;
-                rotationAmount = 0;
-            }
+            float angle_percentage = 1 - time/DeliveryEndTime; // used to slow the amount of rotation toward the end of the trajectory
+            euler_angles.x = lastAngle + (pos_diff.magnitude/(BowlRadius*2*Mathf.PI))/4 * 360 * angle_percentage;
+            lastAngle = euler_angles.x;
             transform.localEulerAngles = euler_angles;
-
+            
             // make sure the bowl is upright
             Vector3 globalEuler = transform.eulerAngles;
             globalEuler.z = 0f;
@@ -183,7 +174,6 @@ public class BowlLauncher : MonoBehaviour
                     deliveryAngle = -MAX_ROTATION * (distFromMidX/middle);
                     transform.rotation = Quaternion.Euler(0, deliveryAngle , 0);
                     
-                    Debug.Log(BowlPhysics.GetBowlPathLength(initialVelocity, deliveryAngle, 0, 0));
                     updatePredictor = true;
                 }else{
                     updatePredictor = false;

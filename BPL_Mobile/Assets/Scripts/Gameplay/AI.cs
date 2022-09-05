@@ -1,3 +1,5 @@
+//#define DEBUG
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,13 +12,10 @@ public class AI
 
     //private bool HavePowerPlay = true;
     private GameStateManager gsm = GameStateManager.Instance_;
-    private Bias bias = Bias.Left;
-    private float radius_iterations = 1;
-    private float radius = 0.0635f;
-    private float radius_step = 0.0635f;
-    private float angle_step_no = 0;
-    private float angle_step = 360/6;
-    private float angle = -360/6;
+    private SearchParameters sp = new SearchParameters();
+
+    List<Vector3> Team1BowlsLast;
+    List<Vector3> Team2BowlsLast;
 
     public AI(LineRenderer lineRenderer){
         this.lineRenderer = lineRenderer;
@@ -25,7 +24,9 @@ public class AI
     // TODO: remove bowls that are in the ditch and arne't still marked as active or "chalked"
     public bool TakeTurn(GameObject CurrentBowl, Vector3 JackPos, List<GameObject> Team1Bowls, List<GameObject> Team2Bowls){
 
-        if(Input.touchCount > 0){
+        #if TEST
+        Debug.Log("test is on");
+        if(Input.touchCount > 0){ // TESTING {
             Touch touch = Input.GetTouch(0); 
             // handle any touch input
             switch(touch.phase){
@@ -39,7 +40,8 @@ public class AI
         }
         else{
             test_next_position = false;
-        }
+        } // TESTING }
+        #endif
 
         List<Vector3> Team1Positions = new List<Vector3>();
         List<Vector3> Team2Positions = new List<Vector3>();
@@ -71,19 +73,16 @@ public class AI
         }
     }
 
-    // TODO: change return type to include a bail out return value when the search has been going on to long
-    private (InitialConditions ics, bool aborted) GetTargetPosition(GameObject CurrentBowl, Vector3 JackPos, List<Vector3> Team1Bowls, List<Vector3> Team2Bowls){
+    private (InitialConditions ic, bool aborted) GetTargetPosition(GameObject CurrentBowl, Vector3 JackPos, List<Vector3> Team1Bowls, List<Vector3> Team2Bowls){
         LineRenderer lineRenderer = CurrentBowl.GetComponent<LineRenderer>();
         Vector2 TargetPos = new Vector2();
-
-        // get the first proposed end position
-        TargetPos.x = JackPos.z + radius_step;
-        TargetPos.y = JackPos.x;
-        InitialConditions ics = BowlPhysics.GetInitialConditions(TargetPos, bias, 0);
+        InitialConditions ic;
+        TargetPos = GetProposedTarget(JackPos, sp.angle, sp.radius);
+        ic = BowlPhysics.GetInitialConditions(TargetPos, sp.bias, 0);
 
         // This is the first turn, there are no bowls
         if(Team1Bowls.Count == 0 && Team2Bowls.Count == 0){
-            return (ics, false);
+            return (ic, false);
         }
         
         // do until either:
@@ -93,64 +92,43 @@ public class AI
         //          switch over to power delivery and find a bowl or the jack
         //          to hit out of the way
         for(int tries = 0; tries < 1000; tries++){
-            if(test_next_position){
+            #if TEST
+            if(test_next_position){ // TESTING
+            #endif
+                sp.next();
 
-                if(angle_step_no == radius_iterations * 6){
-                    radius += radius_step;
-                    radius_iterations++;
-                    angle_step = 360f/(radius_iterations * 6);
-                    angle = -angle_step;
-                    angle_step_no = 0;
-                }
-                angle_step_no++;
-                angle += angle_step;
-
-                TargetPos = GetProposedTarget(JackPos, angle, radius);
+                TargetPos = GetProposedTarget(JackPos, sp.angle, sp.radius);
                 
-                for(int run = 1; run <= 2; run++){
-                    if(bias == Bias.Left){
-                        bias = Bias.Right;
-                    }else{
-                        bias = Bias.Left;
-                    }
+                ic = BowlPhysics.GetInitialConditions(TargetPos, sp.bias, 0);
+                Vector3[] BowlTrajectory = BowlPhysics.GetBowlTrajectory(ic.InitVel, ic.Angle, 0);
 
-                    ics = BowlPhysics.GetInitialConditions(TargetPos, bias, 0);
-
-                    Vector3[] BowlTrajectory = BowlPhysics.GetBowlTrajectory(ics.InitVel, ics.Angle, 0);
-
-                    float x_bound = 0;
+                float x_bound = 0;
+                
+                for(int i = 0; i < BowlTrajectory.Length; i++){
                     // if the trajectory goes outside the rink continue to the next iteration
-                    for(int i = 0; i < BowlTrajectory.Length; i++){
-                        if(MathF.Abs(BowlTrajectory[i].x) >= 2.5) continue;
-                        if(BowlTrajectory[i].x > x_bound) x_bound = BowlTrajectory[i].x;
-                    }
-
-                    // check the end position for collisions
-                    List<Vector3> collisions = GetCollisions(BowlTrajectory, ics, x_bound, JackPos, Team1Bowls, Team2Bowls);
-                    
-                    if(collisions.Count == 0){
-                        // valid path found
-                        // reset the variables 
-                        radius_iterations = 1;
-                        radius = 0.0635f;
-                        radius_step = 0.0635f;
-                        angle_step_no = 0;
-                        angle_step = 360/6;
-                        angle = -360/6;
-                        
-                        UpdatePathPrediction(ics);
-                        return (ics, false);
-                    }
-
-                    UpdatePathPrediction(ics);
-                    return (ics, true);
+                    if(MathF.Abs(BowlTrajectory[i].x)+0.0635 >= 2.5) continue;
+                    if(BowlTrajectory[i].x > x_bound) x_bound = BowlTrajectory[i].x;
                 }
+
+                // check the end position for collisions
+                List<Vector3> collisions = GetCollisions(BowlTrajectory, ic, x_bound, JackPos, Team1Bowls, Team2Bowls);
+                
+                if(collisions.Count == 0){
+                    // valid path found
+                    // reset the variables 
+                    sp.reset();
+                    #if TEST
+                    UpdatePathPrediction(ic); // TESTING
+                    #endif
+                    return (ic, false);
+                }
+            #if TEST
+                 UpdatePathPrediction(ic); // TESTING
+                 return (ic, true);
             }
-            else{
-                return (ics, true);
-            }
+            #endif
         }
-        return (ics, true);
+        return (ic, true);
     }
 
     private Vector2 GetProposedTarget(Vector3 JackPos, float angle, float radius){
@@ -208,7 +186,7 @@ public class AI
 
         // if the magnitude of the vector from one bowl to another 
         // is lower than 0.127 then the bowls will collide
-        if(diff.magnitude <= 0.127){
+        if(Vector3.Distance(restingBowl, trajectoryPosition) <= 0.127){
             return true;
         }
                 
@@ -230,15 +208,41 @@ public class AI
         lineRenderer.enabled = true;
     }
 
-    // returns the best possible strategy to use for the current turn based on all the available information
-    // 
-    // position of jack, bowls,
-    // private TurnStrategy GetTurnStrategy(Vector3 JackPos, List<GameObject> Team1Bowls, List<GameObject> Team2Bowls){
-    // }
+    private class SearchParameters{
+        public Bias bias {get; set;} = Bias.Left;
+        public float radius_iterations {get; set;} = 1;
+        public float radius {get; set;} = 0.0635f;
+        public float radius_step {get; set;} = 0.0635f;
+        public float angle_step_no {get; set;} = 0;
+        public float angle_step {get; set;} = 360/6;
+        public float angle {get; set;} = -360/6;
 
-    private enum TurnStrategy{
-        PowerDrive, // smash other bowls or the jack away
-        StandardDelivery // avoid any collisions whilst getting the bowl as close as possible
+        public void next(){
+            if(bias == Bias.Left){
+                bias = Bias.Right;
+                if(angle_step_no == radius_iterations * 6){
+                        radius += radius_step;
+                        radius_iterations++;
+                        angle_step = 360f/(radius_iterations * 6);
+                        angle = -angle_step;
+                        angle_step_no = 0;
+                    }
+                angle_step_no++;
+                angle += angle_step;
+            }
+            else{
+                bias = Bias.Left;
+            }
+        }
+
+        public void reset(){
+            bias = Bias.Left;
+            radius_iterations = 1;
+            radius = 0.0635f;
+            radius_step = 0.0635f;
+            angle_step_no = 0;
+            angle_step = 360/6;
+            angle = -360/6;
+        }
     }
-
 }
