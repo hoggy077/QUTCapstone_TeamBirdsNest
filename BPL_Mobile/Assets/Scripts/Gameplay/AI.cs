@@ -5,14 +5,41 @@ using UnityEngine;
 
 public class AI
 {
+    public LineRenderer lineRenderer;
+    private bool test_next_position = false;
+
     //private bool HavePowerPlay = true;
     private GameStateManager gsm = GameStateManager.Instance_;
+    private Bias bias = Bias.Left;
+    private float radius_iterations = 1;
+    private float radius = 0.0635f;
+    private float radius_step = 0.0635f;
+    private float angle_step_no = 0;
+    private float angle_step = 360/6;
+    private float angle = -360/6;
 
-    public AI(){
+    public AI(LineRenderer lineRenderer){
+        this.lineRenderer = lineRenderer;
     }
 
     // TODO: remove bowls that are in the ditch and arne't still marked as active or "chalked"
-    public void TakeTurn(GameObject CurrentBowl, Vector3 JackPos, List<GameObject> Team1Bowls, List<GameObject> Team2Bowls){
+    public bool TakeTurn(GameObject CurrentBowl, Vector3 JackPos, List<GameObject> Team1Bowls, List<GameObject> Team2Bowls){
+
+        if(Input.touchCount > 0){
+            Touch touch = Input.GetTouch(0); 
+            // handle any touch input
+            switch(touch.phase){
+                case TouchPhase.Began:
+                    test_next_position = true;
+                    break;
+                default:
+                    test_next_position = false;
+                    break;
+            }
+        }
+        else{
+            test_next_position = false;
+        }
 
         List<Vector3> Team1Positions = new List<Vector3>();
         List<Vector3> Team2Positions = new List<Vector3>();
@@ -35,11 +62,12 @@ public class AI
         // maximum scan tries/time was reached
         // change tactic to finding the best bowl to hit
         if(aborted){
-
+            return true;
         }
         else{
             BowlLauncher bl = CurrentBowl.GetComponent<BowlLauncher>();
             bl.MakeDelivery(ics.Angle, ics.InitVel);
+            return false;
         }
     }
 
@@ -47,11 +75,6 @@ public class AI
     private (InitialConditions ics, bool aborted) GetTargetPosition(GameObject CurrentBowl, Vector3 JackPos, List<Vector3> Team1Bowls, List<Vector3> Team2Bowls){
         LineRenderer lineRenderer = CurrentBowl.GetComponent<LineRenderer>();
         Vector2 TargetPos = new Vector2();
-        Bias bias = Bias.Left;
-        float radius = 0.127f;
-        float radius_step = 0.06135f;
-        float angle_step = 1;
-        float angle = angle_step;
 
         // get the first proposed end position
         TargetPos.x = JackPos.z + radius_step;
@@ -70,78 +93,71 @@ public class AI
         //          switch over to power delivery and find a bowl or the jack
         //          to hit out of the way
         for(int tries = 0; tries < 1000; tries++){
-            // get next target position
-            angle += angle_step;
-            if(angle >= 360){
-                Debug.Log(tries);
-                angle = 0;
-                radius += radius_step;
+            if(test_next_position){
+
+                if(angle_step_no == radius_iterations * 6){
+                    radius += radius_step;
+                    radius_iterations++;
+                    angle_step = 360f/(radius_iterations * 6);
+                    angle = -angle_step;
+                    angle_step_no = 0;
+                }
+                angle_step_no++;
+                angle += angle_step;
+
+                TargetPos = GetProposedTarget(JackPos, angle, radius);
+                
+                for(int run = 1; run <= 2; run++){
+                    if(bias == Bias.Left){
+                        bias = Bias.Right;
+                    }else{
+                        bias = Bias.Left;
+                    }
+
+                    ics = BowlPhysics.GetInitialConditions(TargetPos, bias, 0);
+
+                    Vector3[] BowlTrajectory = BowlPhysics.GetBowlTrajectory(ics.InitVel, ics.Angle, 0);
+
+                    float x_bound = 0;
+                    // if the trajectory goes outside the rink continue to the next iteration
+                    for(int i = 0; i < BowlTrajectory.Length; i++){
+                        if(MathF.Abs(BowlTrajectory[i].x) >= 2.5) continue;
+                        if(BowlTrajectory[i].x > x_bound) x_bound = BowlTrajectory[i].x;
+                    }
+
+                    // check the end position for collisions
+                    List<Vector3> collisions = GetCollisions(BowlTrajectory, ics, x_bound, JackPos, Team1Bowls, Team2Bowls);
+                    
+                    if(collisions.Count == 0){
+                        // valid path found
+                        // reset the variables 
+                        radius_iterations = 1;
+                        radius = 0.0635f;
+                        radius_step = 0.0635f;
+                        angle_step_no = 0;
+                        angle_step = 360/6;
+                        angle = -360/6;
+                        
+                        UpdatePathPrediction(ics);
+                        return (ics, false);
+                    }
+
+                    UpdatePathPrediction(ics);
+                    return (ics, true);
+                }
             }
-
-            TargetPos = GetProposedTarget(JackPos, angle, radius);
-            
-            for(int run = 1; run <= 2; run++){
-
-                if(run == 1){
-                    bias = Bias.Left;
-                }
-                else{
-                    bias = Bias.Right;
-                }
-
-                ics = BowlPhysics.GetInitialConditions(TargetPos, bias, 0);
-
-                Vector3[] BowlTrajectory = BowlPhysics.GetBowlTrajectory(ics.InitVel, ics.Angle, 0);
-                
-
-                // if(lineRenderer != null){
-                //     // update line renderer
-                //     lineRenderer.positionCount = BowlTrajectory.Length;
-                //     for(int i = 0; i < BowlTrajectory.Length; i++){
-                //         lineRenderer.SetPosition(i, BowlPhysics.GameToUnityCoords(BowlTrajectory[i]));
-                //     }
-
-                //     //System.Threading.Thread.Sleep(2000);
-                //     //lineRenderer.SetPositions(BowlTrajectory);
-                //     lineRenderer.enabled = true;
-                // }
-
-
-
-                float x_bound = 0;
-                // if the trajectory goes outside the rink continue to the next iteration
-                for(int i = 0; i < BowlTrajectory.Length; i++){
-                    if(MathF.Abs(BowlTrajectory[i].x) >= 2.5) continue;
-                    if(BowlTrajectory[i].x > x_bound) x_bound = BowlTrajectory[i].x;
-                }
-
-                // check the end position for collisions
-                List<Vector3> collisions = GetCollisions(BowlTrajectory, ics, x_bound, JackPos, Team1Bowls, Team2Bowls);
-                
-                if(collisions.Count == 0){
-                    return (ics, false);
-                }
-                else{
-                    // try and resolve the collisions by moving the end position in a 
-                    // way that avoids the collisions
-                    // (and possibly changing the biased side on the bowl)
-
-                    // if the collision can be resolved return the new end position
-
-                    // otherwise collision can't be resolved so set a new target position
-                }
+            else{
+                return (ics, true);
             }
         }
-
         return (ics, true);
     }
 
-
     private Vector2 GetProposedTarget(Vector3 JackPos, float angle, float radius){
         Vector2 JackPosV2 = new Vector2(JackPos.z, JackPos.x);
-        angle = angle / (MathF.PI/180);
+        angle = angle * (MathF.PI/180);
         Vector2 pos = new Vector2(radius * MathF.Cos(angle), radius * MathF.Sin(angle));
-        return JackPosV2 - pos;
+        return JackPosV2 + pos;
     }
 
     private List<Vector3> GetCollisions(Vector3[] BowlTrajectory, InitialConditions ics, float x_bound, Vector3 JackPos, List<Vector3> Team1Positions, List<Vector3> Team2Positions){
@@ -159,13 +175,12 @@ public class AI
         // put the bowls within the bounding box into one list, which will be the list of bowls we 
         // actually care about
         foreach(var position in Team1Positions){
-            BowlHaystack.Add(position);
+            if(CheckForCollisionInPath(BowlTrajectory, ics, position)){
+                collisions.Add(position);
+            }
         }
+
         foreach(var position in Team2Positions){
-            BowlHaystack.Add(position);
-        }
-        
-        foreach(var position in BowlHaystack){
             if(CheckForCollisionInPath(BowlTrajectory, ics, position)){
                 collisions.Add(position);
             }
@@ -176,22 +191,43 @@ public class AI
 
     // TODO: probably some easy optimisations to do here
     private bool CheckForCollisionInPath(Vector3[] BowlTrajectory, InitialConditions ics, Vector3 BowlPosition){
-        Bounds BowlPositionBound = new Bounds(BowlPosition, new Vector3(0.0635f, 10f, 0.0635f));
-        // Debug.Log(String.Format("z = {0}, x = {1}", BowlPosition.z, BowlPosition.y));
-
         for(int i = BowlTrajectory.Length-1; i >= 0; i--){
-            Bounds TrajectoryBound = new Bounds(BowlTrajectory[i], new Vector3(0.0635f, 10f, 0.0635f));
-            if(TrajectoryBound.Intersects(BowlPositionBound)){   
+            if(CheckForCollision(BowlTrajectory[i], BowlPosition)){   
                     return true;
             }
         }
+
         return false;
     }
 
-    private bool CheckForCollision(Vector3 trajectoryPosition, float time, InitialConditions ics, Vector3 restingBowl){
-        //Conditions conditions = BowlPhysics.GetBowlConditions(ics.InitVel, ics.Angle, 0, time);
-        
+    // assuming that each bowl is represented by the circle of radius 0.0635
+    private bool CheckForCollision(Vector3 trajectoryPosition, Vector3 restingBowl){
+        trajectoryPosition.y = 0;
+        restingBowl.y = 0;
+        Vector3 diff = restingBowl - trajectoryPosition;
+
+        // if the magnitude of the vector from one bowl to another 
+        // is lower than 0.127 then the bowls will collide
+        if(diff.magnitude <= 0.127){
+            return true;
+        }
+                
         return false;
+    }
+
+    private void UpdatePathPrediction(InitialConditions ics){
+        float PredictorTimeStep = 0.5f;
+        float PredictorEndTime = BowlPhysics.DeliveryEndTime(ics.InitVel, ics.Angle, 0);
+        int steps = (int)Math.Ceiling(PredictorEndTime/PredictorTimeStep);
+        Vector3[] points = new Vector3[steps];
+        
+        for(int step = 0; step < steps; step++){
+            points[step] = BowlPhysics.GameToUnityCoords(BowlPhysics.DeliveryPath(ics.InitVel, ics.Angle, 0, PredictorTimeStep * step));
+        }
+
+        lineRenderer.positionCount = steps;
+        lineRenderer.SetPositions(points);
+        lineRenderer.enabled = true;
     }
 
     // returns the best possible strategy to use for the current turn based on all the available information
@@ -204,4 +240,5 @@ public class AI
         PowerDrive, // smash other bowls or the jack away
         StandardDelivery // avoid any collisions whilst getting the bowl as close as possible
     }
+
 }
