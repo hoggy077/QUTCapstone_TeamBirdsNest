@@ -2,8 +2,6 @@ using System;
 using UnityEngine;
 
 public class BowlPhysics{
-     
-
     public static Vector3 UnityToGameCoords(Vector3 v3){
         return new Vector3(v3.x, v3.y, v3.z + 9);
     }
@@ -23,14 +21,17 @@ public class BowlPhysics{
         }
     }
 
-    // get the bounding box of the bowl at a given time step
-    // public static Vector2[] GetMovingBowlBounds(float initVel, float angle, float MuScale, float t){
-    //     Vector3 position = DeliveryPath(initVel, angle, MuScale, t);
-    // }
+    //
+    public static float GetBowlPathLength(float init_vel, float angle, float mu_scale, float t){
+        float mu = 0.025f + (mu_scale * 0.003f);
+        float g = 9.8f; //(m/s^2) velocity due to gravity
+        float p = 3.8f; //(2.8*MU*R)/d 
+        float r0 = (p * (init_vel*init_vel)) / (2*mu*g); // initial radius of curvature of the path of the bowl
+        float v = init_vel - mu*g*t; // velocity at particular time step
+        float phi = (2/p)*Mathf.Log(init_vel/v); // angle between the tangent of the bowls path with the x-axis
 
-    // get the bounding box of a bowl that is at rest
-    // public static Vector2[] GetBoundingCircle(Vector3 BowlPos){
-    // }
+        return (1-Mathf.Exp(-p*phi)*r0)/p;
+    }
 
     // returns the length of time it takes for the bowl to come to a rest
     //
@@ -68,7 +69,6 @@ public class BowlPhysics{
 
             float res_angle = AngleBetweenPoints(actual_point, mirror_point);
             angle += res_angle + MathF.PI;
-            Debug.Log(angle / (MathF.PI/180f));
         }
 
         return new InitialConditions(angle / (MathF.PI/180f), init_vel);
@@ -153,15 +153,17 @@ public class BowlPhysics{
             if(angle < 0){
                 z = (r0/(1+p*p))*(p - p*lamba* Mathf.Cos(phi)+lamba*Mathf.Sin(phi));
                 x = (r0/(1+p*p))*(1 - lamba*Mathf.Cos(phi) - p*lamba*Mathf.Sin(phi));
+                BowlTrajectory[i] = new Vector3(z*Mathf.Sin(angle) + x*Mathf.Cos(angle), 0.01f, z*Mathf.Cos(angle) - x*Mathf.Sin(angle));
             }
             // bias is on the right
             else{
                 z = -(r0/(1+p*p))*(p - p*lamba*Mathf.Cos(phi)+lamba*Mathf.Sin(phi));
                 x = (r0/(1+p*p))*(1 - lamba*Mathf.Cos(phi) - p*lamba*Mathf.Sin(phi));
-                angle += Mathf.PI;
+                BowlTrajectory[i] = new Vector3(z*Mathf.Sin(angle + MathF.PI) + x*Mathf.Cos(angle + MathF.PI), 0.01f, z*Mathf.Cos(angle + MathF.PI) - x*Mathf.Sin(angle + MathF.PI));
+                //angle += Mathf.PI;
             }
 
-            BowlTrajectory[i] = new Vector3(z*Mathf.Sin(angle) + x*Mathf.Cos(angle), 0.01f, z*Mathf.Cos(angle) - x*Mathf.Sin(angle));
+            
             time += time_step;
         }
 

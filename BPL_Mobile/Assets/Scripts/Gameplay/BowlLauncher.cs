@@ -8,8 +8,11 @@ public class BowlLauncher : MonoBehaviour
     public Collider rinkFloor;
     public LineRenderer lineRenderer;
     private Rigidbody rigidbody;
-    private float BowlRadius;
+    private float BowlRadius = 0.0635f;
+    private float lastAngle = 0;
+    private float rotationAmount = 0;
 
+    private bool collided = false;
     private bool deliver = false; // when true the bowl is moving toward its resting place
     // keeping track of the bowls trajectory in relation to time
     private float DeliveryEndTime = 0;
@@ -21,7 +24,7 @@ public class BowlLauncher : MonoBehaviour
     // predictor line
     private int pointsSize = 50;
     private Vector3[] points;
-    private float PredictorTimeStep = 0.5f;
+    private float PredictorTimeStep = 0.1f;
 
     // angle of bowl is calculated by scaling the MAX_ROTATION
     // by finding the distance of the input from the center of the x-axis,
@@ -48,31 +51,40 @@ public class BowlLauncher : MonoBehaviour
         points = new Vector3[pointsSize];
 
         Bounds bounds = GetComponent<Renderer>().bounds;
-        BowlRadius = bounds.extents.y;
-
+        //BowlRadius = bounds.extents.y;
         rigidbody = GetComponent<Rigidbody>();
     }
 
     void FixedUpdate(){
-        if(deliver){    
+        if(deliver && !collided){ 
+            //time += Time.deltaTime;
             if(time < DeliveryEndTime){
                 Vector3 direction = BowlPhysics.GetCurrentDirection(initialVelocity, deliveryAngle, 0, time);
                 direction = direction.normalized;
                 Vector3 velocity = direction * BowlPhysics.GetCurrentVelocity(initialVelocity, deliveryAngle, 0, time);
                 rigidbody.velocity = velocity;
 
-                lineRenderer.positionCount = 2;
-                lineRenderer.SetPosition(0, rigidbody.position);
-                lineRenderer.SetPosition(1, rigidbody.position+velocity);
-                lineRenderer.enabled = true;
+                // update the angular velocity
+                Vector3 pos = BowlPhysics.DeliveryPath(initialVelocity, deliveryAngle, 0, time);
+                pos = BowlPhysics.GameToUnityCoords(pos);
+                Vector3 diff = pos - transform.position;
+                float angularVelocitySpeed = (diff.magnitude/BowlRadius) * Time.deltaTime;
+                Vector3 angularVelocityVec = new Vector3(0, 0, angularVelocitySpeed);
+                
+                rigidbody.AddRelativeTorque( angularVelocityVec, ForceMode.VelocityChange);
             }
             else{
                 lineRenderer.enabled = false;
                 rigidbody.useGravity = true;
-                //rigidbody.velocity = new Vector3(0,0,0);
-                // delete this script off of the bowl
+                rigidbody.mass = 1;
                 Destroy(GetComponent<BowlLauncher>());
             }
+        }
+        else if(deliver && collided && rigidbody.velocity.magnitude < 0.001){
+            lineRenderer.enabled = false;
+            rigidbody.useGravity = true;
+            rigidbody.mass = 1;
+            Destroy(GetComponent<BowlLauncher>());
         }
     }
 
@@ -88,9 +100,12 @@ public class BowlLauncher : MonoBehaviour
     }
 
     private void HandleDelivery(){
+        if(collided){
+            return;
+        }
+
         if(time == 0){
-            Rigidbody rigidbody = GetComponent<Rigidbody>();
-            //rigidbody.useGravity = true;
+            rigidbody.useGravity = true;
         }
 
         time += Time.deltaTime;
@@ -101,24 +116,33 @@ public class BowlLauncher : MonoBehaviour
             Vector3 pos_diff = pos - transform.position;
             transform.position = new Vector3(pos.x, transform.position.y, pos.z);
 
-            //Conditions conditions = BowlPhysics.GetBowlConditions(initialVelocity, deliveryAngle, 0, time);
+            // set the rotation around the y-axis of the bowl so that is follows the trajectory correctly
             Vector3 euler_angles = transform.localEulerAngles;
-            
             Vector3 direction = BowlPhysics.GetCurrentDirection(initialVelocity, deliveryAngle, 0, time);
-            if(direction.magnitude > 0.02){
+            if(direction.magnitude > 0.02f){
                 float angle = BowlPhysics.GetBowlAngle(direction);
-            
                 euler_angles.y = angle;
             }
-            Debug.Log((pos_diff.magnitude/BowlRadius) / (Mathf.PI/180));
-            euler_angles.x += (pos_diff.magnitude/BowlRadius) / (Mathf.PI/180);
             transform.localEulerAngles = euler_angles;
+            
+            // rotate the bowl around the local x-axis to create the illusion of it rolling
+            euler_angles = transform.localEulerAngles;
+            lastAngle = lastAngle % 360;
+            float angle_percentage = 1 - time/DeliveryEndTime; // used to slow the amount of rotation toward the end of the trajectory
+            euler_angles.x = lastAngle + (pos_diff.magnitude/(BowlRadius*2*Mathf.PI))/4 * 360 * angle_percentage;
+            lastAngle = euler_angles.x;
+            transform.localEulerAngles = euler_angles;
+            
+            // make sure the bowl is upright
+            Vector3 globalEuler = transform.eulerAngles;
+            globalEuler.z = 0f;
+            transform.eulerAngles = globalEuler;
         }
     }
 
     private void HandleInput(){
         Touch touch = Input.GetTouch(0); 
-        bool updatePredictor = true;
+        bool updatePredictor = false;
 
         // handle any touch input
         switch(touch.phase){
@@ -127,8 +151,9 @@ public class BowlLauncher : MonoBehaviour
                 // otherwise don't launch it
                 if(touch.position.y < VALID_Y_INPUT){
                     deliver = true;
-                    DeliveryEndTime = BowlPhysics.DeliveryEndTime(initialVelocity, deliveryAngle, 0);
-                    lineRenderer.enabled = false;
+                    DeliveryEndTime = BowlPhysics.DeliveryEndTime(initialVelocity, deliveryAngle, 0) - 0.75f;
+                    //lineRenderer.enabled = false;
+                    rigidbody.mass = 2000000;
                 }
                 break;
             case TouchPhase.Began:
@@ -150,6 +175,8 @@ public class BowlLauncher : MonoBehaviour
                     transform.rotation = Quaternion.Euler(0, deliveryAngle , 0);
                     
                     updatePredictor = true;
+                }else{
+                    updatePredictor = false;
                 }
                 break;
             default:
@@ -164,7 +191,7 @@ public class BowlLauncher : MonoBehaviour
     }
 
     private void UpdatePathPrediction(){
-        float PredictorEndTime = BowlPhysics.DeliveryEndTime(initialVelocity, deliveryAngle, 0);
+        float PredictorEndTime = BowlPhysics.DeliveryEndTime(initialVelocity, deliveryAngle, 0) - 0.75f;
         int steps = (int)Math.Ceiling(PredictorEndTime/PredictorTimeStep);
             
         // if points isn't large enough resize it so it is
@@ -193,10 +220,11 @@ public class BowlLauncher : MonoBehaviour
         if(collision.gameObject.name != "Rink"){
             lineRenderer.enabled = false;
             rigidbody.useGravity = true;
-            Rigidbody rb = GetComponent<Rigidbody>();
+            collided = true;
+            //rigidbody.mass = 1;
             // delete this script off of the bowl to stop following the path and let the physics
             // system do the rest
-            Destroy(GetComponent<BowlLauncher>());
+            //Destroy(GetComponent<BowlLauncher>());
         }
     }
 }

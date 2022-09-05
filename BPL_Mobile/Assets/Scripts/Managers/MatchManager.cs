@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class MatchManager : MonoBehaviour
 {
+    public LineRenderer linerenderer;
     public GameObject bowlPrefab;
     public GameObject jackPrefab;
 
@@ -20,16 +21,24 @@ public class MatchManager : MonoBehaviour
     List<GameObject> activeBowls = new List<GameObject>();
     bool PlayerTurn = true;
     private AI ai;
+    private bool ai_keep_looping = false;
+    private bool spawnbowl = true;
 
     void Start(){
         // create the jack and set it in the correct position
         Jack = Instantiate(jackPrefab, BowlPhysics.GameToUnityCoords(new Vector3(0, 0, 15)), Quaternion.identity);
 
-        ai = new AI();
+        ai = new AI(linerenderer);
+        linerenderer.enabled = false;
         mainCam = Camera.main;
 
         originalCameraLocation = mainCam.transform.position;
+
         scm = FindObjectOfType<ScoringManager>();
+
+        Rigidbody JackRigidbody = Jack.GetComponent<Rigidbody>();
+        JackRigidbody.sleepThreshold = 10f;
+
     }
 
     // Read the head for scoring purposes
@@ -41,7 +50,7 @@ public class MatchManager : MonoBehaviour
     }
 
     void Update(){
-        TestAI();
+        Play();
 
         if(currentBowl == null)
         {
@@ -53,16 +62,18 @@ public class MatchManager : MonoBehaviour
         }
     }
 
-    private void TestAI(){
+    private void Play(){
         if(currentBowl == null){
             if(!PlayerTurn){
                 // create a new bowl
                 ReadHead();
                 currentBowl = SpawnBowl();
                 currentBowl.GetComponent<BowlID>().SetTeam(2);
-
+                mainCam.transform.position = originalCameraLocation;
+                cameraBowlOffset = originalCameraLocation - currentBowl.transform.position;
+                
                 Transform JackTransform = Jack.GetComponent<Transform>();
-
+                
                 ai.TakeTurn(currentBowl, JackTransform.position, activeBowls, new List<GameObject>());
             }
             else{
@@ -74,10 +85,51 @@ public class MatchManager : MonoBehaviour
             }
         }
         else{
+            // wait for the bowl to finish its delivery
             if(currentBowl.GetComponent<BowlLauncher>() == null){
                 activeBowls.Add(currentBowl);
                 currentBowl = null;
                 PlayerTurn = !PlayerTurn;
+                spawnbowl = true;
+            }
+        }
+
+    }
+
+    private void TestAI(){
+        if(currentBowl == null || ai_keep_looping){
+            if(!PlayerTurn){
+                if(spawnbowl){
+                    // create a new bowl
+                    ReadHead();
+                    currentBowl = SpawnBowl();
+                    currentBowl.GetComponent<BowlID>().SetTeam(2);
+                    spawnbowl = false;
+                    mainCam.transform.position = originalCameraLocation;
+                    cameraBowlOffset = originalCameraLocation - currentBowl.transform.position;
+                }
+                
+                Transform JackTransform = Jack.GetComponent<Transform>();
+                Rigidbody JackRigidbody = Jack.GetComponent<Rigidbody>();
+                JackRigidbody.sleepThreshold = 10f;
+                
+                ai_keep_looping = ai.TakeTurn(currentBowl, JackTransform.position, activeBowls, new List<GameObject>());
+            }
+            else{
+                ReadHead();
+                currentBowl = SpawnBowl();
+                mainCam.transform.position = originalCameraLocation;
+                cameraBowlOffset = originalCameraLocation - currentBowl.transform.position;
+                currentBowl.GetComponent<BowlID>().SetTeam(1);
+            }
+        }
+        else{
+            // wait for the bowl to finish its delivery
+            if(currentBowl.GetComponent<BowlLauncher>() == null){
+                activeBowls.Add(currentBowl);
+                currentBowl = null;
+                PlayerTurn = !PlayerTurn;
+                spawnbowl = true;
             }
         }
     }
