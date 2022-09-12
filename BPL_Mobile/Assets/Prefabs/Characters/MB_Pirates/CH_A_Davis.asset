@@ -12,15 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5f0564b75b208841a20c97450355952, type: 3}
   m_Name: CH_A_Davis
   m_EditorClassIdentifier: 
-  hairStyle: {fileID: 0}
-  hairColour: {r: 0, g: 0, b: 0, a: 0}
+  hairStyle: {fileID: 7980410965627375165, guid: ac44d46521de850458a361b91b960601,
+    type: 3}
+  hairColour: {r: 0, g: 0, b: 0, a: 1}
+  alternateHairColour: {r: 0, g: 0, b: 0, a: 1}
+  flipHair: 0
   beltColour: {r: 0, g: 0, b: 0, a: 1}
   beltBuckleColour: {r: 0.26415092, g: 0.26415092, b: 0.26415092, a: 1}
   pantsColour: {r: 0.13207549, g: 0.13207549, b: 0.13207549, a: 1}
   sockColour: {r: 0.6320754, g: 0.6320754, b: 0.6320754, a: 1}
   shoeColour: {r: 0.46662515, g: 0.6173353, b: 0.9245283, a: 1}
-  characterName: Aidan Davis
-  skinColour: {r: 0.8207547, g: 0.7200438, b: 0.6078231, a: 1}
+  characterName: Adrian Davis
+  skinColour: {r: 0.9339623, g: 0.70349026, b: 0.43614274, a: 1}
   shoulderScale: 1.12
   waistScale: 0.9
   heightScale: 1.01

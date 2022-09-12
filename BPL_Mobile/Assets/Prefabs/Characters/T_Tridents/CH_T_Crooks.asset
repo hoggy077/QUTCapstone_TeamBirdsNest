@@ -12,15 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5f0564b75b208841a20c97450355952, type: 3}
   m_Name: CH_T_Crooks
   m_EditorClassIdentifier: 
-  hairStyle: {fileID: 0}
-  hairColour: {r: 0, g: 0, b: 0, a: 0}
+  hairStyle: {fileID: 7980410965627375165, guid: 2149c8becd811324aa24702be9ae1fb5,
+    type: 3}
+  hairColour: {r: 0.1981132, g: 0.075020485, b: 0.032707363, a: 1}
+  alternateHairColour: {r: 0.16862746, g: 0.043137256, b: 0, a: 1}
+  flipHair: 0
   beltColour: {r: 0, g: 0, b: 0, a: 1}
-  beltBuckleColour: {r: 0.26415092, g: 0.26415092, b: 0.26415092, a: 1}
+  beltBuckleColour: {r: 0.6509434, g: 0.58543175, b: 0.009211446, a: 1}
   pantsColour: {r: 0.13207549, g: 0.13207549, b: 0.13207549, a: 1}
   sockColour: {r: 1, g: 0.6517423, b: 0.3726415, a: 1}
   shoeColour: {r: 0.254717, g: 0.254717, b: 0.254717, a: 1}
-  characterName: Tymon Crooks
-  skinColour: {r: 0.8584906, g: 0.7963434, b: 0.66816485, a: 1}
+  characterName: Timmy Crooks
+  skinColour: {r: 0.9339623, g: 0.5345228, b: 0.21586865, a: 1}
   shoulderScale: 1
   waistScale: 0.85
   heightScale: 1.05

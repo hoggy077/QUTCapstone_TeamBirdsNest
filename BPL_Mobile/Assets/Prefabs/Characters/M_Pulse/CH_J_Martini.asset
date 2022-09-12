@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5f0564b75b208841a20c97450355952, type: 3}
+  m_Name: CH_J_Martini
+  m_EditorClassIdentifier: 
+  hairStyle: {fileID: 7980410965627375165, guid: f30b9fb0d9164f34f9b1a799cea97281,
+    type: 3}
+  hairColour: {r: 0.3018868, g: 0.13238555, b: 0.009967966, a: 1}
+  alternateHairColour: {r: 0.73333335, g: 0.454902, b: 0.18431373, a: 1}
+  flipHair: 0
+  beltColour: {r: 0.3773585, g: 0.14378202, b: 0, a: 1}
+  beltBuckleColour: {r: 1, g: 0.5476825, b: 0, a: 1}
+  pantsColour: {r: 0.5566038, g: 0.38605356, b: 0.2494215, a: 1}
+  sockColour: {r: 1, g: 1, b: 1, a: 1}
+  shoeColour: {r: 0, g: 0, b: 0, a: 1}
+  characterName: Jock Martini
+  skinColour: {r: 0.8207547, g: 0.68473274, b: 0.40650585, a: 1}
+  shoulderScale: 1.05
+  waistScale: 0.86
+  heightScale: 1

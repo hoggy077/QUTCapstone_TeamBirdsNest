@@ -9,6 +9,7 @@ public class CharacterAppearanceUpdater : MonoBehaviour
     public Transform[] hips;
     public Transform[] shoulders;
     public Transform root;
+    public CharacterHair haircut;
 
     private CharacterSO character;
     private JerseySO jersey;
@@ -59,8 +60,18 @@ public class CharacterAppearanceUpdater : MonoBehaviour
     // Function to handle physical attributes
     private void ModifyBody()
     {
+        // Setting Hair
+        haircut.hairMeshFilter.mesh = character.hairStyle;
+        haircut.hairMeshFilter.GetComponent<MeshRenderer>().materials[0].color = character.hairColour;
+        haircut.hairMeshFilter.GetComponent<MeshRenderer>().materials[1].color = character.alternateHairColour;
+
+        if(character.flipHair)
+        {
+            haircut.transform.localScale = new Vector3(-1f, 1f, 1f);
+        }
+
         // Rescaling Hips
-        foreach(Transform hip in hips)
+        foreach (Transform hip in hips)
         {
             hip.localScale = new Vector3(hip.localScale.x, character.waistScale, hip.localScale.z);
         }

@@ -6,8 +6,10 @@ using UnityEngine;
 public class CharacterSO : ScriptableObject
 {
     [Header("Head")]
-    public GameObject hairStyle;
+    public Mesh hairStyle;
     public Color hairColour;
+    public Color alternateHairColour;
+    public bool flipHair = false;
 
     [Header("Jersey")]
     public Color beltColour;

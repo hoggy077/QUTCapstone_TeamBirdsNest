@@ -20,6 +20,6 @@ MonoBehaviour:
   - serializedVersion: 2
     rgba: 4294299239
   teamJersey: {fileID: 11400000, guid: a8bcc0433d2d8fd49b353b2725543a43, type: 2}
-  character1: {fileID: 11400000, guid: e4a779cfe2d71574894828edc514fe08, type: 2}
-  character2: {fileID: 11400000, guid: 827e53e9807ce264f8692ab09fbc1fcd, type: 2}
-  character3: {fileID: 11400000, guid: fac097feebbb3a94fbfa7b4df58eae2f, type: 2}
+  character1: {fileID: 11400000, guid: 8748961277af6c54298a54ec23bdb8d2, type: 2}
+  character2: {fileID: 11400000, guid: 83610230e3a27a2448d736ee5da9c741, type: 2}
+  character3: {fileID: 11400000, guid: 7d792bcfffc3f264eb89ea7379249916, type: 2}

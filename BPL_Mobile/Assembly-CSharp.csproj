@@ -63,6 +63,7 @@
     <Compile Include="Assets\Scripts\Gameplay\GamemodeInfo.cs" />
     <Compile Include="Assets\Scripts\Gameplay\BowlsScriptable.cs" />
     <Compile Include="Assets\Scripts\AudioManager.cs" />
+    <Compile Include="Assets\Scripts\Characters\CharacterAppearanceUpdater.cs" />
     <Compile Include="Assets\Scripts\Managers\ScoringManager.cs" />
     <Compile Include="Assets\Scripts\Managers\ResumeManager.cs" />
     <Compile Include="Assets\Scripts\Misc\CareerBuilder.cs" />
@@ -70,8 +71,10 @@
     <Compile Include="Assets\Scripts\Gameplay\TrackThisThing.cs" />
     <Compile Include="Assets\Scripts\Misc\SaveSystem.cs" />
     <Compile Include="Assets\Scripts\UI\SelectionsSummaryUI.cs" />
+    <Compile Include="Assets\Scripts\Characters\CharacterSO.cs" />
     <Compile Include="Assets\Scripts\Gameplay\BowlLauncher.cs" />
     <Compile Include="Assets\Scripts\Managers\ManagerInitalizer.cs" />
+    <Compile Include="Assets\Scripts\Characters\JerseySO.cs" />
     <Compile Include="Assets\Scripts\Gameplay\BowlID.cs" />
     <Compile Include="Assets\Scripts\SoundClass.cs" />
     <Compile Include="Assets\Scripts\Gameplay\TeamScriptable.cs" />
@@ -86,9 +89,7 @@
     <Compile Include="Assets\Scripts\UI\MenuSystem.cs" />
     <Compile Include="Assets\Scripts\Managers\TournamentManager.cs" />
     <Compile Include="Assets\Curviture.cs" />
-    <Compile Include="Assets\Scripts\Characters\CharacterAppearanceUpdater.cs" />
-    <Compile Include="Assets\Scripts\Characters\CharacterSO.cs" />
-    <Compile Include="Assets\Scripts\Characters\JerseySO.cs" />
+    <Compile Include="Assets\Scripts\Characters\CharacterHair.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

@@ -878,8 +878,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d375a1d0c05c754695d92724bf146ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  debugTeam1: {fileID: 11400000, guid: 725cc9e9f91a640409feb76a424fffd9, type: 2}
-  debugTeam2: {fileID: 11400000, guid: 94762a3a39727594fb227cfb4fa87775, type: 2}
+  debugTeam1: {fileID: 11400000, guid: 3393ae80bb9bff74e9b9109a842a0ec7, type: 2}
+  debugTeam2: {fileID: 11400000, guid: 2aa731c9bc9dc3b4389f0e1054130038, type: 2}
   endsPerSet: 5
 --- !u!120 &594779097
 LineRenderer:

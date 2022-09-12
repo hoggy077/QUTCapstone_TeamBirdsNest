@@ -12,8 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5f0564b75b208841a20c97450355952, type: 3}
   m_Name: CH_A_Driver
   m_EditorClassIdentifier: 
-  hairStyle: {fileID: 0}
-  hairColour: {r: 0, g: 0, b: 0, a: 0}
+  hairStyle: {fileID: 7980410965627375165, guid: 307b7ab697579c94f8ae81c0e9ce5779,
+    type: 3}
+  hairColour: {r: 0.254717, g: 0.11425425, b: 0.0036044791, a: 1}
+  alternateHairColour: {r: 0, g: 0, b: 0, a: 1}
+  flipHair: 0
   beltColour: {r: 0, g: 0, b: 0, a: 1}
   beltBuckleColour: {r: 0.26415092, g: 0.26415092, b: 0.26415092, a: 1}
   pantsColour: {r: 0.13207549, g: 0.13207549, b: 0.13207549, a: 1}
