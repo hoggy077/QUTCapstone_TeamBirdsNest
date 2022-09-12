@@ -151,6 +151,9 @@ public class ScoringManager : MonoBehaviour
         // Delete and reset bowl list
         mm.CleanUpBowls();
 
+        // Resetting Score
+        scorecard.UpdateCurrentShots(1, 0);
+
         // Update Display
         scorecard.UpdateEndNumber(currentEnd, tiebreaker);
     }

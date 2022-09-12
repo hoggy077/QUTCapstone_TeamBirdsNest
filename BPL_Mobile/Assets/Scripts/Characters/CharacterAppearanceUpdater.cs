@@ -31,15 +31,6 @@ public class CharacterAppearanceUpdater : MonoBehaviour
         ModifyBody();
     }
 
-    private void Update()
-    {
-        // Applying information
-        AssembleAppearance();
-
-        // Applying Body Shape & Hair Information
-        ModifyBody();
-    }
-
     // Function to handle recolouring of character model
     private void AssembleAppearance()
     {
