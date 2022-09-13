@@ -10,7 +10,6 @@ public class BowlLauncher : MonoBehaviour
     private Rigidbody rigidbody;
     private float BowlRadius = 0.0635f;
     private float lastAngle = 0;
-    private float rotationAmount = 0;
 
     private bool collided = false;
     private bool deliver = false; // when true the bowl is moving toward its resting place
@@ -20,6 +19,7 @@ public class BowlLauncher : MonoBehaviour
     // initial conditions for the bowls delivery
     private float deliveryAngle = 0;
     private float initialVelocity = 0;
+    private Bias bias = Bias.Left;
 
     // predictor line
     private int pointsSize = 50;
@@ -59,13 +59,13 @@ public class BowlLauncher : MonoBehaviour
         if(deliver && !collided){ 
             //time += Time.deltaTime;
             if(time < DeliveryEndTime){
-                Vector3 direction = BowlPhysics.GetCurrentDirection(initialVelocity, deliveryAngle, 0, time);
+                Vector3 direction = BowlPhysics.GetCurrentDirection(initialVelocity, deliveryAngle, bias, 0, time);
                 direction = direction.normalized;
                 Vector3 velocity = direction * BowlPhysics.GetCurrentVelocity(initialVelocity, deliveryAngle, 0, time);
                 rigidbody.velocity = velocity;
 
                 // update the angular velocity
-                Vector3 pos = BowlPhysics.DeliveryPath(initialVelocity, deliveryAngle, 0, time);
+                Vector3 pos = BowlPhysics.DeliveryPath(initialVelocity, deliveryAngle, bias, 0, time);
                 pos = BowlPhysics.GameToUnityCoords(pos);
                 Vector3 diff = pos - transform.position;
                 float angularVelocitySpeed = (diff.magnitude/BowlRadius) * Time.deltaTime;
@@ -111,14 +111,14 @@ public class BowlLauncher : MonoBehaviour
         time += Time.deltaTime;
         if(time < DeliveryEndTime){
             // // find the position the bowl should currently be in
-            Vector3 pos = BowlPhysics.DeliveryPath(initialVelocity, deliveryAngle, 0, time);
+            Vector3 pos = BowlPhysics.DeliveryPath(initialVelocity, deliveryAngle, bias, 0, time);
             pos = BowlPhysics.GameToUnityCoords(pos);
             Vector3 pos_diff = pos - transform.position;
             transform.position = new Vector3(pos.x, transform.position.y, pos.z);
 
             // set the rotation around the y-axis of the bowl so that is follows the trajectory correctly
             Vector3 euler_angles = transform.localEulerAngles;
-            Vector3 direction = BowlPhysics.GetCurrentDirection(initialVelocity, deliveryAngle, 0, time);
+            Vector3 direction = BowlPhysics.GetCurrentDirection(initialVelocity, deliveryAngle, bias, 0, time);
             if(direction.magnitude > 0.02f){
                 float angle = BowlPhysics.GetBowlAngle(direction);
                 euler_angles.y = angle;
@@ -129,7 +129,7 @@ public class BowlLauncher : MonoBehaviour
             euler_angles = transform.localEulerAngles;
             lastAngle = lastAngle % 360;
             float angle_percentage = 1 - time/DeliveryEndTime; // used to slow the amount of rotation toward the end of the trajectory
-            euler_angles.x = lastAngle + (pos_diff.magnitude/(BowlRadius*2*Mathf.PI))/4 * 360 * angle_percentage;
+            euler_angles.x = lastAngle + (pos_diff.magnitude/(BowlRadius*2*Mathf.PI)) * 360 * angle_percentage;
             lastAngle = euler_angles.x;
             transform.localEulerAngles = euler_angles;
             
@@ -162,16 +162,20 @@ public class BowlLauncher : MonoBehaviour
                 // touch input should only be valid on the bottom (1/3)rd-ish of the phone
                 if(touch.position.y < VALID_Y_INPUT){
                     float middle = Screen.width/2;
-                    // if the bowl is being rolled to the right of the center line then
-                    // this will be a negative value which is what we want.
-                    // since we are encoding bias in the sign of the launch angle
-                    // and a left bias delivery must be rolled to the right of the center line
-                    // of the green.
                     float distFromMidX = touch.position.x - middle;
                     float distFromValidY = System.Math.Abs(touch.position.y - VALID_Y_INPUT);
 
-                    initialVelocity = 2 + (MAX_VELOCITY-2) * (distFromValidY/VALID_Y_INPUT);
+                    //initialVelocity = 2 + (MAX_VELOCITY-2) * (distFromValidY/VALID_Y_INPUT);
+                    initialVelocity = (MAX_VELOCITY) * (distFromValidY/VALID_Y_INPUT);
                     deliveryAngle = -MAX_ROTATION * (distFromMidX/middle);
+
+                    if(deliveryAngle < 0){
+                        bias = Bias.Right;
+                    }
+                    else{
+                        bias = Bias.Left;
+                    }
+
                     transform.rotation = Quaternion.Euler(0, deliveryAngle , 0);
                     
                     updatePredictor = true;
@@ -200,7 +204,7 @@ public class BowlLauncher : MonoBehaviour
         }
         
         for(int step = 0; step < steps; step++){
-            points[step] = BowlPhysics.GameToUnityCoords(BowlPhysics.DeliveryPath(initialVelocity, deliveryAngle, 0, PredictorTimeStep * step));
+            points[step] = BowlPhysics.GameToUnityCoords(BowlPhysics.DeliveryPath(initialVelocity, deliveryAngle, bias, 0, PredictorTimeStep * step));
         }
 
         lineRenderer.positionCount = steps;
