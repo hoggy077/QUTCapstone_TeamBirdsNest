@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
+#if UNITY_EDITOR
 public class CareerBuilder : EditorWindow
 {
     [MenuItem("Window/Career Builder")]
@@ -59,3 +60,4 @@ public class CareerBuilder : EditorWindow
         EditorGUI.DrawRect(rec, color);
     }
 }
+#endif

@@ -190,6 +190,7 @@ public interface TrackedData
 
 
 
+#if UNITY_EDITOR
 #region custom tool
 public class SessionWindow : EditorWindow
 {
@@ -200,11 +201,8 @@ public class SessionWindow : EditorWindow
         cb.Show();
     }
 
-
-
     private Object currentval;
     private string name;
-
 
     public static ReferenceStorage ObjTable
     {
@@ -302,5 +300,5 @@ public class SessionWindow : EditorWindow
     }
 }
 #endregion
-
+#endif
 
