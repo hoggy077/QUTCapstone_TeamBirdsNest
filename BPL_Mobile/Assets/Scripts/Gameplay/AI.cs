@@ -1,248 +1,272 @@
-//#define DEBUG
-
+//#define TEST
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Clipper2Lib;
 using UnityEngine;
+using Haze;
 
 public class AI
 {
-    public LineRenderer lineRenderer;
-    private bool test_next_position = false;
+    public List<GameObject> lrs; // currently used for testing
 
-    //private bool HavePowerPlay = true;
     private GameStateManager gsm = GameStateManager.Instance_;
-    private SearchParameters sp = new SearchParameters();
+    public AIDifficulty difficulty = AIDifficulty.HARD;
+    //private bool HavePowerPlay = true;
+    
 
-    List<Vector3> Team1BowlsLast;
-    List<Vector3> Team2BowlsLast;
+    public AI(){
 
-    public AI(LineRenderer lineRenderer){
-        this.lineRenderer = lineRenderer;
     }
 
     // TODO: remove bowls that are in the ditch and arne't still marked as active or "chalked"
-    public bool TakeTurn(GameObject CurrentBowl, Vector3 JackPos, List<GameObject> Team1Bowls, List<GameObject> Team2Bowls){
-
-        #if TEST
-        Debug.Log("test is on");
-        if(Input.touchCount > 0){ // TESTING {
-            Touch touch = Input.GetTouch(0); 
-            // handle any touch input
-            switch(touch.phase){
-                case TouchPhase.Began:
-                    test_next_position = true;
-                    break;
-                default:
-                    test_next_position = false;
-                    break;
+    public bool TakeTurn(GameObject CurrentBowl, Vector3 JackPos, List<GameObject> PlayerBowls, List<GameObject> AIBowls){
+        
+        #if TEST // TESTING {
+            if(Input.touchCount > 0){ 
+                Touch touch = Input.GetTouch(0); 
+                // handle any touch input
+                switch(touch.phase){
+                    case TouchPhase.Began:
+                        test_next_position = true;
+                        break;
+                    default:
+                        test_next_position = false;
+                        break;
+                }
             }
-        }
-        else{
-            test_next_position = false;
-        } // TESTING }
-        #endif
+            else{
+                test_next_position = false;
+            } 
+        #endif // TESTING }
+        
+        Vector2 JackPosV2 = new Vector2(JackPos.x, JackPos.z);
+        List<BowlPosition> PlayerPositions = new List<BowlPosition>();
+        List<BowlPosition> AIPositions = new List<BowlPosition>();
 
-        List<Vector3> Team1Positions = new List<Vector3>();
-        List<Vector3> Team2Positions = new List<Vector3>();
+        JackPos = BowlPhysics.UnityToGameCoords(JackPos);
 
         // for both teams bowls get the vector3 position vector 
         // update it so it's in the correct coordinate system
         // and add it to the new list
-        foreach(var bowl in Team1Bowls){
+        foreach(var bowl in PlayerBowls){
             Transform transform = bowl.GetComponent<Transform>();
-            Team1Positions.Add(BowlPhysics.UnityToGameCoords(transform.position));
+            Vector3 bowlPos = BowlPhysics.UnityToGameCoords(transform.position);
+            PlayerPositions.Add(new BowlPosition(bowlPos,JackPos));
         }
 
-        foreach(var bowl in Team2Bowls){
+        foreach(var bowl in AIBowls){
             Transform transform = bowl.GetComponent<Transform>();
-            Team1Positions.Add(BowlPhysics.UnityToGameCoords(transform.position));
+            Vector3 bowlPos = BowlPhysics.UnityToGameCoords(transform.position);
+            AIPositions.Add(new BowlPosition(bowlPos,JackPos));
         }
+    
+        // make sure the bowls are sorted in lowest to highest order
+        PlayerPositions.Sort();
+        AIPositions.Sort();
 
-        var (ics, aborted) = GetTargetPosition(CurrentBowl, BowlPhysics.UnityToGameCoords(JackPos), Team1Positions, Team2Positions);
-        
-        // maximum scan tries/time was reached
-        // change tactic to finding the best bowl to hit
-        if(aborted){
-            return true;
-        }
-        else{
-            BowlLauncher bl = CurrentBowl.GetComponent<BowlLauncher>();
-            bl.MakeDelivery(ics.Angle, ics.InitVel);
-            return false;
-        }
-    }
+        if(AIPositions.Count == 0 && PlayerPositions.Count == 0){ // first turn for anyone
+            // get random end position
+            Vector2 target = UnityEngine.Random.insideUnitCircle;
 
-    private (InitialConditions ic, bool aborted) GetTargetPosition(GameObject CurrentBowl, Vector3 JackPos, List<Vector3> Team1Bowls, List<Vector3> Team2Bowls){
-        LineRenderer lineRenderer = CurrentBowl.GetComponent<LineRenderer>();
-        Vector2 TargetPos = new Vector2();
-        InitialConditions ic;
-        TargetPos = GetProposedTarget(JackPos, sp.angle, sp.radius);
-        ic = BowlPhysics.GetInitialConditions(TargetPos, sp.bias, 0);
-
-        // This is the first turn, there are no bowls
-        if(Team1Bowls.Count == 0 && Team2Bowls.Count == 0){
-            return (ic, false);
-        }
-        
-        // do until either:
-        //      1. an end position without collisions along trajectory is found
-        //      or
-        //      2. an upper limit of time or attempts has been reached then
-        //          switch over to power delivery and find a bowl or the jack
-        //          to hit out of the way
-        for(int tries = 0; tries < 1000; tries++){
-            #if TEST
-            if(test_next_position){ // TESTING
-            #endif
-                sp.next();
-
-                TargetPos = GetProposedTarget(JackPos, sp.angle, sp.radius);
-                
-                ic = BowlPhysics.GetInitialConditions(TargetPos, sp.bias, 0);
-                Vector3[] BowlTrajectory = BowlPhysics.GetBowlTrajectory(ic.InitVel, ic.Angle, 0);
-
-                float x_bound = 0;
-                
-                for(int i = 0; i < BowlTrajectory.Length; i++){
-                    // if the trajectory goes outside the rink continue to the next iteration
-                    if(MathF.Abs(BowlTrajectory[i].x)+0.0635 >= 2.5) continue;
-                    if(BowlTrajectory[i].x > x_bound) x_bound = BowlTrajectory[i].x;
-                }
-
-                // check the end position for collisions
-                List<Vector3> collisions = GetCollisions(BowlTrajectory, ic, x_bound, JackPos, Team1Bowls, Team2Bowls);
-                
-                if(collisions.Count == 0){
-                    // valid path found
-                    // reset the variables 
-                    sp.reset();
-                    #if TEST
-                    UpdatePathPrediction(ic); // TESTING
-                    #endif
-                    return (ic, false);
-                }
-            #if TEST
-                 UpdatePathPrediction(ic); // TESTING
-                 return (ic, true);
-            }
-            #endif
-        }
-        return (ic, true);
-    }
-
-    private Vector2 GetProposedTarget(Vector3 JackPos, float angle, float radius){
-        Vector2 JackPosV2 = new Vector2(JackPos.z, JackPos.x);
-        angle = angle * (MathF.PI/180);
-        Vector2 pos = new Vector2(radius * MathF.Cos(angle), radius * MathF.Sin(angle));
-        return JackPosV2 + pos;
-    }
-
-    private List<Vector3> GetCollisions(Vector3[] BowlTrajectory, InitialConditions ics, float x_bound, Vector3 JackPos, List<Vector3> Team1Positions, List<Vector3> Team2Positions){
-        List<Vector3> collisions = new List<Vector3>();
-        int end_index = BowlTrajectory.Length-1;
-        
-        // find the bounding box of the bowls trajectory
-        // x_bound is in the middle of the bowl, add the radius to it
-        float z_bound = BowlTrajectory[end_index].z;
-        x_bound += (x_bound/MathF.Abs(x_bound))*0.0635f;
-        
-        // make sure the crest of the bowls trajectory is within the rink
-        List<Vector3> BowlHaystack = new List<Vector3>();
-
-        // put the bowls within the bounding box into one list, which will be the list of bowls we 
-        // actually care about
-        foreach(var position in Team1Positions){
-            if(CheckForCollisionInPath(BowlTrajectory, ics, position)){
-                collisions.Add(position);
-            }
-        }
-
-        foreach(var position in Team2Positions){
-            if(CheckForCollisionInPath(BowlTrajectory, ics, position)){
-                collisions.Add(position);
-            }
-        }
-
-        return collisions;
-    }
-
-    // TODO: probably some easy optimisations to do here
-    private bool CheckForCollisionInPath(Vector3[] BowlTrajectory, InitialConditions ics, Vector3 BowlPosition){
-        for(int i = BowlTrajectory.Length-1; i >= 0; i--){
-            if(CheckForCollision(BowlTrajectory[i], BowlPosition)){   
-                    return true;
-            }
-        }
-
-        return false;
-    }
-
-    // assuming that each bowl is represented by the circle of radius 0.0635
-    private bool CheckForCollision(Vector3 trajectoryPosition, Vector3 restingBowl){
-        trajectoryPosition.y = 0;
-        restingBowl.y = 0;
-        Vector3 diff = restingBowl - trajectoryPosition;
-
-        // if the magnitude of the vector from one bowl to another 
-        // is lower than 0.127 then the bowls will collide
-        if(Vector3.Distance(restingBowl, trajectoryPosition) <= 0.127){
-            return true;
-        }
-                
-        return false;
-    }
-
-    private void UpdatePathPrediction(InitialConditions ics){
-        float PredictorTimeStep = 0.5f;
-        float PredictorEndTime = BowlPhysics.DeliveryEndTime(ics.InitVel, ics.Angle, 0);
-        int steps = (int)Math.Ceiling(PredictorEndTime/PredictorTimeStep);
-        Vector3[] points = new Vector3[steps];
-        
-        for(int step = 0; step < steps; step++){
-            points[step] = BowlPhysics.GameToUnityCoords(BowlPhysics.DeliveryPath(ics.InitVel, ics.Angle, 0, PredictorTimeStep * step));
-        }
-
-        lineRenderer.positionCount = steps;
-        lineRenderer.SetPositions(points);
-        lineRenderer.enabled = true;
-    }
-
-    private class SearchParameters{
-        public Bias bias {get; set;} = Bias.Left;
-        public float radius_iterations {get; set;} = 1;
-        public float radius {get; set;} = 0.0635f;
-        public float radius_step {get; set;} = 0.0635f;
-        public float angle_step_no {get; set;} = 0;
-        public float angle_step {get; set;} = 360/6;
-        public float angle {get; set;} = -360/6;
-
-        public void next(){
-            if(bias == Bias.Left){
+            // get random bias
+            Bias bias = Bias.Left;
+            if(UnityEngine.Random.value < 0.5){
                 bias = Bias.Right;
-                if(angle_step_no == radius_iterations * 6){
-                        radius += radius_step;
-                        radius_iterations++;
-                        angle_step = 360f/(radius_iterations * 6);
-                        angle = -angle_step;
-                        angle_step_no = 0;
-                    }
-                angle_step_no++;
-                angle += angle_step;
+            }
+
+            // take the shot
+            TakeAccurateShot(CurrentBowl, target, bias);
+        }
+        else if( AIPositions.Count == 0 && PlayerPositions.Count == 1){ // first turn for AI, Second delivery overall
+            var (availablePolygons, bias) = GetValidPolygons(JackPosV2, PlayerPositions[0].MagFromJack, PlayerPositions, AIPositions);
+        
+            int polygonIndex = (int)MathF.Ceiling((availablePolygons.Count-1) * UnityEngine.Random.value);
+            foreach(Vector2 point in Polygon.PathToVec2(availablePolygons[polygonIndex])){
+                Debug.Log(point);
+            }
+            var triangles = Polygon.TriangulatePolygon(availablePolygons[polygonIndex]);
+
+            Debug.Log(String.Format("triangle count = {0}", triangles.Count));
+
+            if(triangles.Count == 0){
+                Debug.Log("ERROR: there are zero triangles for given polygon");
+            }
+            int triangleIndex = (int)MathF.Ceiling((triangles.Count-1) * UnityEngine.Random.value);
+            
+            Vector2 position = Polygon.RndPointInsideTriangle(triangles[triangleIndex]);
+            Debug.Log(position);
+            Debug.Log(BowlPhysics.UnityToGameCoords(position));
+            //TakeDifficultyScaledShot(CurrentBowl, BowlPhysics.UnityToGameCoords(position), bias, difficulty);
+            TakeAccurateShot(CurrentBowl, BowlPhysics.UnityToGameCoords(position), bias);
+        }
+        else if(AIPositions[0].MagFromJack < PlayerPositions[0].MagFromJack){ // AI has the closest bowl
+            
+            var (availablePolygons, bias) = GetValidPolygons(JackPosV2, PlayerPositions[0].MagFromJack, PlayerPositions, AIPositions);
+
+            if(availablePolygons.Count > 0){ // The AI can get the bowl closer
+                int polygonIndex = (int)MathF.Ceiling((availablePolygons.Count-1) * UnityEngine.Random.value);
+                var triangles = Polygon.TriangulatePolygon(availablePolygons[polygonIndex]);
+
+                Debug.Log(String.Format("triangle count = {0}", triangles.Count));
+
+                if(triangles.Count == 0){
+                    Debug.Log("ERROR: there are zero triangles for given polygon");
+                }
+                int triangleIndex = (int)MathF.Ceiling((triangles.Count-1) * UnityEngine.Random.value);
+                
+                Vector2 position = Polygon.RndPointInsideTriangle(triangles[triangleIndex]);
+                TakeAccurateShot(CurrentBowl, BowlPhysics.UnityToGameCoords(position), bias);
+                
+            }
+            else { // place a bowl to protect a bowl close to jack
+                
+            }
+                
+
+        }else{ // Player has the closest bowl
+            var (availablePolygons, bias) = GetValidPolygons(JackPosV2, PlayerPositions[0].MagFromJack, PlayerPositions, AIPositions);
+            
+            if(availablePolygons.Count > 0){ // The AI can get the bowl closer
+                // 
+                int polygonIndex = (int)MathF.Ceiling((availablePolygons.Count-1) * UnityEngine.Random.value);
+                var triangles = Polygon.TriangulatePolygon(availablePolygons[polygonIndex]);
+
+                Debug.Log(String.Format("triangle count = {0}", triangles.Count));
+
+                if(triangles.Count == 0){
+                    Debug.Log("ERROR: there are zero triangles for given polygon");
+                }
+                int triangleIndex = (int)MathF.Ceiling((triangles.Count-1) * UnityEngine.Random.value);
+                
+                Vector2 position = Polygon.RndPointInsideTriangle(triangles[triangleIndex]);
+
+                TakeAccurateShot(CurrentBowl, BowlPhysics.UnityToGameCoords(position), bias);
+            }
+            else if(false){ // can we hit key opponents bowl away?
+
+            }
+            else if(false){ // can we hit the jack away to a ?
+
             }
             else{
-                bias = Bias.Left;
+
+            }
+        }
+       
+
+        return false;
+    }
+
+    public (List<List<PointD>> polygons, Bias bias) GetValidPolygons(Vector3 position, float radius, List<BowlPosition> bowls1, List<BowlPosition> bowls2){
+        // check if AI can get another bowl closer than the closest players bowl
+        // meaning the AI gets another point
+        Bias bias = Bias.Left;
+        if(UnityEngine.Random.value < 0.5){
+            bias = Bias.Right;
+        }
+        
+        List<List<PointD>> circle = Polygon.GetCirclePolygon(position, radius, 30);
+        List<List<PointD>> pathBoundaryPolygons = new List<List<PointD>>();
+        List<List<PointD>> availablePointsPolygons = new List<List<PointD>>();
+        bool found = false;
+
+        for(int i = 0; i < 2; i++){
+            if(i == 2){
+                if(bias == Bias.Left){
+                    bias = Bias.Right;
+                }
+                else{
+                    bias = Bias.Left;
+                }
+                
+            }
+
+            pathBoundaryPolygons = Polygon.GetPolygonPaths(bowls1, bowls2, bias);
+            availablePointsPolygons = Clipper.Difference(circle, pathBoundaryPolygons, FillRule.NonZero);
+            if(availablePointsPolygons.Count != 0){
+
+                found = true;
+                break;
             }
         }
 
-        public void reset(){
-            bias = Bias.Left;
-            radius_iterations = 1;
-            radius = 0.0635f;
-            radius_step = 0.0635f;
-            angle_step_no = 0;
-            angle_step = 360/6;
-            angle = -360/6;
+        if(found){
+            if(lrs != null){
+                foreach(GameObject go in lrs){
+                    GameObject.Destroy(go);
+                }
+            }
+
+            lrs = new List<GameObject>();
+            foreach(List<PointD> path in availablePointsPolygons){
+                
+                GameObject go = new GameObject();
+                go.AddComponent<LineRenderer>();
+                lrs.Add(go);
+                TestingUtils.drawPolygon(Polygon.PathToVec(path), go.GetComponent<LineRenderer>());
+            }
+        }
+
+        return (availablePointsPolygons, bias);
+    }
+
+    private void TakeDifficultyScaledShot(GameObject bowl, Vector2 endPoint, Bias bias, AIDifficulty difficulty){
+        float radius = 1;
+        switch(difficulty){
+            case(AIDifficulty.EASY):
+                radius = 0.8f;
+            break;
+            case(AIDifficulty.MEDIUM):
+                radius = 0.5f;
+            break;
+            case(AIDifficulty.HARD):
+                radius = 0.2f;
+            break;
+            case(AIDifficulty.IMPOSSIBLE):
+                radius = 0;
+            break;
+        }
+        Vector2 position = UnityEngine.Random.insideUnitCircle * radius;
+        TakeAccurateShot(bowl, endPoint + position, bias);
+    }
+
+    private void TakeAccurateShot(GameObject bowl, Vector2 endPoint, Bias bias){
+        InitialConditions ics = BowlPhysics.GetInitialConditions(endPoint, bias, 0);
+        BowlLauncher bl = bowl.GetComponent<BowlLauncher>();
+        bl.MakeDelivery(ics.Angle, ics.InitVel);
+    }
+}
+
+//TODO: update this to consider the mesh of the bowl, since this assumes that the 
+//      distance from the center of the bowl to the outside is the same for every angle 
+//      but this isn't true since the bowl isnt a perfect sphere
+//
+public class BowlPosition : IComparable<BowlPosition>{
+    public float MagFromJack {get;}
+    public Vector3 BowlPos {get;}
+
+    public BowlPosition(Vector3 BowlPos, Vector3 JackPos){
+        this.MagFromJack = (JackPos - BowlPos).magnitude;
+        this.BowlPos = BowlPos;
+    }
+
+    public int CompareTo(BowlPosition otherBowl){
+        if(MagFromJack < otherBowl.MagFromJack){
+            return -1;
+        }
+        else if(MagFromJack > otherBowl.MagFromJack){
+            return 1;
+        }
+        else{
+            return 0;
         }
     }
+}
+
+public enum AIDifficulty{
+    EASY,
+    MEDIUM,
+    HARD,
+    IMPOSSIBLE
 }
