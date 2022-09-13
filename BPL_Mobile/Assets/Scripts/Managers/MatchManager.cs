@@ -18,7 +18,8 @@ public class MatchManager : MonoBehaviour
     //GameStateManager gsm = GameStateManager.Instance;
     GameObject currentBowl = null;
     GameObject Jack;
-    List<GameObject> activeBowls = new List<GameObject>();
+    List<GameObject> PlayerBowls = new List<GameObject>();
+    List<GameObject> AIBowls = new List<GameObject>();
     bool PlayerTurn = true;
     private AI ai;
     private bool ai_keep_looping = false;
@@ -28,8 +29,8 @@ public class MatchManager : MonoBehaviour
         // create the jack and set it in the correct position
         Jack = Instantiate(jackPrefab, BowlPhysics.GameToUnityCoords(new Vector3(0, 0, 15)), Quaternion.identity);
 
-        ai = new AI(linerenderer);
-        linerenderer.enabled = false;
+        ai = new AI();
+        ai.difficulty = AIDifficulty.HARD;
         mainCam = Camera.main;
 
         originalCameraLocation = mainCam.transform.position;
@@ -38,7 +39,6 @@ public class MatchManager : MonoBehaviour
 
         Rigidbody JackRigidbody = Jack.GetComponent<Rigidbody>();
         JackRigidbody.sleepThreshold = 10f;
-
     }
 
     // Read the head for scoring purposes
@@ -73,8 +73,7 @@ public class MatchManager : MonoBehaviour
                 cameraBowlOffset = originalCameraLocation - currentBowl.transform.position;
                 
                 Transform JackTransform = Jack.GetComponent<Transform>();
-                
-                ai.TakeTurn(currentBowl, JackTransform.position, activeBowls, new List<GameObject>());
+                ai.TakeTurn(currentBowl, JackTransform.position, PlayerBowls, AIBowls);
             }
             else{
                 ReadHead();
@@ -87,7 +86,13 @@ public class MatchManager : MonoBehaviour
         else{
             // wait for the bowl to finish its delivery
             if(currentBowl.GetComponent<BowlLauncher>() == null){
-                activeBowls.Add(currentBowl);
+                if(PlayerTurn){
+                    PlayerBowls.Add(currentBowl);
+                }
+                else{
+                    AIBowls.Add(currentBowl);
+                }
+                
                 currentBowl = null;
                 PlayerTurn = !PlayerTurn;
                 spawnbowl = true;
@@ -113,7 +118,7 @@ public class MatchManager : MonoBehaviour
                 Rigidbody JackRigidbody = Jack.GetComponent<Rigidbody>();
                 JackRigidbody.sleepThreshold = 10f;
                 
-                ai_keep_looping = ai.TakeTurn(currentBowl, JackTransform.position, activeBowls, new List<GameObject>());
+                ai_keep_looping = ai.TakeTurn(currentBowl, JackTransform.position, PlayerBowls, AIBowls);
             }
             else{
                 ReadHead();
@@ -126,7 +131,13 @@ public class MatchManager : MonoBehaviour
         else{
             // wait for the bowl to finish its delivery
             if(currentBowl.GetComponent<BowlLauncher>() == null){
-                activeBowls.Add(currentBowl);
+                if(PlayerTurn){
+                    PlayerBowls.Add(currentBowl);
+                }
+                else{
+                    AIBowls.Add(currentBowl);
+                }
+                
                 currentBowl = null;
                 PlayerTurn = !PlayerTurn;
                 spawnbowl = true;
@@ -164,21 +175,26 @@ public class MatchManager : MonoBehaviour
 
     public List<GameObject> GetLiveBowls()
     {
-        return activeBowls;
+        
+        return PlayerBowls;
     }
 
     // Called Externally to reset bowls and jack for new end
     public void CleanUpBowls()
     {
         // Looping through and destroying all bowls within current bowls list
-        for(int index = 0; index < activeBowls.Count; index++)
+        for(int index = 0; index < PlayerBowls.Count; index++)
         {
-            Destroy(activeBowls[index]);
+            Destroy(PlayerBowls[index]);
+        }
+        for(int index = 0; index < AIBowls.Count; index++)
+        {
+            Destroy(AIBowls[index]);
         }
 
         // Resetting List
-        activeBowls = new List<GameObject>();
-
+        PlayerBowls = new List<GameObject>();
+        AIBowls = new List<GameObject>();
         // Creating new Jack
         Destroy(Jack.gameObject);
         Jack = Instantiate(jackPrefab, BowlPhysics.GameToUnityCoords(new Vector3(0, 0, 15)), Quaternion.identity);
