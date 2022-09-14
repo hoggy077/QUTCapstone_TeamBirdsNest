@@ -8,7 +8,8 @@ public class ScoringManager : MonoBehaviour
     private ScorecardUI scorecard;
     private GameStateManager gsm;
     private MatchManager mm;
-    private List<GameObject> bowlsList;
+    public ClosestBowlRing ringPrefab;
+    private ClosestBowlRing bowlUIRing;
 
     public TeamScriptable debugTeam1;
     public TeamScriptable debugTeam2;
@@ -31,6 +32,8 @@ public class ScoringManager : MonoBehaviour
         scorecard = FindObjectOfType<ScorecardUI>();
         mm = FindObjectOfType<MatchManager>();
         SetupStartingScores();
+        bowlUIRing = Instantiate(ringPrefab.gameObject, transform.position, Quaternion.Euler(Vector3.zero)).GetComponent<ClosestBowlRing>();
+        bowlUIRing.ToggleRing(false);
     }
 
     public void ReadTheHead()
@@ -77,6 +80,13 @@ public class ScoringManager : MonoBehaviour
 
         // Checking which team holds the shots
         int[] teamAndScore = UpdateShots(bowls);
+
+        // Placing UI ring at closest bowl if it exists
+        if (bowls.Count > 0)
+        {
+            bowlUIRing.ToggleRing(true);
+            bowlUIRing.UpdateRing(jack.transform, bowls[0].GetComponent<BowlID>());
+        }
 
         // Updating Current Bowls remaining for each team, finding if the end has concluded
         bool continueEnd = UpdateShotsRemaining(mm.GetLiveBowls());
@@ -154,8 +164,9 @@ public class ScoringManager : MonoBehaviour
         // Resetting Score
         scorecard.UpdateCurrentShots(1, 0);
 
-        // Update Display
+        // Update Displays
         scorecard.UpdateEndNumber(currentEnd, tiebreaker);
+        bowlUIRing.ToggleRing(false);
     }
 
     // For the finishing and starting of a new set
