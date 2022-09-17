@@ -92,6 +92,8 @@
     <Compile Include="Assets\Scripts\UI\MenuSystem.cs" />
     <Compile Include="Assets\Scripts\Managers\TournamentManager.cs" />
     <Compile Include="Assets\Curviture.cs" />
+    <Compile Include="Assets\Scripts\UI\CameraZoom.cs" />
+    <Compile Include="Assets\Scripts\UI\BowlOverlay.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
