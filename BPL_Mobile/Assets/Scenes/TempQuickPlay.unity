@@ -880,8 +880,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ringPrefab: {fileID: 7422057463883680134, guid: 49387b0a636fe32488a734023346c389,
     type: 3}
-  debugTeam1: {fileID: 11400000, guid: 3393ae80bb9bff74e9b9109a842a0ec7, type: 2}
-  debugTeam2: {fileID: 11400000, guid: 2aa731c9bc9dc3b4389f0e1054130038, type: 2}
+  debugTeam1: {fileID: 11400000, guid: 725cc9e9f91a640409feb76a424fffd9, type: 2}
+  debugTeam2: {fileID: 11400000, guid: 372d759ba64402149996f68fb2c1b1bf, type: 2}
   endsPerSet: 5
 --- !u!120 &594779097
 LineRenderer:
