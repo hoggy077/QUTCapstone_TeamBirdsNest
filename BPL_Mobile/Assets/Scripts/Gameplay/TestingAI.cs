@@ -33,13 +33,6 @@ public class TestingAI : MonoBehaviour
         Bowls = new GameObject[numBowls];
 
         Vector2[] pointsOne = new Vector2[4];
-        // test getting a circle
-        // Vector3[] circle = Polygon.PathToVec(Polygon.GetCirclePolygon(new Vector2(0, 6), 1, 20)[0]);
-        // TestingUtils.drawPolygon(circle, linerenderer);
-
-        // test getting arc
-        // Vector3[] arc = Polygon.PathToVec(Polygon.GetArcPolygon(new Vector2(0, 6), 1, 0.01f, 0, MathF.PI/4, 10)[0]);
-        // TestingUtils.drawPolygon(arc, linerenderer);
     }
 
     void Update(){

@@ -27,8 +27,7 @@ public class MatchManager : MonoBehaviour
 
     void Start(){
         // create the jack and set it in the correct position
-        Jack = Instantiate(jackPrefab, BowlPhysics.GameToUnityCoords(new Vector3(0, 0, 15)), Quaternion.identity);
-
+        Jack = Instantiate(jackPrefab, BowlPhysics.GameToUnityCoords(new Vector2(0, 15)) + new Vector3(0, 0.0215f, 0), Quaternion.identity);
         ai = new AI();
         ai.difficulty = AIDifficulty.HARD;
         mainCam = Camera.main;

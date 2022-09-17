@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class TestingUtils{
 
-       // used for testing
+    // used for testing
     public static Vector3[] shiftPoints(Vector3[] points, Vector3 shiftTo){
         shiftTo = BowlPhysics.GameToUnityCoords(shiftTo);
         //Vector3 firstPoint = points[0];
@@ -36,18 +36,17 @@ public class TestingUtils{
         return points;
     }
 
-    public static void drawPolygon(Vector3[] points, LineRenderer lr){
+    public static void drawPolygon(List<Vector2> points, LineRenderer lr){
         lr.enabled = true;
         lr.startWidth = 0.02f;
         lr.endWidth = 0.02f;
-        lr.positionCount = points.Length + 1;
+        lr.positionCount = points.Count + 1;
 
-        for(int i = 0; i < points.Length; i++){
-            points[i].y = 0.1f;
-            lr.SetPosition(i, points[i]);
+        for(int i = 0; i < points.Count; i++){
+            lr.SetPosition(i, BowlPhysics.GameToUnityCoords(points[i]));
         }
 
-        lr.SetPosition(points.Length, points[0]);
+        lr.SetPosition(points.Count, BowlPhysics.GameToUnityCoords(points[0]));
     }
 
     public static void DrawBowlTrajectory(InitialConditions ics, LineRenderer lineRenderer){
@@ -64,5 +63,4 @@ public class TestingUtils{
         lineRenderer.SetPositions(points);
         lineRenderer.enabled = true;
     }
-
 }

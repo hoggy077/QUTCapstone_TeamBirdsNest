@@ -3,14 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using Clipper2Lib;
 using UnityEngine;
-using Haze;
+using EarcutNet;
 // polygon 
 //     get collision polygon path for bowl and jack
 //     get polygon path for circle centered at a point with a given radius
 //     get polygon path for an arc of a certain radius
 
 class Polygon{
-    
     public static List<List<PointD>> GetPolygonPaths(List<BowlPosition> bowls1, List<BowlPosition> bowls2, Bias bias){
         List<List<PointD>> paths = new List<List<PointD>>();
 
@@ -41,18 +40,18 @@ class Polygon{
         Vector3 left_point = startPoint + left_offset;
         Vector3 right_point = startPoint + right_offset;
 
-        Vector3[] leftPoints = BowlPhysics.getBoundaryPoints(left_point, bias);
-        Vector3[] rightPoints = BowlPhysics.getBoundaryPoints(right_point, bias);
+        Vector2[] leftPoints = BowlPhysics.getBoundaryPoints(left_point, bias);
+        Vector2[] rightPoints = BowlPhysics.getBoundaryPoints(right_point, bias);
 
         double[] points = new double[2*leftPoints.Length+ 2*rightPoints.Length];
         int point_i = 0;
         for(int i = 0; i < leftPoints.Length; i++){
             points[point_i++] = leftPoints[i].x * 100;
-            points[point_i++] = leftPoints[i].z * 100;
+            points[point_i++] = leftPoints[i].y * 100;
         }
         for(int i = rightPoints.Length-1; i >= 0; i--){
              points[point_i++] = rightPoints[i].x * 100;
-             points[point_i++] = rightPoints[i].z * 100;
+             points[point_i++] = rightPoints[i].y * 100;
         }
 
         List<PointD> path = Clipper.MakePath(points);
@@ -82,38 +81,28 @@ class Polygon{
         return returnPoints;
     }
 
-    public static Vector2 RndPointInsideTriangle(Triangulator.Triangle triangle){
-        float randomVal = UnityEngine.Random.value;
+    
 
-        Vector2 start;
-        Vector2 end;
+    public static List<Triangle> TriangulatePolygon(List<PointD> path){
+        List<double> points = new List<double>();
 
-        if(randomVal <= 1/3){
-            Vector2 side1 = triangle.a - triangle.b;
-            Vector2 side2 = triangle.a - triangle.c;
-            start = triangle.b + UnityEngine.Random.value * side1;
-            end = triangle.c + UnityEngine.Random.value * side2;
-        }else if(randomVal > 1/3 && randomVal <= 2/3){
-            Vector2 side1 = triangle.a - triangle.b;
-            Vector2 side2 = triangle.b - triangle.c;
-            start = triangle.b + UnityEngine.Random.value * side1;
-            end = triangle.c + UnityEngine.Random.value * side2;
-        }else{
-            Vector2 side1 = triangle.a - triangle.c;
-            Vector2 side2 = triangle.b - triangle.c;
-            start = triangle.c + UnityEngine.Random.value * side1;
-            end = triangle.c + UnityEngine.Random.value * side2;
+        foreach(PointD p in path){
+            points.Add(p.x/100);
+            points.Add(p.y/100);
         }
 
-        Vector2 between = end - start;
+        List<int> ind = Earcut.Tessellate(points, new List<int>());
+        List<Triangle> tri = new List<Triangle>();
+        
+        for(int i = 0; i < ind.Count; i+=3){
+            Vector2 p1 = new Vector2((float)points[ind[i]*2], (float)points[ind[i]*2+1]);
+            Vector2 p2 = new Vector2((float)points[ind[i+1]*2], (float)points[ind[i+1]*2+1]);
+            Vector2 p3 = new Vector2((float)points[ind[i+2]*2], (float)points[ind[i+2]*2+1]);
 
-        return start + UnityEngine.Random.value * between;
-    }
+            tri.Add(new Triangle(p1,p2,p3));
+        }
 
-    public static List<Triangulator.Triangle> TriangulatePolygon(List<PointD> path){
-        List<Vector2> points = PathToVec2(path);
-
-        return Triangulator.Triangulate(points);
+        return tri;
     }
 
     public static List<List<PointD>> GetArcPolygon(Vector2 center, float radius, float arcWidth, float angleStart, float angleEnd, int totalPoints){
@@ -168,4 +157,46 @@ class Polygon{
         return paths;
     }
 
+}
+
+public class Triangle{
+    Vector2 a;
+    Vector2 b;
+    Vector2 c;
+    public float area;
+
+    public Triangle(Vector2 a, Vector2 b, Vector2 c){
+        this.a = a;
+        this.b = b;
+        this.c = c;
+
+        this.area = ((a-b).magnitude * (c-b).magnitude) / 2;
+    }
+
+    public Vector2 RndPointInsideTriangle(){
+        float randomVal = UnityEngine.Random.value;
+
+        Vector2 start;
+        Vector2 end;
+
+        if(randomVal <= 1/3){
+            Vector2 side1 = a - b;
+            Vector2 side2 = a - c;
+            start = b + UnityEngine.Random.value * side1;
+            end = c + UnityEngine.Random.value * side2;
+        }else if(randomVal > 1/3 && randomVal <= 2/3){
+            Vector2 side1 = a - b;
+            Vector2 side2 = b - c;
+            start = b + UnityEngine.Random.value * side1;
+            end = c + UnityEngine.Random.value * side2;
+        }else{
+            Vector2 side1 = a - c;
+            Vector2 side2 = b - c;
+            start = c + UnityEngine.Random.value * side1;
+            end = c + UnityEngine.Random.value * side2;
+        }
+
+        Vector2 between = end - start;
+        return start + UnityEngine.Random.value * between;
+    }
 }
