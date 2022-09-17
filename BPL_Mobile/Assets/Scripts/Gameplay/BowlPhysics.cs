@@ -2,22 +2,15 @@ using System;
 using UnityEngine;
 
 public class BowlPhysics{
-    public static Vector3 UnityToGameCoords(Vector3 v3){
-        return new Vector3(v3.x, v3.y, v3.z + 9);
+    public static Vector2 UnityToGameCoords(Vector3 v){
+        return new Vector2(v.x, v.z + 9);
     }
-    public static Vector3 GameToUnityCoords(Vector3 v3){
-        return new Vector3(v3.x, v3.y, v3.z - 9);
-    }
-
-    public static Vector2 UnityToGameCoords(Vector2 v2){
-        return new Vector2(v2.x, v2.y + 9);
-    }
-    public static Vector2 GameToUnityCoords(Vector2 v2){
-        return new Vector2(v2.x, v2.y - 9);
+    public static Vector3 GameToUnityCoords(Vector2 v){
+        return new Vector3(v.x, 0.01f, v.y - 9);
     }
 
-    public static float GetBowlAngle(Vector3 direction){
-        float angle = Vector3.Angle(Vector3.forward, direction);
+    public static float GetBowlAngle(Vector2 direction){
+        float angle = Vector2.Angle(Vector2.up, direction);
            
         if(direction.x > 0){
             return angle;
@@ -27,24 +20,24 @@ public class BowlPhysics{
         }
     }
 
-    public static Vector3[] getBoundaryPoints(Vector3 right_point, Bias bias, int num_trials = 14, float mag_diff = 2){
+    public static Vector2[] getBoundaryPoints(Vector2 right_point, Bias bias, int num_trials = 14, float mag_diff = 2){
         
-        Vector3[] points = new Vector3[num_trials+1];
-        points[0] = GameToUnityCoords(right_point);
+        Vector2[] points = new Vector2[num_trials+1];
+        points[0] = right_point;
 
         // get the first 4 points using 0.25 mag_diff
         for(int i = 1; i <=4 ; i++){
             var (rightPTwo, rightIV, right_end_time) = GetPointWithRadius(right_point.magnitude, right_point.magnitude+(0.25f * i), bias, 0);
            
             // find the angle between right point and right point two
-            float rightAngle = Vector3.Angle(rightPTwo, right_point);
+            float rightAngle = Vector2.Angle(rightPTwo, right_point);
             
             if(rightPTwo.x > right_point.x){
                 rightAngle = -rightAngle;
             }
 
             // get the last point
-            Vector3 rlp = GameToUnityCoords(DeliveryPath(rightIV, rightAngle, bias, 0, right_end_time-0.1f));
+            Vector2 rlp = DeliveryPath(rightIV, rightAngle, bias, 0, right_end_time-0.1f);
             points[i] = rlp;
         }
 
@@ -53,14 +46,14 @@ public class BowlPhysics{
             var (rightPTwo, rightIV, right_end_time) = GetPointWithRadius(right_point.magnitude, right_point.magnitude+(0.25f*4)+(mag_diff * (i-4)), bias, 0);
            
             // find the angle between right point and right point two
-            float rightAngle = Vector3.Angle(rightPTwo, right_point);
+            float rightAngle = Vector2.Angle(rightPTwo, right_point);
             
             if(rightPTwo.x > right_point.x){
                 rightAngle = -rightAngle;
             }
 
             // get the last point
-            Vector3 rlp = GameToUnityCoords(DeliveryPath(rightIV, rightAngle, bias, 0, right_end_time-0.1f));
+            Vector2 rlp = DeliveryPath(rightIV, rightAngle, bias, 0, right_end_time-0.1f);
             points[i] = rlp;
         }
 
@@ -68,7 +61,7 @@ public class BowlPhysics{
     }
 
     // get 
-    public static (Vector3 point, float init_vel, float end_time) GetPointWithRadius(float WantedPointLength, float EndPointLength, Bias bias, float mu_scale){
+    public static (Vector2 point, float init_vel, float end_time) GetPointWithRadius(float WantedPointLength, float EndPointLength, Bias bias, float mu_scale){
         float mu = 0.025f + (mu_scale * 0.003f);
         float g = 9.8f; //(m/s^2) velocity due to gravity
         float p = 3.8f; //(2.8*MU*R)/d
@@ -103,7 +96,7 @@ public class BowlPhysics{
                 float d = Mathf.Sin(MathF.PI);
                 z = -(r0/(1+p*p))*(p - p*lamba*Mathf.Cos(phi)+lamba*Mathf.Sin(phi));
                 x = (r0/(1+p*p))*(1 - lamba*Mathf.Cos(phi) - p*lamba*Mathf.Sin(phi));
-                new Vector3(z*d + x*c, 0.01f, z*c - x*d);
+                new Vector2(z*d + x*c, z*c - x*d);
                 z = z*c - x*d;
                 x = z*d + x*c;
             }
@@ -123,7 +116,7 @@ public class BowlPhysics{
             t = lower + ((upper - lower) / 2);
         }
 
-        return (new Vector3(x, 0 , z), init_vel, end_time);
+        return (new Vector2(x, z), init_vel, end_time);
     }
 
     // returns the length of time it takes for the bowl to come to a rest
@@ -174,7 +167,7 @@ public class BowlPhysics{
     //  angle     - the angle of the delivery from the z axis in degrees
     //  mu_scale  - value from 0 to 1 which determins the "speed of the green"
     //  t - time to find the position of the bowl for relative to the start of the delivery
-    public static Vector3 GetCurrentDirection(float init_vel, float angle, Bias bias, float mu_scale, float t){
+    public static Vector2 GetCurrentDirection(float init_vel, float angle, Bias bias, float mu_scale, float t){
         float end_time = DeliveryEndTime(init_vel, angle, mu_scale);
 
         // make sure t is a valid value
@@ -188,10 +181,10 @@ public class BowlPhysics{
             next_time = end_time-0.01f;
         }
 
-        Vector3 first_point = DeliveryPath(init_vel, angle, bias, mu_scale, t);
-        Vector3 second_point = DeliveryPath(init_vel, angle, bias, mu_scale, next_time);
+        Vector2 first_point = DeliveryPath(init_vel, angle, bias, mu_scale, t);
+        Vector2 second_point = DeliveryPath(init_vel, angle, bias, mu_scale, next_time);
 
-        Vector3 direction = second_point - first_point;
+        Vector2 direction = second_point - first_point;
 
         return direction;
     }
@@ -222,7 +215,7 @@ public class BowlPhysics{
     //  angle     - the angle of the delivery from the z axis in degrees
     //  MU_scale  - value from 0 to 1 which determins the "speed of the green"
     //  time_step - time between each point in the trajectory 
-    public static Vector3[] GetBowlTrajectory(float init_vel, float angle, Bias bias, float mu_scale, float time_step = 0.5f){
+    public static Vector2[] GetBowlTrajectory(float init_vel, float angle, Bias bias, float mu_scale, float time_step = 0.5f){
         // convert angle to radians
         angle = angle *(Mathf.PI / 180);
 
@@ -232,11 +225,10 @@ public class BowlPhysics{
         float r0 = (p * (init_vel*init_vel)) / (2*mu*g); // initial radius of curvature of the path of the bowl
         float delivery_end_time = BowlPhysics.DeliveryEndTime(init_vel, angle, mu_scale);
         int steps = (int)MathF.Floor(delivery_end_time/time_step);
-        Vector3[] BowlTrajectory = new Vector3[steps];
+        Vector2[] BowlTrajectory = new Vector2[steps];
     
         float time = 0;
         for(int i = 0; i < steps; i++){
-
             float v = init_vel - mu*g*time; // velocity at particular time step
             float phi = (2/p)*Mathf.Log(init_vel/v); // angle between the tangent of the bowls path with the x-axis
             float lamba = Mathf.Exp(-p*phi); // 
@@ -250,9 +242,8 @@ public class BowlPhysics{
                 float d = Mathf.Sin(angle);
                 z = (r0/(1+p*p))*(p - p*a+b);
                 x = (r0/(1+p*p))*(1 - a - p*b);
-                BowlTrajectory[i] = new Vector3(z*d + x*c, 0.01f, z*c - x*d);
+                BowlTrajectory[i] = new Vector2(z*d + x*c, z*c - x*d);
             }
-            // bias is on the right
             else{
                 float a = lamba*Mathf.Cos(phi);
                 float b = lamba*Mathf.Sin(phi);
@@ -260,7 +251,7 @@ public class BowlPhysics{
                 float d = Mathf.Sin(angle + MathF.PI);
                 z = -(r0/(1+p*p))*(p - p*a+b);
                 x = (r0/(1+p*p))*(1 - a - p*b);
-                BowlTrajectory[i] = new Vector3(z*d + x*c, 0.01f, z*c - x*d);
+                BowlTrajectory[i] = new Vector2(z*d + x*c, z*c - x*d);
             }
 
             time += time_step;
@@ -275,7 +266,7 @@ public class BowlPhysics{
     //  init_vel   - initial velocity, specified in m/s^2
     //  angle     - the angle of the delivery from the z axis in degrees
     //  mu_scale  - value from 0 to 1 which determins the "speed of the green"
-    public static Vector3 DeliveryPath(float init_vel, float angle, Bias bias, float mu_scale, float t){
+    public static Vector2 DeliveryPath(float init_vel, float angle, Bias bias, float mu_scale, float t){
         // convert angle to radians
         angle = angle *(Mathf.PI / 180);
 
@@ -289,19 +280,18 @@ public class BowlPhysics{
         
         float z;
         float x;
-        // bias is on the left
+        
         if(bias == Bias.Right){
             z = (r0/(1+p*p))*(p - p*lamba* Mathf.Cos(phi)+lamba*Mathf.Sin(phi));
             x = (r0/(1+p*p))*(1 - lamba*Mathf.Cos(phi) - p*lamba*Mathf.Sin(phi));
         }
-        // bias is on the right
         else{
             z = -(r0/(1+p*p))*(p - p*lamba*Mathf.Cos(phi)+lamba*Mathf.Sin(phi));
             x = (r0/(1+p*p))*(1 - lamba*Mathf.Cos(phi) - p*lamba*Mathf.Sin(phi));
             angle += Mathf.PI;
         }
 
-        return new Vector3(z*Mathf.Sin(angle) + x*Mathf.Cos(angle), 0.01f, z*Mathf.Cos(angle) - x*Mathf.Sin(angle));
+        return new Vector2(z*Mathf.Sin(angle) + x*Mathf.Cos(angle), z*Mathf.Cos(angle) - x*Mathf.Sin(angle));
     }
 
     // returns the angle between the two vectors P1 and P2 in radians
