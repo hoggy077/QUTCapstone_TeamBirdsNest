@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c872d6f6c8ee24a42a36cefa55556a41, type: 3}
+  m_Name: J_M_Pulse
+  m_EditorClassIdentifier: 
+  baseColour: {r: 0, g: 0.12941177, b: 0.30980393, a: 1}
+  smallStripeColour: {r: 0.9607844, g: 0.50980395, b: 0.1254902, a: 1}
+  shoulderStripeColour: {r: 0.9607844, g: 0.50980395, b: 0.1254902, a: 1}
+  teamLogo: {fileID: 21300000, guid: b1a1d08959832994bb3a3f8a00b3e7f7, type: 3}

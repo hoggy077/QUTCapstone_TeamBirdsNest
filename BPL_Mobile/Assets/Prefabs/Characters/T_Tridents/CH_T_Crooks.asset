@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5f0564b75b208841a20c97450355952, type: 3}
+  m_Name: CH_T_Crooks
+  m_EditorClassIdentifier: 
+  hairStyle: {fileID: 7980410965627375165, guid: 2149c8becd811324aa24702be9ae1fb5,
+    type: 3}
+  hairColour: {r: 0.1981132, g: 0.075020485, b: 0.032707363, a: 1}
+  alternateHairColour: {r: 0.16862746, g: 0.043137256, b: 0, a: 1}
+  flipHair: 0
+  beltColour: {r: 0, g: 0, b: 0, a: 1}
+  beltBuckleColour: {r: 0.6509434, g: 0.58543175, b: 0.009211446, a: 1}
+  pantsColour: {r: 0.13207549, g: 0.13207549, b: 0.13207549, a: 1}
+  sockColour: {r: 1, g: 0.6517423, b: 0.3726415, a: 1}
+  shoeColour: {r: 0.254717, g: 0.254717, b: 0.254717, a: 1}
+  characterName: Timmy Crooks
+  skinColour: {r: 0.9339623, g: 0.5345228, b: 0.21586865, a: 1}
+  shoulderScale: 1
+  waistScale: 0.85
+  heightScale: 1.05

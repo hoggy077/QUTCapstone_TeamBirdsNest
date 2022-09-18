@@ -56,12 +56,15 @@
     <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio Tools for Unity\16.0\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\QuickOutline\Scripts\Outline.cs" />
+    <Compile Include="Assets\Scripts\Environment\CameraFollow.cs" />
     <Compile Include="Assets\Scripts\Gameplay\BowlSpawner.cs" />
     <Compile Include="Assets\Scripts\Gameplay\AI.cs" />
     <Compile Include="Assets\Scripts\Managers\MatchManager.cs" />
     <Compile Include="Assets\Scripts\Gameplay\GamemodeInfo.cs" />
     <Compile Include="Assets\Scripts\Gameplay\BowlsScriptable.cs" />
     <Compile Include="Assets\Scripts\AudioManager.cs" />
+    <Compile Include="Assets\Scripts\Characters\CharacterAppearanceUpdater.cs" />
     <Compile Include="Assets\Scripts\Managers\ScoringManager.cs" />
     <Compile Include="Assets\Scripts\Managers\ResumeManager.cs" />
     <Compile Include="Assets\Scripts\Misc\CareerBuilder.cs" />
@@ -69,14 +72,18 @@
     <Compile Include="Assets\Scripts\Gameplay\TrackThisThing.cs" />
     <Compile Include="Assets\Scripts\Misc\SaveSystem.cs" />
     <Compile Include="Assets\Scripts\UI\SelectionsSummaryUI.cs" />
+    <Compile Include="Assets\Scripts\Characters\CharacterSO.cs" />
     <Compile Include="Assets\Scripts\Gameplay\BowlLauncher.cs" />
     <Compile Include="Assets\Scripts\Managers\ManagerInitalizer.cs" />
+    <Compile Include="Assets\Scripts\Characters\JerseySO.cs" />
     <Compile Include="Assets\Scripts\Gameplay\BowlID.cs" />
+    <Compile Include="Assets\Scripts\UI\ClosestBowlRing.cs" />
     <Compile Include="Assets\Scripts\SoundClass.cs" />
     <Compile Include="Assets\Scripts\Gameplay\TeamScriptable.cs" />
     <Compile Include="Assets\Scripts\Misc\Logger.cs" />
     <Compile Include="Assets\Scripts\Managers\GameStateManager.cs" />
     <Compile Include="Assets\Scripts\Gameplay\BowlPhysics.cs" />
+    <Compile Include="Assets\Scripts\Characters\CharacterHair.cs" />
     <Compile Include="Assets\Scripts\UI\ScorecardUI.cs" />
     <Compile Include="Assets\Scripts\Misc\ReferenceStorage.cs" />
     <Compile Include="Assets\Scripts\Managers\CareerRecord.cs" />
@@ -85,7 +92,8 @@
     <Compile Include="Assets\Scripts\UI\MenuSystem.cs" />
     <Compile Include="Assets\Scripts\Managers\TournamentManager.cs" />
     <Compile Include="Assets\Curviture.cs" />
-    <Compile Include="Assets\Scripts\Environment\CameraFollow.cs" />
+    <Compile Include="Assets\Scripts\UI\CameraZoom.cs" />
+    <Compile Include="Assets\Scripts\UI\BowlOverlay.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
@@ -93,6 +101,7 @@
     <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Mobile.cginc" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF SSD.shader" />
+    <None Include="Assets\Scripts\QuickOutline\Resources\Shaders\OutlineMask.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Surface-Mobile.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Surface.shader" />
     <None Include="Assets\TextMesh Pro\Sprites\EmojiOne Attribution.txt" />
@@ -101,11 +110,13 @@
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile SSD.shader" />
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Leading Characters.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Properties.cginc" />
+    <None Include="Assets\Scripts\QuickOutline\Readme.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Surface.cginc" />
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Following Characters.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Masking.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF Overlay.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap-Mobile.shader" />
+    <None Include="Assets\Scripts\QuickOutline\Resources\Shaders\OutlineFill.shader" />
     <None Include="Assets\TextMesh Pro\Fonts\LiberationSans - OFL.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_Sprite.shader" />

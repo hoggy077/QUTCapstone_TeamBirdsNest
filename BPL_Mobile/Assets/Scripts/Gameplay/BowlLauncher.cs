@@ -158,13 +158,21 @@ public class BowlLauncher : MonoBehaviour
                     deliver = true;
                     DeliveryEndTime = BowlPhysics.DeliveryEndTime(initialVelocity, deliveryAngle, 0) - 0.75f;
                     //lineRenderer.enabled = false;
+
                     rb.mass = 1;
                     rb.useGravity = true;
                     rb.isKinematic = true;
                     rb.detectCollisions = true;
+
+                    BowlOverlay.instance.ToggleOpacity(false);
+                    CameraZoom.instance.zoom = false;
+
                 }
                 break;
             case TouchPhase.Began:
+                BowlOverlay.instance.MoveToBowl(transform.position);
+                BowlOverlay.instance.ToggleOpacity(true);
+                CameraZoom.instance.zoom = true;
                 goto case TouchPhase.Moved;
             case TouchPhase.Moved:
                 // touch input should only be valid on the bottom (1/3)rd-ish of the phone
@@ -187,6 +195,7 @@ public class BowlLauncher : MonoBehaviour
                     transform.rotation = Quaternion.Euler(0, deliveryAngle , 0);
                     
                     updatePredictor = true;
+                    BowlOverlay.instance.UpdateLinePullback(touch.position);
                 }else{
                     updatePredictor = false;
                 }

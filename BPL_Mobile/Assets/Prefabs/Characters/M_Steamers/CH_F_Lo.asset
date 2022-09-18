@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5f0564b75b208841a20c97450355952, type: 3}
+  m_Name: CH_F_Lo
+  m_EditorClassIdentifier: 
+  hairStyle: {fileID: 7980410965627375165, guid: a5b1b2fb6f54586458e66bf12a17938b,
+    type: 3}
+  hairColour: {r: 0.103773594, g: 0.103773594, b: 0.103773594, a: 1}
+  alternateHairColour: {r: 0.10196079, g: 0.21176471, b: 0.10196079, a: 1}
+  flipHair: 0
+  beltColour: {r: 0, g: 0, b: 0, a: 1}
+  beltBuckleColour: {r: 0.26415092, g: 0.26415092, b: 0.26415092, a: 1}
+  pantsColour: {r: 0.11000357, g: 0.12420011, b: 0.2264151, a: 1}
+  sockColour: {r: 0.6748281, g: 0.990566, b: 0.5093005, a: 1}
+  shoeColour: {r: 0.3962264, g: 0.3962264, b: 0.3962264, a: 1}
+  characterName: Fredrick Lo
+  skinColour: {r: 0.990566, g: 0.8424539, b: 0.6401299, a: 1}
+  shoulderScale: 1
+  waistScale: 0.85
+  heightScale: 1

@@ -19,3 +19,7 @@ MonoBehaviour:
     rgba: 4290295925
   - serializedVersion: 2
     rgba: 4279096572
+  teamJersey: {fileID: 11400000, guid: 101c46a507fea7949b9a62045f5083c7, type: 2}
+  character1: {fileID: 11400000, guid: d23ce0291dd46e34bb6e810d15f99794, type: 2}
+  character2: {fileID: 11400000, guid: 201a1c3b8d92ab74a9f15fe3357f916b, type: 2}
+  character3: {fileID: 11400000, guid: f9b47c20b81f2254299225bf286629ea, type: 2}

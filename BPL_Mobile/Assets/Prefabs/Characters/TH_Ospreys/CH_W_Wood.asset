@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5f0564b75b208841a20c97450355952, type: 3}
+  m_Name: CH_W_Wood
+  m_EditorClassIdentifier: 
+  hairStyle: {fileID: 7980410965627375165, guid: a5b1b2fb6f54586458e66bf12a17938b,
+    type: 3}
+  hairColour: {r: 0.3773585, g: 0.28595793, b: 0.25453898, a: 1}
+  alternateHairColour: {r: 0.16862746, g: 0.043137256, b: 0, a: 1}
+  flipHair: 0
+  beltColour: {r: 0, g: 0, b: 0, a: 1}
+  beltBuckleColour: {r: 0.6509434, g: 0.58543175, b: 0.009211446, a: 1}
+  pantsColour: {r: 0.24528301, g: 0.09852826, b: 0.09371662, a: 1}
+  sockColour: {r: 1, g: 0.6517423, b: 0.3726415, a: 1}
+  shoeColour: {r: 0.254717, g: 0.254717, b: 0.254717, a: 1}
+  characterName: Wayne Wood
+  skinColour: {r: 0.8962264, g: 0.6299643, b: 0.4185208, a: 1}
+  shoulderScale: 1.08
+  waistScale: 0.85
+  heightScale: 1.05

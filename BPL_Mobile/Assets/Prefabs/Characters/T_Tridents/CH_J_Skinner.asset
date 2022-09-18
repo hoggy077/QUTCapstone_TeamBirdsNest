@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5f0564b75b208841a20c97450355952, type: 3}
+  m_Name: CH_J_Skinner
+  m_EditorClassIdentifier: 
+  hairStyle: {fileID: -3788587672279099099, guid: 4531843d437377c4d9cda93d3af8fca8,
+    type: 3}
+  hairColour: {r: 0.6037736, g: 0.18458346, b: 0, a: 1}
+  alternateHairColour: {r: 0, g: 0, b: 0, a: 0}
+  flipHair: 0
+  beltColour: {r: 0.38679248, g: 0.24265754, b: 0.32099172, a: 1}
+  beltBuckleColour: {r: 0.3679245, g: 0.31794482, b: 0.01561943, a: 1}
+  pantsColour: {r: 0.13207549, g: 0.13207549, b: 0.13207549, a: 1}
+  sockColour: {r: 1, g: 0.6650944, b: 0.89832556, a: 1}
+  shoeColour: {r: 0, g: 0, b: 0, a: 1}
+  characterName: Josie Skinner
+  skinColour: {r: 0.9433962, g: 0.7084099, b: 0.43164828, a: 1}
+  shoulderScale: 0.9
+  waistScale: 0.97
+  heightScale: 0.96
