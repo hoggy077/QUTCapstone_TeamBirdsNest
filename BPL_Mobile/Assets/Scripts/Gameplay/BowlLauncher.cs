@@ -47,6 +47,9 @@ public class BowlLauncher : MonoBehaviour
     // between 0 and 1 if its bellow VALID_Y_INPUT
     const float MAX_VELOCITY = 5;
 
+    // UI Handling
+    private bool setupUI = false;
+
     void Start(){
         points = new Vector3[pointsSize];
 
@@ -154,12 +157,15 @@ public class BowlLauncher : MonoBehaviour
                     DeliveryEndTime = BowlPhysics.DeliveryEndTime(initialVelocity, deliveryAngle, 0) - 0.75f;
                     //lineRenderer.enabled = false;
                     rigidbody.mass = 2000000;
-                    BowlOverlay.instance.ToggleOpacity(false);
-                    CameraZoom.instance.zoom = false;
                 }
+                BowlOverlay.instance.ToggleOpacity(false);
+                CameraZoom.instance.zoom = false;
                 break;
             case TouchPhase.Began:
-                BowlOverlay.instance.MoveToBowl(transform.position);
+                if (setupUI == false)
+                {
+                    BowlOverlay.instance.MoveToBowl(transform.position);
+                }
                 BowlOverlay.instance.ToggleOpacity(true);
                 CameraZoom.instance.zoom = true;
                 goto case TouchPhase.Moved;
