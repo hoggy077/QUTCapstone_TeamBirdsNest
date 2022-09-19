@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class ScoringManager : MonoBehaviour
 {
@@ -207,6 +208,7 @@ public class ScoringManager : MonoBehaviour
         else if(currentScore.team1Sets + currentScore.team2Sets >= 2)
         {
             currentEnd--;
+            scorecard.UpdateEndsWon(0, 0);
             StartNewEnd(true);
         }
 
@@ -214,6 +216,7 @@ public class ScoringManager : MonoBehaviour
         else
         {
             currentEnd = 1;
+            scorecard.UpdateEndsWon(0, 0);
             StartNewEnd();
         }
     }
@@ -251,7 +254,7 @@ public class ScoringManager : MonoBehaviour
     // Function to handle concluding of match
     private void FinishMatch()
     {
-
+        SceneManager.LoadScene(0);
     }
 
     // Function to handle updating of scorecard and calculation of remaining shots for each team
