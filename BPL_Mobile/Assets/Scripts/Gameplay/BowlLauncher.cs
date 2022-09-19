@@ -8,6 +8,7 @@ public class BowlLauncher : MonoBehaviour
     public Collider rinkFloor;
     public LineRenderer lineRenderer;
     private Rigidbody rb;
+    private Transform tr;
     private float BowlRadius = 0.0635f;
     private float lastAngle = 0;
 
@@ -53,6 +54,7 @@ public class BowlLauncher : MonoBehaviour
         Bounds bounds = GetComponent<Renderer>().bounds;
         //BowlRadius = bounds.extents.y;
         rb = GetComponent<Rigidbody>();
+        tr = GetComponent<Transform>();
     }
 
     void FixedUpdate(){
@@ -61,21 +63,17 @@ public class BowlLauncher : MonoBehaviour
                 Vector2 direction = BowlPhysics.GetCurrentDirection(initialVelocity, deliveryAngle, bias, 0, time);
                 direction = direction.normalized;
                 Vector3 velocity = new Vector3(direction.x, 0, direction.y) * BowlPhysics.GetCurrentVelocity(initialVelocity, deliveryAngle, 0, time);
-                //Debug.Log(String.Format("game speed = {0}, theoretical speed = {1}, time = {2}", rb.velocity.magnitude, velocity.magnitude, time));
                 rb.velocity = velocity;
 
                 // update the angular velocity
-                Vector3 pos = BowlPhysics.GameToUnityCoords(BowlPhysics.DeliveryPath(initialVelocity, deliveryAngle, bias, 0, time));;
-                Vector3 diff = pos - transform.position;
-                float angularVelocitySpeed = (diff.magnitude/BowlRadius) * Time.deltaTime;
+                float rotAngle = (velocity.magnitude / BowlRadius) / (MathF.PI/180);
+                Vector3 dr = tr.TransformPoint(Vector3.right);
+                tr.RotateAround(tr.position, dr, rotAngle * Time.deltaTime);
+                
+                float angularVelocitySpeed = rotAngle * Time.deltaTime;
                 Vector3 angularVelocityVec = new Vector3(0, 0, angularVelocitySpeed);
                 
                 rb.AddRelativeTorque(-angularVelocityVec, ForceMode.VelocityChange);
-
-                lineRenderer.enabled = true;
-                lineRenderer.positionCount = 2;
-                lineRenderer.SetPosition(0, transform.position);
-                lineRenderer.SetPosition(1, transform.position + velocity);
             }
             else{
                 destroyScript();
@@ -163,10 +161,10 @@ public class BowlLauncher : MonoBehaviour
                     rb.useGravity = true;
                     rb.isKinematic = true;
                     rb.detectCollisions = true;
+                    GetComponent<BowlMovement>().inDelivery = true;
 
                     BowlOverlay.instance.ToggleOpacity(false);
                     CameraZoom.instance.zoom = false;
-
                 }
                 break;
             case TouchPhase.Began:
@@ -236,7 +234,7 @@ public class BowlLauncher : MonoBehaviour
         transform.rotation = Quaternion.Euler(0, deliveryAngle , 0);
         deliver = true;
         DeliveryEndTime = BowlPhysics.DeliveryEndTime(initialVelocity, deliveryAngle, 0);
-
+        GetComponent<BowlMovement>().inDelivery = true;
         rb = GetComponent<Rigidbody>();
         rb.mass = 1;
         rb.useGravity = true;
@@ -257,15 +255,15 @@ public class BowlLauncher : MonoBehaviour
             Vector3 velocity = new Vector3(dir.x, 0, dir.y) * BowlPhysics.GetCurrentVelocity(initialVelocity, deliveryAngle, 0, time);
             float mass1 = 2;
             float mass2 = collision.rigidbody.mass;
-            Debug.Log(String.Format("m1 = {0}, m2 = {1}", mass1, mass2));
+            
             Vector3 direction = collision.transform.position - transform.position;
             direction.y = 0;
             Vector3 colliderProj = (Vector3.Dot(direction, velocity) / Vector3.Dot(direction, direction)) * direction;
             Vector3 colliderOrtho = velocity - colliderProj;
-            Debug.Log(String.Format("colliderOrtho = {0}", colliderOrtho));
-            Debug.Log(String.Format("vel test = {0} should equal {1}", colliderProj + colliderOrtho, velocity));
+            
+            
             Vector3 collideeProj = (Vector3.Dot(-direction, collision.rigidbody.velocity) / Vector3.Dot(-direction, -direction)) * -direction;
-            Debug.Log(String.Format("collidee proj = {0}", collideeProj));
+            
             Vector3 collideeOrtho = collision.rigidbody.velocity - collideeProj;
             Vector3 colliderFinalVel = ((((mass1 - mass2) * colliderProj) + 2 * mass2 * collideeProj)/(mass1 + mass2)) + colliderOrtho;
             Vector3 collideeFinalVel = ((((mass2 - mass1) * collideeProj) + 2 * mass1 * colliderProj)/(mass1 + mass2)) + collideeOrtho;
@@ -273,9 +271,6 @@ public class BowlLauncher : MonoBehaviour
             
             Vector3 angularVel = -colliderFinalVel / BowlRadius;
             Vector3 rd = Vector3.Cross(angularVel, Vector3.up).normalized;
-            // angularVel.x = angularVel.x / (MathF.PI/180);
-            // angularVel.y = angularVel.y / (MathF.PI/180);
-            // angularVel.z = angularVel.z / (MathF.PI/180);
 
             bm1.av = angularVel;
             bm1.v = colliderFinalVel;
@@ -286,10 +281,6 @@ public class BowlLauncher : MonoBehaviour
         
             Vector3 angularVel2 = -collideeFinalVel / BowlRadius;
             Vector3 rd2 = Vector3.Cross(angularVel2, Vector3.up).normalized;
-            //Vector3 angularVel2 = 
-            // angularVel2.x = angularVel2.x / (MathF.PI/180);
-            // angularVel2.y = angularVel2.y / (MathF.PI/180);
-            // angularVel2.z = angularVel2.z / (MathF.PI/180);
 
             bm2.av = angularVel2;
             bm2.v = collideeFinalVel;

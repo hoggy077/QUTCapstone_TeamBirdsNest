@@ -12,14 +12,19 @@ public class MatchManager : MonoBehaviour
     // Basic Management of Camera Movement for Demo
     private Camera mainCam;
     private Vector3 originalCameraLocation;
+    private Quaternion originalCameraRotation;
     private Vector3 cameraBowlOffset;
+    private Vector3 originalCameraBowlOffset;
+    private float rotationTime = 0;
+    private float endRotationTime = 6f; // seconds
     private ScoringManager scm;
 
     //GameStateManager gsm = GameStateManager.Instance;
     GameObject currentBowl = null;
+    Transform currentBowlTr = null;
     GameObject Jack;
-    List<GameObject> PlayerBowls = new List<GameObject>();
-    List<GameObject> AIBowls = new List<GameObject>();
+    List<GameObject> Team1Bowls = new List<GameObject>();
+    List<GameObject> Team2Bowls = new List<GameObject>();
     bool PlayerTurn = true;
     private AI ai;
     private bool ai_keep_looping = false;
@@ -31,9 +36,8 @@ public class MatchManager : MonoBehaviour
         ai = new AI();
         ai.difficulty = AIDifficulty.HARD;
         mainCam = Camera.main;
-
         originalCameraLocation = mainCam.transform.position;
-
+        originalCameraRotation = mainCam.transform.rotation;
         scm = FindObjectOfType<ScoringManager>();
 
         Rigidbody JackRigidbody = Jack.GetComponent<Rigidbody>();
@@ -51,34 +55,47 @@ public class MatchManager : MonoBehaviour
     void Update(){
         Play();
 
-        if(currentBowl == null)
+        if(currentBowl != null)
         {
-            mainCam.transform.position = originalCameraLocation;
-        }
-        else
-        {
+            if(currentBowl.GetComponent<BowlMovement>().inDelivery){
+                if(rotationTime < endRotationTime){
+                    rotationTime += Time.deltaTime;
+                    float endAngle = 50;
+                    float endRadius = 4;
+
+                    Vector3 endVector = new Vector3(0, MathF.Cos(endAngle * (MathF.PI/180)), -MathF.Sin(endAngle * (MathF.PI/180))) * 4;
+                    cameraBowlOffset = Vector3.Slerp(originalCameraBowlOffset, endVector, rotationTime/endRotationTime);
+                    float angle = endAngle * (rotationTime/endRotationTime) - mainCam.transform.localEulerAngles.x;
+                    mainCam.transform.Rotate(angle, 0, 0);
+                }
+            }
+
             mainCam.transform.position = Vector3.Lerp(mainCam.transform.position, currentBowl.transform.position + cameraBowlOffset, 0.2f);
         }
     }
 
     private void Play(){
         if(currentBowl == null){
+            // wait for all bowls and the jack to stop moving
+            if(stillMoving()){
+                return;
+            }
+
+            currentBowl = SpawnBowl();
+            currentBowlTr = currentBowl.GetComponent<Transform>();
+            mainCam.transform.position = originalCameraLocation;
+            mainCam.transform.rotation = originalCameraRotation;
+            cameraBowlOffset = originalCameraLocation - currentBowl.transform.position;
+            originalCameraBowlOffset = cameraBowlOffset;
+            rotationTime = 0;
+            ReadHead();
+
             if(!PlayerTurn){
-                // create a new bowl
-                ReadHead();
-                currentBowl = SpawnBowl();
                 currentBowl.GetComponent<BowlID>().SetTeam(2);
-                mainCam.transform.position = originalCameraLocation;
-                cameraBowlOffset = originalCameraLocation - currentBowl.transform.position;
-                
                 Transform JackTransform = Jack.GetComponent<Transform>();
-                ai.TakeTurn(currentBowl, JackTransform.position, PlayerBowls, AIBowls);
+                ai.TakeTurn(currentBowl, JackTransform.position, Team1Bowls, Team2Bowls);
             }
             else{
-                ReadHead();
-                currentBowl = SpawnBowl();
-                mainCam.transform.position = originalCameraLocation;
-                cameraBowlOffset = originalCameraLocation - currentBowl.transform.position;
                 currentBowl.GetComponent<BowlID>().SetTeam(1);
             }
         }
@@ -86,10 +103,10 @@ public class MatchManager : MonoBehaviour
             // wait for the bowl to finish its delivery
             if(currentBowl.GetComponent<BowlLauncher>() == null){
                 if(PlayerTurn){
-                    PlayerBowls.Add(currentBowl);
+                    Team1Bowls.Add(currentBowl);
                 }
                 else{
-                    AIBowls.Add(currentBowl);
+                    Team2Bowls.Add(currentBowl);
                 }
                 
                 currentBowl = null;
@@ -98,6 +115,21 @@ public class MatchManager : MonoBehaviour
             }
         }
 
+    }
+
+    // returns true if any bowl or the jack is still moving
+    private bool stillMoving(){
+        List<GameObject> objects = GetLiveBowls();
+        objects.Add(Jack);
+
+        foreach(GameObject bowl in objects){
+            BowlMovement bm = bowl.GetComponent<BowlMovement>();
+            if(bm.isMoving){
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void TestAI(){
@@ -117,7 +149,7 @@ public class MatchManager : MonoBehaviour
                 Rigidbody JackRigidbody = Jack.GetComponent<Rigidbody>();
                 JackRigidbody.sleepThreshold = 10f;
                 
-                ai_keep_looping = ai.TakeTurn(currentBowl, JackTransform.position, PlayerBowls, AIBowls);
+                ai_keep_looping = ai.TakeTurn(currentBowl, JackTransform.position, Team1Bowls, Team2Bowls);
             }
             else{
                 ReadHead();
@@ -131,10 +163,10 @@ public class MatchManager : MonoBehaviour
             // wait for the bowl to finish its delivery
             if(currentBowl.GetComponent<BowlLauncher>() == null){
                 if(PlayerTurn){
-                    PlayerBowls.Add(currentBowl);
+                    Team1Bowls.Add(currentBowl);
                 }
                 else{
-                    AIBowls.Add(currentBowl);
+                    Team2Bowls.Add(currentBowl);
                 }
                 
                 currentBowl = null;
@@ -174,28 +206,34 @@ public class MatchManager : MonoBehaviour
 
     public List<GameObject> GetLiveBowls()
     {
-        
-        return PlayerBowls;
+        List<GameObject> bowls = new List<GameObject>();
+        foreach(GameObject bowl in Team1Bowls){
+            bowls.Add(bowl);
+        }
+        foreach(GameObject bowl in Team2Bowls){
+            bowls.Add(bowl);
+        }
+        return bowls;
     }
 
     // Called Externally to reset bowls and jack for new end
     public void CleanUpBowls()
     {
         // Looping through and destroying all bowls within current bowls list
-        for(int index = 0; index < PlayerBowls.Count; index++)
+        for(int index = 0; index < Team1Bowls.Count; index++)
         {
-            Destroy(PlayerBowls[index]);
+            Destroy(Team1Bowls[index]);
         }
-        for(int index = 0; index < AIBowls.Count; index++)
+        for(int index = 0; index < Team2Bowls.Count; index++)
         {
-            Destroy(AIBowls[index]);
+            Destroy(Team2Bowls[index]);
         }
 
         // Resetting List
-        PlayerBowls = new List<GameObject>();
-        AIBowls = new List<GameObject>();
+        Team1Bowls = new List<GameObject>();
+        Team2Bowls = new List<GameObject>();
         // Creating new Jack
         Destroy(Jack.gameObject);
-        Jack = Instantiate(jackPrefab, BowlPhysics.GameToUnityCoords(new Vector3(0, 0, 15)), Quaternion.identity);
+        Jack = Instantiate(jackPrefab, BowlPhysics.GameToUnityCoords(new Vector2(0, 15)) + new Vector3(0, 0.0215f, 0), Quaternion.identity);
     }
 }

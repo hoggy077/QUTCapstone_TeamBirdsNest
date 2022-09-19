@@ -13,6 +13,7 @@ public class BowlMovement : MonoBehaviour
 
     public bool externalySet = true;
     public bool isMoving = false;
+    public bool inDelivery = false;
 
     float BowlRadius = 0.0635f;
     float g = 9.8f;
@@ -72,7 +73,6 @@ public class BowlMovement : MonoBehaviour
             Vector3 csp1 = bowlmc.ClosestPoint(tr.position + Vector3.down);
             //Vector3 csp2 = rinkmc.ClosestPoint(tr.position);
             float dist = tr.position.y - csp1.y;
-            Debug.Log(dist);
 
             return dist;
         }
