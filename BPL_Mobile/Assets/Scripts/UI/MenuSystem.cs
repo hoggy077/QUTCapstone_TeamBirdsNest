@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 public class MenuSystem : MonoBehaviour
@@ -48,6 +49,12 @@ public class MenuSystem : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Image logoDisplay;
     private Vector3 logo1OGPosition;
     private Vector3 logo1OGScale;
+    private List<CharacterAppearanceUpdater> team1CharacterDisplays = new List<CharacterAppearanceUpdater>();
+    private List<CharacterAppearanceUpdater> team2CharacterDisplays = new List<CharacterAppearanceUpdater>();
+    [SerializeField] private Image frontTeamProfileDisplay;
+    [SerializeField] private Image backTeamProfileDisplay;
+    [SerializeField] private Material team1Display;
+    [SerializeField] private Material team2Display;
 
     // Variables to handle logo 2's animations
     [SerializeField] private UnityEngine.UI.Image logoDisplay2;
@@ -120,6 +127,19 @@ public class MenuSystem : MonoBehaviour
         if (FindObjectOfType<GradientBackground>())
         {
             bg = FindObjectOfType<GradientBackground>();
+        }
+
+        // Looping through and finding all character appearance updaters for future use
+        foreach(CharacterAppearanceUpdater character in FindObjectsOfType<CharacterAppearanceUpdater>())
+        {
+            if(character.teamID == 1)
+            {
+                team1CharacterDisplays.Add(character);
+            }
+            else
+            {
+                team2CharacterDisplays.Add(character);
+            }
         }
 
         // Overriding Main Menu for game start
@@ -515,6 +535,77 @@ public class MenuSystem : MonoBehaviour
         return 69f;
     }
 
+    // Function to update character models
+    private void UpdateCharacterModels()
+    {
+        if (!firstPlayerSelected)
+        {
+            foreach (CharacterAppearanceUpdater display in team1CharacterDisplays)
+            {
+                display.GetCoreInformation(teams[currentSelectionIndex]);
+                display.AssembleAppearance();
+                display.ModifyBody();
+            }
+
+            backTeamProfileDisplay.enabled = false;
+            frontTeamProfileDisplay.enabled = true;
+
+            frontTeamProfileDisplay.material = team1Display;
+        }
+        else if (!bothPlayersSelected)
+        {
+            foreach (CharacterAppearanceUpdater display in team1CharacterDisplays)
+            {
+                display.GetCoreInformation(teams[player1TeamIndex]);
+                display.AssembleAppearance();
+                display.ModifyBody();
+            }
+
+            foreach (CharacterAppearanceUpdater display in team2CharacterDisplays)
+            {
+                display.GetCoreInformation(teams[currentSelectionIndex]);
+                display.AssembleAppearance();
+                display.ModifyBody();
+            }
+
+            backTeamProfileDisplay.enabled = false;
+            frontTeamProfileDisplay.enabled = true;
+
+            frontTeamProfileDisplay.material = team2Display;
+            backTeamProfileDisplay.material = team1Display;
+        }
+        else
+        {
+            foreach (CharacterAppearanceUpdater display in team1CharacterDisplays)
+            {
+                display.GetCoreInformation(teams[player1TeamIndex]);
+                display.AssembleAppearance();
+                display.ModifyBody();
+            }
+
+            foreach (CharacterAppearanceUpdater display in team2CharacterDisplays)
+            {
+                display.GetCoreInformation(teams[player2TeamIndex]);
+                display.AssembleAppearance();
+                display.ModifyBody();
+            }
+
+            if (multiplayer)
+            {
+                backTeamProfileDisplay.enabled = true;
+                frontTeamProfileDisplay.enabled = true;
+            }
+            else
+            {
+                backTeamProfileDisplay.enabled = false;
+                frontTeamProfileDisplay.enabled = true;
+            }
+
+            frontTeamProfileDisplay.material = team2Display;
+            backTeamProfileDisplay.material = team1Display;
+        }
+    }
+
     // If on team selection screen roll through to correct team and colours
     private void UpdateTeamSelectionScreen()
     {
@@ -523,6 +614,8 @@ public class MenuSystem : MonoBehaviour
         {
             logoDisplay.sprite = teams[currentSelectionIndex].TeamIcon;
             bg.ChangeColours(teams[currentSelectionIndex].TeamColors[0], teams[currentSelectionIndex].TeamColors[1]);
+
+            UpdateCharacterModels();
         }
 
         team1Bowls = new List<BowlsScriptable>();
@@ -621,6 +714,7 @@ public class MenuSystem : MonoBehaviour
             UpdateTeamSelectionScreen();
             UpdateMenuDisplay(MenuState.SelectTeam, true);
             firstPlayerSelected = true;
+            UpdateCharacterModels();
         }
 
         // If second player has just selected, move on
@@ -629,6 +723,7 @@ public class MenuSystem : MonoBehaviour
             player2TeamIndex = currentSelectionIndex;
             bothPlayersSelected = true;
             UpdateMenuDisplay(MenuState.SelectTeam);
+            UpdateCharacterModels();
         }
 
         // If both players have selected, and the button is pressed again, progress to bowl selection

@@ -4,6 +4,10 @@ using UnityEngine;
 
 public class CharacterAppearanceUpdater : MonoBehaviour
 {
+    [Header("Functionality Selection")]
+    public bool inMenu = false;
+    private MenuSystem menu;
+
     [Header("Aspects to Target")]
     public SkinnedMeshRenderer playerModel;
     public Transform[] hips;
@@ -21,18 +25,24 @@ public class CharacterAppearanceUpdater : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        // Getting References to Character and Jersey
-        GetCoreInformation();
+        // Grabbing References for Possible Future Use
+        menu = FindObjectOfType<MenuSystem>();
 
-        // Applying information
-        AssembleAppearance();
+        if (!inMenu)
+        {
+            // Getting References to Character and Jersey
+            GetCoreInformation();
 
-        // Applying Body Shape & Hair Information
-        ModifyBody();
+            // Applying information
+            AssembleAppearance();
+
+            // Applying Body Shape & Hair Information
+            ModifyBody();
+        }
     }
 
     // Function to handle recolouring of character model
-    private void AssembleAppearance()
+    public void AssembleAppearance()
     {
         // Colouring Outfit and Skin
         playerModel.materials[0].color = character.pantsColour;
@@ -49,7 +59,7 @@ public class CharacterAppearanceUpdater : MonoBehaviour
     }
 
     // Function to handle physical attributes
-    private void ModifyBody()
+    public void ModifyBody()
     {
         // Setting Hair
         haircut.hairMeshFilter.mesh = character.hairStyle;
@@ -78,35 +88,42 @@ public class CharacterAppearanceUpdater : MonoBehaviour
     }
 
     // Function to get information for customising of character
-    private void GetCoreInformation()
+    public void GetCoreInformation(TeamScriptable teamForUpdate = null)
     {
         TeamScriptable myTeam;
 
-        // Getting Team Information if Available
-        
-        if (GameStateManager.Instance_.Team_1 != null && GameStateManager.Instance_.Team_2 != null)
+        if(!inMenu)
         {
-            // Getting Team Info
-            if (teamID == 1)
+            // Getting Team Information if Available
+            if (GameStateManager.Instance_.Team_1 != null && GameStateManager.Instance_.Team_2 != null)
             {
-                myTeam = GameStateManager.Instance.Team_1.BaseTeam;
+                // Getting Team Info
+                if (teamID == 1)
+                {
+                    myTeam = GameStateManager.Instance.Team_1.BaseTeam;
+                }
+                else
+                {
+                    myTeam = GameStateManager.Instance.Team_2.BaseTeam;
+                }
             }
             else
             {
-                myTeam = GameStateManager.Instance.Team_2.BaseTeam;
+                // Getting Debug Testing Team Info
+                if (teamID == 1)
+                {
+                    myTeam = FindObjectOfType<ScoringManager>().debugTeam1;
+                }
+                else
+                {
+                    myTeam = FindObjectOfType<ScoringManager>().debugTeam2;
+                }
             }
         }
         else
         {
-            // Getting Debug Testing Team Info
-            if (teamID == 1)
-            {
-                myTeam = FindObjectOfType<ScoringManager>().debugTeam1;
-            }
-            else
-            {
-                myTeam = FindObjectOfType<ScoringManager>().debugTeam2;
-            }
+            // If in the menu, check if team selection is occuring
+            myTeam = teamForUpdate;
         }
 
         // Getting Character Info
