@@ -62,17 +62,21 @@ public class AI
         AIPositions.Sort();
 
         if(AIPositions.Count == 0 && PlayerPositions.Count == 0){ // first turn for anyone
-            // get random end position
-            Vector2 target = UnityEngine.Random.insideUnitCircle;
+            Bias bias;
+            // get random radius
+            float radius = UnityEngine.Random.value  + 0.5f;
 
-            // get random bias
-            Bias bias = Bias.Right          ;
-            if(UnityEngine.Random.value < 0.5){
+            // get random end position
+            Vector2 target = UnityEngine.Random.insideUnitCircle.normalized * radius;
+
+            if(target.y > 0){
+                bias = Bias.Left;
+            }else{
                 bias = Bias.Right;
             }
 
             // take the shot
-            TakeAccurateShot(CurrentBowl, target, bias);
+            TakeAccurateShot(CurrentBowl, target*radius, bias);
 
             return false;
         }
@@ -163,14 +167,14 @@ public class AI
                 }
             }
 
-            lrs = new List<GameObject>();
-            foreach(List<PointD> path in availablePointsPolygons){
+            // lrs = new List<GameObject>();
+            // foreach(List<PointD> path in availablePointsPolygons){
                 
-                GameObject go = new GameObject();
-                go.AddComponent<LineRenderer>();
-                lrs.Add(go);
-                TestingUtils.drawPolygon(Polygon.PathToVec2(path), go.GetComponent<LineRenderer>());
-            }
+            //     GameObject go = new GameObject();
+            //     go.AddComponent<LineRenderer>();
+            //     lrs.Add(go);
+            //     TestingUtils.drawPolygon(Polygon.PathToVec2(path), go.GetComponent<LineRenderer>());
+            // }
         }
 
         return (availablePointsPolygons, bias);
