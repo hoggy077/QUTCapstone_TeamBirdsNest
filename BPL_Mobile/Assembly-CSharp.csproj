@@ -58,7 +58,6 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\QuickOutline\Scripts\Outline.cs" />
     <Compile Include="Assets\Scripts\Environment\CameraFollow.cs" />
-    <Compile Include="Assets\Scripts\Gameplay\BowlSpawner.cs" />
     <Compile Include="Assets\Scripts\Gameplay\AI.cs" />
     <Compile Include="Assets\Scripts\Managers\MatchManager.cs" />
     <Compile Include="Assets\Scripts\Gameplay\GamemodeInfo.cs" />
@@ -82,6 +81,7 @@
     <Compile Include="Assets\Scripts\Gameplay\TeamScriptable.cs" />
     <Compile Include="Assets\Scripts\Misc\Logger.cs" />
     <Compile Include="Assets\Scripts\Managers\GameStateManager.cs" />
+    <Compile Include="Assets\Scripts\UI\BowlOverlay.cs" />
     <Compile Include="Assets\Scripts\Gameplay\BowlPhysics.cs" />
     <Compile Include="Assets\Scripts\Characters\CharacterHair.cs" />
     <Compile Include="Assets\Scripts\UI\ScorecardUI.cs" />
@@ -90,10 +90,13 @@
     <Compile Include="Assets\Scripts\loggerInit.cs" />
     <Compile Include="Assets\Scripts\Gameplay\OverviewCamera.cs" />
     <Compile Include="Assets\Scripts\UI\MenuSystem.cs" />
+    <Compile Include="Assets\Scripts\UI\CameraZoom.cs" />
     <Compile Include="Assets\Scripts\Managers\TournamentManager.cs" />
     <Compile Include="Assets\Curviture.cs" />
-    <Compile Include="Assets\Scripts\UI\CameraZoom.cs" />
-    <Compile Include="Assets\Scripts\UI\BowlOverlay.cs" />
+    <Compile Include="Assets\Scripts\Misc\Polygon.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\BowlMovement.cs" />
+    <Compile Include="Assets\Scripts\Misc\TestingUtils.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\TestingAI.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
@@ -856,6 +859,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="Assembly-CSharp-firstpass.csproj">
+      <Project>{5EF5B705-10DD-4F26-DCB1-40B62B5AFEE7}</Project>
+      <Name>Assembly-CSharp-firstpass</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />

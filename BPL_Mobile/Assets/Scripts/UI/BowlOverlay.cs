@@ -19,6 +19,8 @@ public class BowlOverlay : MonoBehaviour
     public LineRenderer line;
     private Vector3 lineOffset1;
     private Vector3 lineOffset2;
+    private ScorecardUI scorecard;
+
     private void Start()
     {
         if(instance == null)
@@ -31,6 +33,7 @@ public class BowlOverlay : MonoBehaviour
         }
 
         sr = GetComponent<Image>();
+        scorecard = FindObjectOfType<ScorecardUI>();
         sr.color = new Color(1f, 1f, 1f, targetAlpha);
         rect = GetComponent<RectTransform>();
         line.colorGradient = inactiveGradient;
@@ -66,6 +69,20 @@ public class BowlOverlay : MonoBehaviour
         newGrad.colorKeys = newColorKeys;
 
         line.colorGradient = newGrad;
+
+        // Moving Scorecard off screen
+        Vector3 targetPos;
+        Vector3 currentScorePos = scorecard.GetComponent<RectTransform>().anchoredPosition;
+        if (targetAlpha == 1f)
+        {
+            targetPos = new Vector3(currentScorePos.x, 400f, currentScorePos.z);
+        }
+        else
+        {
+            targetPos = new Vector3(currentScorePos.x, 0f, currentScorePos.z);
+        }
+        currentScorePos = Vector3.Lerp(currentScorePos, targetPos, 3f * Time.deltaTime);
+        scorecard.GetComponent<RectTransform>().anchoredPosition = currentScorePos;
     }
 
     public void MoveToBowl(Vector3 bowlLocation)
