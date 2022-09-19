@@ -15,9 +15,11 @@ class Polygon{
 
         foreach(BowlPosition bowl in bowls1){
             paths.Add(GetPolygonPath(bowl.BowlPos, bias));
+            paths.Add(GetCirclePolygon(bowl.BowlPos, 0.14f, 5)[0]);
         }
         foreach(BowlPosition bowl in bowls2){
             paths.Add(GetPolygonPath(bowl.BowlPos, bias));
+            paths.Add(GetCirclePolygon(bowl.BowlPos, 0.14f, 5)[0]);
         }
 
         return Clipper.Union(paths, new List<List<PointD>>(), FillRule.NonZero);
@@ -43,7 +45,7 @@ class Polygon{
         Vector2[] leftPoints = BowlPhysics.getBoundaryPoints(left_point, bias);
         Vector2[] rightPoints = BowlPhysics.getBoundaryPoints(right_point, bias);
 
-        double[] points = new double[2*leftPoints.Length+ 2*rightPoints.Length];
+        double[] points = new double[2*leftPoints.Length + 2*rightPoints.Length];
         int point_i = 0;
         for(int i = 0; i < leftPoints.Length; i++){
             points[point_i++] = leftPoints[i].x * 100;

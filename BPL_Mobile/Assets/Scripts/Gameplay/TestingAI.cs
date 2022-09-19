@@ -25,7 +25,7 @@ public class TestingAI : MonoBehaviour
         Jack = Instantiate(jackPrefab, jackStartPos, Quaternion.identity);
 
         ai = new AI();
-        ai.difficulty = AIDifficulty.IMPOSSIBLE;
+        ai.difficulty = AIDifficulty.HARDER;
         linerenderer.enabled = false;
 
         Rigidbody JackRigidbody = Jack.GetComponent<Rigidbody>();

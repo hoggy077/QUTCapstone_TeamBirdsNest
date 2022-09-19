@@ -11,6 +11,8 @@ public class AI
 
     private GameStateManager gsm = GameStateManager.Instance_;
     public AIDifficulty difficulty = AIDifficulty.HARD;
+    private int turns = 0;
+    private int accurateShots = 0;
     //private bool HavePowerPlay = true;
     
     public AI(){
@@ -18,7 +20,7 @@ public class AI
 
     // TODO: remove bowls that are in the ditch and arne't still marked as active or "chalked"
     public bool TakeTurn(GameObject CurrentBowl, Vector3 JackPos, List<GameObject> PlayerBowls, List<GameObject> AIBowls){
-        
+        turns++;
         #if TEST // TESTING {
             if(Input.touchCount > 0){ 
                 Touch touch = Input.GetTouch(0); 
@@ -76,9 +78,38 @@ public class AI
             }
 
             // take the shot
-            TakeAccurateShot(CurrentBowl, target*radius, bias);
+            TakeAccurateShot(CurrentBowl, JackPos2 + target, bias);
 
             return false;
+        }
+
+        bool takeAccurateShot = false;
+        float outcome = UnityEngine.Random.value;
+        switch(difficulty){
+            case AIDifficulty.EASY:
+                if(outcome <= 2/6){
+                    takeAccurateShot = true;
+                    accurateShots++;
+                }
+            break;
+            case AIDifficulty.MEDIUM:
+                if(outcome <= 3/6){
+                    takeAccurateShot = true;
+                    accurateShots++;
+                }
+            break;
+            case AIDifficulty.HARD:
+                if(outcome <= 4/6){
+                    takeAccurateShot = true;
+                    accurateShots++;
+                }
+            break;
+            case AIDifficulty.HARDER:
+                if(outcome <= 5/6){
+                    takeAccurateShot = true;
+                    accurateShots++;
+                }
+            break;
         }
 
         bool playerCloser;
@@ -93,7 +124,12 @@ public class AI
 
             var (availablePolygons, bias) = GetValidPolygons(JackPos2, PlayerPositions[0].MagFromJack, PlayerPositions, AIPositions);
             if(availablePolygons.Count > 0){ // The AI can get the bowl closer
-                DeliverBowlCloser(CurrentBowl, availablePolygons, bias);
+                //if(takeAccurateShot){
+                    DeliverBowlCloser(CurrentBowl, availablePolygons, bias);
+                // }else{
+                //     TakeRandomShot(CurrentBowl, PlayerPositions[0].MagFromJack, JackPos2);
+                // }
+                
                 return false;
             }
             else if(false){ // can we hit key opponents bowl away?
@@ -109,7 +145,11 @@ public class AI
         else{ // AI has the closest bowl
             var (availablePolygons, bias) = GetValidPolygons(JackPos2, PlayerPositions[0].MagFromJack, PlayerPositions, AIPositions);
             if(availablePolygons.Count > 0){ // The AI can score another point
-                DeliverBowlCloser(CurrentBowl, availablePolygons, bias);
+                //if(takeAccurateShot){
+                    DeliverBowlCloser(CurrentBowl, availablePolygons, bias);
+                // }else{
+                //     TakeRandomShot(CurrentBowl, PlayerPositions[0].MagFromJack, JackPos2);
+                // }
                 return false;
             }
             else { // place a bowl to protect a bowl close to jack
@@ -117,7 +157,32 @@ public class AI
             }
         }
 
+        if(turns == 6){
+            turns = 0;
+            accurateShots = 0;
+        }
+
         return false;
+    }
+
+    public void TakeRandomShot(GameObject CurrentBowl, float innerRadius, Vector2 JackPos){
+        Bias bias;
+
+        float r = 1.5f - innerRadius;
+        // get random radius
+        float radius = UnityEngine.Random.value * r;
+        radius = radius + innerRadius;
+        // get random end position
+        Vector2 target = UnityEngine.Random.insideUnitCircle.normalized * radius;
+
+        if(target.y > 0){
+            bias = Bias.Left;
+        }else{
+            bias = Bias.Right;
+        }
+
+        // take the shot
+        TakeAccurateShot(CurrentBowl, JackPos + target, bias);
     }
 
     public void DeliverBowlCloser(GameObject CurrentBowl, List<List<PointD>> availablePolygons, Bias bias){
@@ -137,7 +202,7 @@ public class AI
             bias = Bias.Right;
         }
         
-        List<List<PointD>> circle = Polygon.GetCirclePolygon(position, radius, 30);
+        List<List<PointD>> circle = Polygon.GetCirclePolygon(position, radius-0.05f, 30);
         List<List<PointD>> pathBoundaryPolygons = new List<List<PointD>>();
         List<List<PointD>> availablePointsPolygons = new List<List<PointD>>();
         bool found = false;
@@ -192,7 +257,7 @@ public class AI
             case(AIDifficulty.HARD):
                 radius = 0.2f;
             break;
-            case(AIDifficulty.IMPOSSIBLE):
+            case(AIDifficulty.HARDER):
                 radius = 0;
             break;
         }
@@ -237,5 +302,5 @@ public enum AIDifficulty{
     EASY,
     MEDIUM,
     HARD,
-    IMPOSSIBLE
+    HARDER
 }
