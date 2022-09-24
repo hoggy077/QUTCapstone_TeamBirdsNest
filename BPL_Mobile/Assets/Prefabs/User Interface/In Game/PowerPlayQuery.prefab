@@ -803,8 +803,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c3ab722accbb0146888076cc65afaa0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  animationDuration: 0.3
-  timerMax: 10
+  animationDuration: 0.15
+  timerMax: 5
   timerLoadingBars:
   - {fileID: 6390987378098636825}
   - {fileID: 1502990637745742885}
