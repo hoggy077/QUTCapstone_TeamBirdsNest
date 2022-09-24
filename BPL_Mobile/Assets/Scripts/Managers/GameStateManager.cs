@@ -20,7 +20,7 @@ public class GameStateManager : MonoBehaviour
         }}
     public static GameStateManager Instance_ = null;
     static bool Exist = false;
-
+    public bool isMultiplayerMode = false;
 
     //This just tells unity to RunOn when the game loads, accessing Instance which will create one if not available
     [RuntimeInitializeOnLoadMethod]

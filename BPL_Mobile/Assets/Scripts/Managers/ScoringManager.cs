@@ -18,6 +18,16 @@ public class ScoringManager : MonoBehaviour
     private int currentEnd = 1;
     public int endsPerSet = 5;
 
+    // Powerplay Functionality
+    private bool team1PowerplayAvailable = true;
+    private bool team2PowerplayAvailable = true;
+    private bool team1Powerplaying = false;
+    private bool team2Powerplaying = false;
+
+    // Compensating for Pause Functionality
+    private bool continueingEnd = true;
+    private int[] previousTeamAndScoreLead;
+
     public struct MatchScore
     {
         public int team1Sets;
@@ -35,6 +45,7 @@ public class ScoringManager : MonoBehaviour
         SetupStartingScores();
         bowlUIRing = Instantiate(ringPrefab.gameObject, transform.position, Quaternion.Euler(Vector3.zero)).GetComponent<ClosestBowlRing>();
         bowlUIRing.ToggleRing(false);
+        PowerplayFunctionality();
     }
 
     public void ReadTheHead()
@@ -80,7 +91,7 @@ public class ScoringManager : MonoBehaviour
         }
 
         // Checking which team holds the shots
-        int[] teamAndScore = UpdateShots(bowls);
+        previousTeamAndScoreLead = UpdateShots(bowls);
 
         // Placing UI ring at closest bowl if it exists
         if (bowls.Count > 0)
@@ -90,19 +101,21 @@ public class ScoringManager : MonoBehaviour
         }
 
         // Updating Current Bowls remaining for each team, finding if the end has concluded
-        bool continueEnd = UpdateShotsRemaining(mm.GetLiveBowls());
+        continueingEnd = UpdateShotsRemaining(mm.GetLiveBowls());
+    }
 
-        // Checking if the end is over, and if so, updating scorecard
-        if(!continueEnd)
+    public void CheckScore()
+    {
+        if (!continueingEnd)
         {
             // Adding current shots to end score
-            if(teamAndScore[0] == 1)
+            if (previousTeamAndScoreLead[0] == 1)
             {
-                currentScore.team1Ends += teamAndScore[1];
+                currentScore.team1Ends += previousTeamAndScoreLead[1];
             }
-            else
+            else if (previousTeamAndScoreLead[0] == 2)
             {
-                currentScore.team2Ends += teamAndScore[1];
+                currentScore.team2Ends += previousTeamAndScoreLead[1];
             }
 
             // Updating Scorecard End Scores
@@ -112,7 +125,7 @@ public class ScoringManager : MonoBehaviour
             currentEnd++;
 
             // If still within set update scorecard and reset counts
-            if(currentEnd <= endsPerSet)
+            if (currentEnd <= endsPerSet)
             {
                 scorecard.UpdateEndNumber(currentEnd);
                 StartNewEnd();
@@ -165,6 +178,9 @@ public class ScoringManager : MonoBehaviour
         // Resetting Score
         scorecard.UpdateCurrentShots(1, 0);
 
+        // Powerplay
+        PowerplayFunctionality(!tiebreaker);
+
         // Update Displays
         scorecard.UpdateEndNumber(currentEnd, tiebreaker);
         bowlUIRing.ToggleRing(false);
@@ -198,8 +214,12 @@ public class ScoringManager : MonoBehaviour
         currentScore.team1Ends = 0;
         currentScore.team2Ends = 0;
 
+        // Gifting Powerplay
+        team1PowerplayAvailable = true;
+        team2PowerplayAvailable = true;
+
         // If two sets completed and there is a clean cut winner, end the game
-        if(currentScore.team1Sets + currentScore.team2Sets >= 2 && currentScore.team1Sets != currentScore.team2Sets)
+        if (currentScore.team1Sets + currentScore.team2Sets >= 2 && currentScore.team1Sets != currentScore.team2Sets)
         {
             FinishMatch();
         }
@@ -242,6 +262,13 @@ public class ScoringManager : MonoBehaviour
             shots++;
         }
 
+        // Applying Powerplay Adjustments
+        if ((currentWinningTeam == 1 && team1Powerplaying) || (currentWinningTeam == 2 && team2Powerplaying))
+        {
+            shots *= 2;
+        }
+
+        // Updating Scorecard
         scorecard.UpdateCurrentShots(currentWinningTeam, shots);
 
         // Generating output for tracking
@@ -294,5 +321,50 @@ public class ScoringManager : MonoBehaviour
     private float DistanceToJack(GameObject bowl, GameObject jack)
     {
         return Vector3.Distance(bowl.transform.position, jack.transform.position);
+    }
+
+    public void PowerplayFunctionality(bool possibleToPowerplay = true)
+    {
+        // Resetting Powerplay
+        team1Powerplaying = false;
+        team2Powerplaying = false;
+        scorecard.UpdatePowerPlayStatus(false, false);
+
+        // Giving Powerplay Availability
+        if (possibleToPowerplay)
+        {
+            PowerplayQuery.instance.OfferPowerplay(team1PowerplayAvailable, team2PowerplayAvailable);
+        }
+    }
+
+    public void ActivatePowerplay(int team)
+    {
+        if(team == 1 && team1PowerplayAvailable)
+        {
+            team1Powerplaying = true;
+            team1PowerplayAvailable = false;
+
+            if(!team2PowerplayAvailable || !GameStateManager.Instance.isMultiplayerMode)
+            {
+                PowerplayQuery.instance.CloseDisplay();
+            }
+        }
+        else if (team == 2 && team2PowerplayAvailable)
+        {
+            team2Powerplaying = true;
+            team2PowerplayAvailable = false;
+
+            if (!team1PowerplayAvailable)
+            {
+                PowerplayQuery.instance.CloseDisplay();
+            }
+        }
+
+        scorecard.UpdatePowerPlayStatus(team1Powerplaying, team2Powerplaying);
+    }
+
+    public bool CurrentlyInPowerplay()
+    {
+        return team1Powerplaying || team2Powerplaying;
     }
 }

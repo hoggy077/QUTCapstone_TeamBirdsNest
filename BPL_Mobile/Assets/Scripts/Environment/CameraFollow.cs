@@ -6,7 +6,6 @@ public class CameraFollow : MonoBehaviour
 {
     public Transform target;
     private Vector3 originalPosition;
-    public float maxDistance = 30f;
     public float followSpeed = -1f;
 
     private void Start()
@@ -41,5 +40,10 @@ public class CameraFollow : MonoBehaviour
         {
             Destroy(this.gameObject);
         }
+    }
+
+    public void LookAt(Transform newTarget)
+    {
+        target = newTarget;
     }
 }

@@ -19,7 +19,7 @@ public class BowlOverlay : MonoBehaviour
     public LineRenderer line;
     private Vector3 lineOffset1;
     private Vector3 lineOffset2;
-    private ScorecardUI scorecard;
+    [HideInInspector] public ScorecardUI scorecard;
 
     private void Start()
     {
@@ -69,20 +69,6 @@ public class BowlOverlay : MonoBehaviour
         newGrad.colorKeys = newColorKeys;
 
         line.colorGradient = newGrad;
-
-        // Moving Scorecard off screen
-        Vector3 targetPos;
-        Vector3 currentScorePos = scorecard.GetComponent<RectTransform>().anchoredPosition;
-        if (targetAlpha == 1f)
-        {
-            targetPos = new Vector3(currentScorePos.x, 400f, currentScorePos.z);
-        }
-        else
-        {
-            targetPos = new Vector3(currentScorePos.x, 0f, currentScorePos.z);
-        }
-        currentScorePos = Vector3.Lerp(currentScorePos, targetPos, 3f * Time.deltaTime);
-        scorecard.GetComponent<RectTransform>().anchoredPosition = currentScorePos;
     }
 
     public void MoveToBowl(Vector3 bowlLocation)
@@ -103,7 +89,7 @@ public class BowlOverlay : MonoBehaviour
         line.SetPosition(1, fingerPositionWorld);
     }
 
-    public void ToggleOpacity(bool on)
+    public void ToggleOpacity(bool on, bool hideScorecard)
     {
         if(on)
         {
@@ -119,6 +105,8 @@ public class BowlOverlay : MonoBehaviour
             line.SetPosition(0, GetCurrentScreenPosition() + lineOffset1);
             line.SetPosition(1, GetCurrentScreenPosition() + lineOffset2);
         }
+
+        //scorecard.Reposition(hideScorecard);
     }
 
     private Vector3 GetCurrentScreenPosition()

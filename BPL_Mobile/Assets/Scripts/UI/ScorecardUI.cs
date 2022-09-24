@@ -39,6 +39,10 @@ public class ScorecardUI : MonoBehaviour
     public TextMeshProUGUI team2EndsWonDisplay;
     public UnityEngine.UI.Image team2PP;
 
+    private Vector3 targetPos = Vector3.zero;
+    public bool fullyOnScreen = false;
+    private bool onScreen = false;
+
     private void Start()
     {
         scorecardTransform = GetComponent<RectTransform>();
@@ -46,21 +50,29 @@ public class ScorecardUI : MonoBehaviour
 
     private void Update()
     {
-        // Debug Testing
-        if(Input.GetKeyDown(KeyCode.Space))
-        {
-            UpdateTeam1Info("Whuddup 1", Random.ColorHSV());
-            UpdateTeam2Info("Whuddup 2", Random.ColorHSV());
-            UpdateShotsRemaining(Random.Range(0, 6), Random.Range(0, 6));
-            UpdateSetsWon(Random.Range(0, 2), Random.Range(0, 2));
-            UpdateEndsWon(Random.Range(0, 2), Random.Range(0, 3));
-            UpdateEndNumber(Random.Range(1, 5), true);
-            UpdatePowerPlayStatus(Random.Range(0, 3));
-            UpdateCurrentShots(Random.Range(1, 3), Random.Range(1,7));
-        }
+        fullyOnScreen = onScreen && scorecardTransform.anchoredPosition.y == targetPos.y;
 
         // Animate Elements if aPPlicable
         AnimateSetsElement();
+
+        // Moving to repositioned position
+        scorecardTransform.anchoredPosition = Vector3.MoveTowards(scorecardTransform.anchoredPosition, new Vector3(scorecardTransform.anchoredPosition.x, targetPos.y, 0f), 400f * 3f * Time.deltaTime);
+    }
+
+    public void Reposition(bool outOfView)
+    {
+        // Moving Scorecard off screen
+        Vector3 currentScorePos = scorecardTransform.anchoredPosition;
+        if (outOfView)
+        {
+            targetPos = new Vector3(currentScorePos.x, 400f, currentScorePos.z);
+        }
+        else
+        {
+            targetPos = new Vector3(currentScorePos.x, 0f, currentScorePos.z);
+        }
+
+        onScreen = !outOfView;
     }
 
     #region Front End Functions
@@ -94,23 +106,10 @@ public class ScorecardUI : MonoBehaviour
     /// 1 = Team 1, 2 = Team 2, 0 = No Current Powerplay
     /// </summary>
     /// <param name="teamCurrentlyPowerplaying"></param>
-    public void UpdatePowerPlayStatus(int teamCurrentlyPowerplaying)
+    public void UpdatePowerPlayStatus(bool team1, bool team2)
     {
-        if(teamCurrentlyPowerplaying == 1)
-        {
-            team1PP.gameObject.SetActive(true);
-            team2PP.gameObject.SetActive(false);
-        }
-        else if(teamCurrentlyPowerplaying == 2)
-        {
-            team1PP.gameObject.SetActive(false);
-            team2PP.gameObject.SetActive(true);
-        }
-        else
-        {
-            team1PP.gameObject.SetActive(false);
-            team2PP.gameObject.SetActive(false);
-        }
+        team1PP.gameObject.SetActive(team1);
+        team2PP.gameObject.SetActive(team2);
     }
 
     // Function to update shot points
