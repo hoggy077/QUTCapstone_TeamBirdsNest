@@ -59,10 +59,12 @@
     <Compile Include="Assets\Scripts\QuickOutline\Scripts\Outline.cs" />
     <Compile Include="Assets\Scripts\Environment\CameraFollow.cs" />
     <Compile Include="Assets\Scripts\Gameplay\AI.cs" />
+    <Compile Include="Assets\Scripts\Misc\TestingUtils.cs" />
     <Compile Include="Assets\Scripts\Managers\MatchManager.cs" />
     <Compile Include="Assets\Scripts\Gameplay\GamemodeInfo.cs" />
     <Compile Include="Assets\Scripts\Gameplay\BowlsScriptable.cs" />
     <Compile Include="Assets\Scripts\AudioManager.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\TestingAI.cs" />
     <Compile Include="Assets\Scripts\Characters\CharacterAppearanceUpdater.cs" />
     <Compile Include="Assets\Scripts\Managers\ScoringManager.cs" />
     <Compile Include="Assets\Scripts\Managers\ResumeManager.cs" />
@@ -89,14 +91,14 @@
     <Compile Include="Assets\Scripts\Managers\CareerRecord.cs" />
     <Compile Include="Assets\Scripts\loggerInit.cs" />
     <Compile Include="Assets\Scripts\Gameplay\OverviewCamera.cs" />
+    <Compile Include="Assets\Scripts\Misc\Polygon.cs" />
     <Compile Include="Assets\Scripts\UI\MenuSystem.cs" />
     <Compile Include="Assets\Scripts\UI\CameraZoom.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\BowlMovement.cs" />
     <Compile Include="Assets\Scripts\Managers\TournamentManager.cs" />
     <Compile Include="Assets\Curviture.cs" />
-    <Compile Include="Assets\Scripts\Misc\Polygon.cs" />
-    <Compile Include="Assets\Scripts\Gameplay\BowlMovement.cs" />
-    <Compile Include="Assets\Scripts\Misc\TestingUtils.cs" />
-    <Compile Include="Assets\Scripts\Gameplay\TestingAI.cs" />
+    <Compile Include="Assets\Scripts\UI\PowerplayQuery.cs" />
+    <Compile Include="Assets\Scripts\UI\UIFlyInFlyOut.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
@@ -382,6 +384,12 @@
     </Reference>
     <Reference Include="UnityEditor.iOS.Extensions.Common">
       <HintPath>D:\Unity Editors\2021.3.6f1\Editor\Data\PlaybackEngines\iOSSupport\UnityEditor.iOS.Extensions.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Android.Types">
+      <HintPath>D:\Unity Editors\2021.3.6f1\Editor\Data\PlaybackEngines\AndroidPlayer\Unity.Android.Types.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Android.Gradle">
+      <HintPath>D:\Unity Editors\2021.3.6f1\Editor\Data\PlaybackEngines\AndroidPlayer\Unity.Android.Gradle.dll</HintPath>
     </Reference>
     <Reference Include="netstandard">
       <HintPath>D:\Unity Editors\2021.3.6f1\Editor\Data\NetStandard\ref\2.1.0\netstandard.dll</HintPath>

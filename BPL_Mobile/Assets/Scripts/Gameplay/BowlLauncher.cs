@@ -58,6 +58,8 @@ public class BowlLauncher : MonoBehaviour
         //BowlRadius = bounds.extents.y;
         rb = GetComponent<Rigidbody>();
         tr = GetComponent<Transform>();
+
+        BowlOverlay.instance.scorecard.Reposition(false);
     }
 
     void FixedUpdate(){
@@ -98,7 +100,8 @@ public class BowlLauncher : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(deliver){ 
+        if(deliver){
+            BowlOverlay.instance.scorecard.Reposition(true);
             HandleDelivery();
         }
         else if(Input.touchCount > 0){
@@ -166,10 +169,10 @@ public class BowlLauncher : MonoBehaviour
                     rb.detectCollisions = true;
                     GetComponent<BowlMovement>().inDelivery = true;
 
-                    BowlOverlay.instance.ToggleOpacity(false);
+                    BowlOverlay.instance.ToggleOpacity(false, true);
                     CameraZoom.instance.zoom = false;
                 }
-                BowlOverlay.instance.ToggleOpacity(false);
+                BowlOverlay.instance.ToggleOpacity(false, false);
                 CameraZoom.instance.zoom = false;
                 break;
             case TouchPhase.Began:
@@ -177,7 +180,7 @@ public class BowlLauncher : MonoBehaviour
                 {
                     BowlOverlay.instance.MoveToBowl(transform.position);
                 }
-                BowlOverlay.instance.ToggleOpacity(true);
+                BowlOverlay.instance.ToggleOpacity(true, true);
                 CameraZoom.instance.zoom = true;
                 goto case TouchPhase.Moved;
             case TouchPhase.Moved:

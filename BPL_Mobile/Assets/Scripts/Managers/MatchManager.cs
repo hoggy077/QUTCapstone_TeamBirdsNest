@@ -30,6 +30,18 @@ public class MatchManager : MonoBehaviour
     private bool ai_keep_looping = false;
     private bool spawnbowl = true;
 
+    // For functionality with new powerplay query menu and delays between throws
+    private ScorecardUI sUI;
+    private bool scorecardUpdateAnimationPlayed = true;
+    private bool scorecardViewed = true;
+    private float scorecardUpdateDelay = 0.4f;
+    public UIFlyInFlyOut touchToContinue;
+    private bool updatedScoring = false;
+
+    [Header("Jack Skins")]
+    [SerializeField] private Material normalJack;
+    [SerializeField] private Material powerplayJack;
+
     void Start(){
         // create the jack and set it in the correct position
         Jack = Instantiate(jackPrefab, BowlPhysics.GameToUnityCoords(new Vector2(0, 15)) + new Vector3(0, 0.0215f, 0), Quaternion.identity);
@@ -42,6 +54,9 @@ public class MatchManager : MonoBehaviour
 
         Rigidbody JackRigidbody = Jack.GetComponent<Rigidbody>();
         JackRigidbody.sleepThreshold = 10f;
+
+        mainCam.GetComponent<CameraFollow>().LookAt(Jack.transform);
+        sUI = FindObjectOfType<ScorecardUI>();
     }
 
     // Read the head for scoring purposes
@@ -49,6 +64,36 @@ public class MatchManager : MonoBehaviour
         if(scm)
         {
             scm.ReadTheHead();
+        }
+    }
+
+    public void PlayBetweenShotAnimation()
+    {
+        // Animating and updating scorecard
+        if (!stillMoving() && !scorecardUpdateAnimationPlayed && !scorecardViewed)
+        {
+            sUI.Reposition(false);
+            mainCam.GetComponent<CameraFollow>().enabled = true;
+
+            if(sUI.fullyOnScreen)
+            {
+                scorecardUpdateDelay -= Time.deltaTime;
+
+                if(scorecardUpdateDelay < 0f)
+                {
+                    ReadHead();
+
+                    touchToContinue.FlyIn();
+
+                    if (Input.touchCount > 0)
+                    {
+                        if (Input.GetTouch(0).phase == TouchPhase.Ended)
+                        {
+                            scorecardViewed = true;
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -76,10 +121,49 @@ public class MatchManager : MonoBehaviour
 
     private void Play(){
         if(currentBowl == null){
+            // Animating Scorecard if required
+            PlayBetweenShotAnimation();
+
             // wait for all bowls and the jack to stop moving
-            if(stillMoving()){
+            if (!scorecardViewed)
+            {
                 return;
             }
+
+            mainCam.GetComponent<CameraFollow>().enabled = false;
+
+            // Updating Scoring to Allow for Switchs in End and Sets
+            if (!updatedScoring)
+            {
+                scm.CheckScore();
+                updatedScoring = true;
+            }
+
+            touchToContinue.FlyOut();
+
+            // Wait for Powerplay Selection
+            if(PowerplayQuery.instance.CurrentlyOpen())
+            {
+                return;
+            }
+
+            // Updating Jack to Reflect Powerplay State
+            if (scm.CurrentlyInPowerplay())
+            {
+                Jack.GetComponent<MeshRenderer>().material = powerplayJack;
+            }
+            else
+            {
+                Jack.GetComponent<MeshRenderer>().material = normalJack;
+            }
+
+            // Allowing scoring to update on next runthrough
+            updatedScoring = false;
+
+            // Preparing Scorecard Animation
+            scorecardUpdateAnimationPlayed = false;
+            scorecardUpdateDelay = 0.4f;
+            scorecardViewed = false;
 
             currentBowl = SpawnBowl();
             currentBowlTr = currentBowl.GetComponent<Transform>();
@@ -235,5 +319,6 @@ public class MatchManager : MonoBehaviour
         // Creating new Jack
         Destroy(Jack.gameObject);
         Jack = Instantiate(jackPrefab, BowlPhysics.GameToUnityCoords(new Vector2(0, 15)) + new Vector3(0, 0.0215f, 0), Quaternion.identity);
+        mainCam.GetComponent<CameraFollow>().LookAt(Jack.transform);
     }
 }

@@ -971,10 +971,12 @@ public class MenuSystem : MonoBehaviour
             if (multiplayer)
             {
                 GameStateManager.Instance_.UpdateTeam(2, teams[player2TeamIndex]);
+                GameStateManager.Instance_.isMultiplayerMode = true;
             }
             else
             {
                 GameStateManager.Instance_.UpdateTeam(2, GetRandomUnpickedTeam());
+                GameStateManager.Instance_.isMultiplayerMode = false;
             }
 
             SceneManager.LoadScene(gameScene);
@@ -982,6 +984,7 @@ public class MenuSystem : MonoBehaviour
         else
         {
             SceneManager.LoadScene(gameScene);
+            GameStateManager.Instance_.isMultiplayerMode = false;
         }
     }
 
