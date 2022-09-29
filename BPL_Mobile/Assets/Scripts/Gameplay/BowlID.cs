@@ -15,15 +15,15 @@ public class BowlID : MonoBehaviour
 
         if(team == 1)
         {
-            mr.materials[0].SetColor("_BaseColour", GameStateManager.Instance_.Team_1.BaseTeam.TeamColors[0]);
-            mr.materials[1].SetColor("_BaseColour", GameStateManager.Instance_.Team_1.BaseTeam.TeamColors[0]);
-            mr.materials[2].color = GameStateManager.Instance_.Team_1.BaseTeam.TeamColors[1];
+            mr.materials[0].SetColor("_BaseColour", GameStateManager.Instance.Team_1.BaseTeam.TeamColors[0]);
+            mr.materials[1].SetColor("_BaseColour", GameStateManager.Instance.Team_1.BaseTeam.TeamColors[0]);
+            mr.materials[2].color = GameStateManager.Instance.Team_1.BaseTeam.TeamColors[1];
         }
         else
         {
-            mr.materials[0].SetColor("_BaseColour", GameStateManager.Instance_.Team_2.BaseTeam.TeamColors[0]);
-            mr.materials[1].SetColor("_BaseColour", GameStateManager.Instance_.Team_2.BaseTeam.TeamColors[0]);
-            mr.materials[2].color = GameStateManager.Instance_.Team_2.BaseTeam.TeamColors[1];
+            mr.materials[0].SetColor("_BaseColour", GameStateManager.Instance.Team_2.BaseTeam.TeamColors[0]);
+            mr.materials[1].SetColor("_BaseColour", GameStateManager.Instance.Team_2.BaseTeam.TeamColors[0]);
+            mr.materials[2].color = GameStateManager.Instance.Team_2.BaseTeam.TeamColors[1];
         }
     }
 

@@ -132,7 +132,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 7183834311389289941}
-  maxDistance: 30
   followSpeed: -1
 --- !u!1 &7183834311389289945
 GameObject:
@@ -264,6 +263,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   referenceTerm: jack
+  IncludeInSave: 1
 --- !u!114 &-1756008425299343944
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -281,6 +281,8 @@ MonoBehaviour:
   isJack: 1
   externalySet: 0
   isMoving: 0
+  inDelivery: 0
   iv: 0
   v: {x: 0, y: 0, z: 0}
   av: {x: 0, y: 0, z: 0}
+  rd: {x: 0, y: 0, z: 0}

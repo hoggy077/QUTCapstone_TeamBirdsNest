@@ -9,7 +9,7 @@ public class AI
 {
     public List<GameObject> lrs; // currently used for testing
 
-    private GameStateManager gsm = GameStateManager.Instance_;
+    private GameStateManager gsm = GameStateManager.Instance;
     public AIDifficulty difficulty = AIDifficulty.HARD;
     //private bool HavePowerPlay = true;
     

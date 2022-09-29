@@ -966,17 +966,17 @@ public class MenuSystem : MonoBehaviour
         // If we are in quickplay, head to quick play
         if (gamemode == Gamemode.Quickplay)
         {
-            GameStateManager.Instance_.UpdateTeam(1, teams[player1TeamIndex]);
+            GameStateManager.Instance.UpdateTeam(1, teams[player1TeamIndex]);
 
             if (multiplayer)
             {
-                GameStateManager.Instance_.UpdateTeam(2, teams[player2TeamIndex]);
-                GameStateManager.Instance_.isMultiplayerMode = true;
+                GameStateManager.Instance.UpdateTeam(2, teams[player2TeamIndex]);
+                GameStateManager.Instance.isMultiplayerMode = true;
             }
             else
             {
-                GameStateManager.Instance_.UpdateTeam(2, GetRandomUnpickedTeam());
-                GameStateManager.Instance_.isMultiplayerMode = false;
+                GameStateManager.Instance.UpdateTeam(2, GetRandomUnpickedTeam());
+                GameStateManager.Instance.isMultiplayerMode = false;
             }
 
             SceneManager.LoadScene(gameScene);
@@ -984,7 +984,7 @@ public class MenuSystem : MonoBehaviour
         else
         {
             SceneManager.LoadScene(gameScene);
-            GameStateManager.Instance_.isMultiplayerMode = false;
+            GameStateManager.Instance.isMultiplayerMode = false;
         }
     }
 

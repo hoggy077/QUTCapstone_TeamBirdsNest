@@ -15,30 +15,33 @@ public static class ResumeManager
     
     public static bool hasPriorGame { get; private set; } = false;
     private static bool hasEvaluated = false;
-    public static SavedSession? availableSession = null;
+    private static bool isAvail = false;
+    public static SavedSession availableSession = new SavedSession();
     public static readonly string extension = ".sav";
     //file extension is .sav or .sav
 
     public static void Reset()
     {
         hasEvaluated = false;
-        availableSession = null;
+        isAvail = false;
     }
 
     public static void EvaluateSession()
     {
-        if (SaveSystem.verifyFile<SavedSession>($"lastSession{extension}"))
+        if (SaveSystemJson.VerifyFile<SavedSession>($"lastSession{extension}"))
         {
             try
             {
 
 
 #if UNITY_EDITOR
-                availableSession = SaveSystem.loadGeneric<SavedSession>(false, $"lastSession{extension}");
+                //availableSession = SaveSystemJson.LoadGenericJson<SavedSession>(false, $"lastSession{extension}");
+                SaveSystemJson.LoadGenericJson<SavedSession>(ref availableSession, false, $"lastSession{extension}");
 #else
-                availableSession = SaveSystem.loadGeneric<SavedSession>(true, $"lastSession{extension}");
+                availableSession = SaveSystemJson.LoadGenericJson<SavedSession>(true, $"lastSession{extension}");
 #endif
                 hasEvaluated = true;
+                isAvail = true;
                 hasPriorGame = true;
 
 #if UNITY_EDITOR
@@ -60,11 +63,11 @@ public static class ResumeManager
         if(!hasEvaluated)
             EvaluateSession();
 
-        if(availableSession != null)
+        if(isAvail)
         {
             if(sceneName != "")
             {
-                AsyncOperation bruv = SceneManager.LoadSceneAsync("", LoadSceneMode.Single);
+                AsyncOperation bruv = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
                 bruv.completed += (AsyncOp) =>
                 {
                     foreach (TrackedObject tObj in ((SavedSession)availableSession).trackedGameObjects)
@@ -95,29 +98,38 @@ public static class ResumeManager
                     //basePrefab.transform.SetPositionAndRotation(tObj.objMatrix.toMatrix().GetPosition(), tObj.objMatrix.toMatrix().rotation);
                 }
             }
+
+            GameStateManager.Instance.gamemode = availableSession.CurrentGamemode;
+            GameStateManager.Instance.Team_1 = availableSession.Team1_state;
+            GameStateManager.Instance.Team_2 = availableSession.Team2_state;
         }
     }
 
+
+    //Change to save points. Saves will be made at the end of a bowl 
     public static void SaveGame()
     {
         TrackThisThing[] things2track = GameObject.FindObjectsOfType<TrackThisThing>();
         TrackedObject[] tracking = new TrackedObject[things2track.Length];
         for (int i = 0; i < things2track.Length; i++)
+        {
+            if (!things2track[i].Include())
+                continue;
             tracking[i] = things2track[i].getTracked();
+        }
 
         SavedSession ss = new SavedSession()
         {
             trackedGameObjects = tracking,
-            saveTime = DateTime.UtcNow
+            saveTime = DateTime.UtcNow.ToLongDateString(),
 
-            //CurrentGamemode = GSM.fuckthis is long,
-            //    ss.Team1_state = GameStateManager.Instance.Team_1;
-            //    ss.Team2_state = GameStateManager.Instance.Team_2;
+            CurrentGamemode = GameStateManager.Instance.gamemode,
 
-            //Add in a gamemode set here as well
+            Team1_state = GameStateManager.Instance.Team_1,
+            Team2_state = GameStateManager.Instance.Team_2
+
         };
-
-        SaveSystem.saveGeneric(ss, "lastSession.sav");
+        SaveSystemJson.SaveGenericJson(ss, "lastSession.sav");
     }
 
 
@@ -128,15 +140,15 @@ public static class ResumeManager
 
 
 #region Sessions, Tracking, and Interface
-public struct SavedSession
+[Serializable]
+public class SavedSession
 {
-    public DateTime saveTime;
-    public int CurrentGamemode;//cast this
+    public string saveTime;
+    public GamemodeInfo CurrentGamemode;
     public TrackedObject[] trackedGameObjects;
     public Team_struct Team1_state;
     public Team_struct Team2_state;
-    //public TurnBasedManager.Turn LastTurn;
-    //public TurnBasedManager.Turn CurrentTurn;
+    public TurnBasedManager.Turn CurrentTurn;
 }
 
 [Serializable]
@@ -160,23 +172,46 @@ public struct TrackedObject
 public class TransformData
 {
     public TransformData() { }
-    public TransformData(Matrix4x4 d) 
+    #region Old - System Numerics
+    //public TransformData(Matrix4x4 d) 
+    //{
+    //    Vector3 p = d.GetPosition();
+    //    Quaternion r = d.rotation;
+    //    Vector3 s = d.lossyScale;
+    //    pos = new System.Numerics.Vector3(p.x,p.y,p.z);
+    //    rot = new System.Numerics.Vector4(r.x,r.y,r.z,r.w);
+    //    scl = new System.Numerics.Vector3(s.x,s.y,s.z);
+    //}
+
+    //public Vector3 sc() => new Vector3(scl.X, scl.Y, scl.Z);
+    //public Vector3 po() => new Vector3(pos.X, pos.Y, pos.Z);
+    //public Quaternion ro() => new Quaternion(rot.X, rot.Y, rot.Z, rot.W);
+
+    //public System.Numerics.Vector3 pos;
+    //public System.Numerics.Vector4 rot;
+    //public System.Numerics.Vector3 scl;
+    #endregion
+
+    public float[] pos = new float[3];
+    public float[] rot = new float[4];
+    public float[] scl = new float[3];
+
+    public Vector3 sc() => new Vector3(scl[0], scl[1], scl[2]);
+    public Vector3 po() => new Vector3(pos[0], pos[1], pos[2]);
+    public Quaternion ro() => new Quaternion(rot[0], rot[1], rot[2], rot[3]);
+
+    public TransformData(Matrix4x4 d)
     {
         Vector3 p = d.GetPosition();
-        Quaternion r = d.rotation;
+        pos = new float[3] { p.x, p.y, p.z };
+
+        Quaternion q = d.rotation;
+        rot = new float[4] { q.x, q.y, q.z, q.w };
+
         Vector3 s = d.lossyScale;
-        pos = new System.Numerics.Vector3(p.x,p.y,p.z);
-        rot = new System.Numerics.Vector4(r.x,r.y,r.z,r.w);
-        scl = new System.Numerics.Vector3(s.x,s.y,s.z);
+        scl = new float[3] { s.x, s.y, s.z };
     }
 
-    public Vector3 sc() => new Vector3(scl.X, scl.Y, scl.Z);
-    public Vector3 po() => new Vector3(pos.X, pos.Y, pos.Z);
-    public Quaternion ro() => new Quaternion(rot.X, rot.Y, rot.Z, rot.W);
-
-    public System.Numerics.Vector3 pos;
-    public System.Numerics.Vector4 rot;
-    public System.Numerics.Vector3 scl;
 }
 
 public interface TrackedData
@@ -184,6 +219,7 @@ public interface TrackedData
     public string getReferenceTerm();
     public TrackedObject getTracked();
     public GameObject getSelf();
+    public bool Include();
 }
 #endregion
 

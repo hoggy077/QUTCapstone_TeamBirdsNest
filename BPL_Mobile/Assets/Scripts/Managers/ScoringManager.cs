@@ -146,7 +146,7 @@ public class ScoringManager : MonoBehaviour
         currentScore.team2Sets = 0;
 
         // Setting teams for scorecard, or placing debug teams in there if menu was not used
-        if (GameStateManager.Instance_.Team_1 != null && GameStateManager.Instance_.Team_2 != null)
+        if (GameStateManager.Instance.Team_1 != null && GameStateManager.Instance.Team_2 != null)
         {
             gsm.UpdateTeam(1, gsm.Team_1.BaseTeam);
             gsm.UpdateTeam(2, gsm.Team_2.BaseTeam);

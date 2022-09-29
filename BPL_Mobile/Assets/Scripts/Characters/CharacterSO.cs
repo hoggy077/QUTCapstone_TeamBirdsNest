@@ -1,8 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "NewCharacter", menuName = "Bowls Aus/Teams/Create New Character")]
+[Serializable]
 public class CharacterSO : ScriptableObject
 {
     [Header("Head")]
