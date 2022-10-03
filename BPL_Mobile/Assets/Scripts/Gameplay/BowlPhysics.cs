@@ -20,7 +20,7 @@ public class BowlPhysics{
         }
     }
 
-    public static Vector2[] getBoundaryPoints(Vector2 right_point, Bias bias, int num_trials = 14, float mag_diff = 2){
+    public static Vector2[] getBoundaryPoints(Vector2 right_point, Bias bias, float biasStrength, int num_trials = 14, float mag_diff = 2){
         
         Vector2[] points = new Vector2[num_trials+1];
         points[0] = right_point;
@@ -37,7 +37,7 @@ public class BowlPhysics{
             }
 
             // get the last point
-            Vector2 rlp = DeliveryPath(rightIV, rightAngle, bias, 0, right_end_time-0.1f);
+            Vector2 rlp = DeliveryPath(rightIV, rightAngle, bias, 0, right_end_time-0.1f, biasStrength);
             points[i] = rlp;
         }
 
@@ -53,7 +53,7 @@ public class BowlPhysics{
             }
 
             // get the last point
-            Vector2 rlp = DeliveryPath(rightIV, rightAngle, bias, 0, right_end_time-0.1f);
+            Vector2 rlp = DeliveryPath(rightIV, rightAngle, bias, 0, right_end_time-0.1f, biasStrength);
             points[i] = rlp;
         }
 
@@ -167,7 +167,7 @@ public class BowlPhysics{
     //  angle     - the angle of the delivery from the z axis in degrees
     //  mu_scale  - value from 0 to 1 which determins the "speed of the green"
     //  t - time to find the position of the bowl for relative to the start of the delivery
-    public static Vector2 GetCurrentDirection(float init_vel, float angle, Bias bias, float mu_scale, float t){
+    public static Vector2 GetCurrentDirection(float init_vel, float angle, Bias bias, float mu_scale, float t, float biasStrength){
         float end_time = DeliveryEndTime(init_vel, angle, mu_scale);
 
         // make sure t is a valid value
@@ -181,8 +181,8 @@ public class BowlPhysics{
             next_time = end_time-0.01f;
         }
 
-        Vector2 first_point = DeliveryPath(init_vel, angle, bias, mu_scale, t);
-        Vector2 second_point = DeliveryPath(init_vel, angle, bias, mu_scale, next_time);
+        Vector2 first_point = DeliveryPath(init_vel, angle, bias, mu_scale, t, biasStrength);
+        Vector2 second_point = DeliveryPath(init_vel, angle, bias, mu_scale, next_time, biasStrength);
 
         Vector2 direction = second_point - first_point;
 
@@ -266,7 +266,7 @@ public class BowlPhysics{
     //  init_vel   - initial velocity, specified in m/s^2
     //  angle     - the angle of the delivery from the z axis in degrees
     //  mu_scale  - value from 0 to 1 which determins the "speed of the green"
-    public static Vector2 DeliveryPath(float init_vel, float angle, Bias bias, float mu_scale, float t){
+    public static Vector2 DeliveryPath(float init_vel, float angle, Bias bias, float mu_scale, float t, float biasStrength){
         // convert angle to radians
         angle = angle *(Mathf.PI / 180);
 
@@ -282,11 +282,11 @@ public class BowlPhysics{
         float x;
         
         if(bias == Bias.Right){
-            z = (r0/(1+p*p))*(p - p*lamba* Mathf.Cos(phi)+lamba*Mathf.Sin(phi));
+            z = biasStrength * (r0/(1+p*p))*(p - p*lamba* Mathf.Cos(phi)+lamba*Mathf.Sin(phi));
             x = (r0/(1+p*p))*(1 - lamba*Mathf.Cos(phi) - p*lamba*Mathf.Sin(phi));
         }
         else{
-            z = -(r0/(1+p*p))*(p - p*lamba*Mathf.Cos(phi)+lamba*Mathf.Sin(phi));
+            z = -biasStrength  * (r0/(1+p*p))*(p - p*lamba*Mathf.Cos(phi)+lamba*Mathf.Sin(phi));
             x = (r0/(1+p*p))*(1 - lamba*Mathf.Cos(phi) - p*lamba*Mathf.Sin(phi));
             angle += Mathf.PI;
         }

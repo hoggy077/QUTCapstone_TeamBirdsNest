@@ -11,6 +11,7 @@ public class BowlLauncher : MonoBehaviour
     private Transform tr;
     private float BowlRadius = 0.0635f;
     private float lastAngle = 0;
+    public float bowlBiasStrength = 1f;
 
     private bool collided = false;
     private bool deliver = false; // when true the bowl is moving toward its resting place
@@ -65,7 +66,7 @@ public class BowlLauncher : MonoBehaviour
     void FixedUpdate(){
         if(deliver && !collided){ 
             if(time < DeliveryEndTime){
-                Vector2 direction = BowlPhysics.GetCurrentDirection(initialVelocity, deliveryAngle, bias, 0, time);
+                Vector2 direction = BowlPhysics.GetCurrentDirection(initialVelocity, deliveryAngle, bias, 0, time, bowlBiasStrength);
                 direction = direction.normalized;
                 Vector3 velocity = new Vector3(direction.x, 0, direction.y) * BowlPhysics.GetCurrentVelocity(initialVelocity, deliveryAngle, 0, time);
                 rb.velocity = velocity;
@@ -121,13 +122,13 @@ public class BowlLauncher : MonoBehaviour
         time += Time.deltaTime;
         if(time < DeliveryEndTime){
             // // find the position the bowl should currently be in
-            Vector3 pos = BowlPhysics.GameToUnityCoords(BowlPhysics.DeliveryPath(initialVelocity, deliveryAngle, bias, 0, time));;
+            Vector3 pos = BowlPhysics.GameToUnityCoords(BowlPhysics.DeliveryPath(initialVelocity, deliveryAngle, bias, 0, time, bowlBiasStrength));;
             Vector3 pos_diff = pos - transform.position;
             transform.position = new Vector3(pos.x, transform.position.y, pos.z);
 
             // set the rotation around the y-axis of the bowl so that is follows the trajectory correctly
             Vector3 euler_angles = transform.localEulerAngles;
-            Vector3 direction = BowlPhysics.GetCurrentDirection(initialVelocity, deliveryAngle, bias, 0, time);
+            Vector3 direction = BowlPhysics.GetCurrentDirection(initialVelocity, deliveryAngle, bias, 0, time, bowlBiasStrength);
             if(direction.magnitude > 0.02f){
                 float angle = BowlPhysics.GetBowlAngle(direction);
                 euler_angles.y = angle;
@@ -230,7 +231,7 @@ public class BowlLauncher : MonoBehaviour
         }
         
         for(int step = 0; step < steps; step++){
-            points[step] = BowlPhysics.GameToUnityCoords(BowlPhysics.DeliveryPath(initialVelocity, deliveryAngle, bias, 0, PredictorTimeStep * step));
+            points[step] = BowlPhysics.GameToUnityCoords(BowlPhysics.DeliveryPath(initialVelocity, deliveryAngle, bias, 0, PredictorTimeStep * step, bowlBiasStrength));
         }
 
         lineRenderer.positionCount = steps;
@@ -261,7 +262,7 @@ public class BowlLauncher : MonoBehaviour
             BowlMovement bm1 = GetComponent<BowlMovement>();
             BowlMovement bm2 = collision.gameObject.GetComponent<BowlMovement>();
             
-            Vector2 dir = BowlPhysics.GetCurrentDirection(initialVelocity, deliveryAngle, bias, 0, time);
+            Vector2 dir = BowlPhysics.GetCurrentDirection(initialVelocity, deliveryAngle, bias, 0, time, bowlBiasStrength);
             dir = dir.normalized;
             Vector3 velocity = new Vector3(dir.x, 0, dir.y) * BowlPhysics.GetCurrentVelocity(initialVelocity, deliveryAngle, 0, time);
             float mass1 = 2;

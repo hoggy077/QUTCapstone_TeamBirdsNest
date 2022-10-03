@@ -177,7 +177,7 @@ public class MatchManager : MonoBehaviour
             if(!PlayerTurn){
                 currentBowl.GetComponent<BowlID>().SetTeam(2);
                 Transform JackTransform = Jack.GetComponent<Transform>();
-                ai.TakeTurn(currentBowl, JackTransform.position, Team1Bowls, Team2Bowls);
+                ai.TakeTurn(currentBowl, JackTransform.position, Team1Bowls, Team2Bowls, 1f);
             }
             else{
                 currentBowl.GetComponent<BowlID>().SetTeam(1);
@@ -233,7 +233,7 @@ public class MatchManager : MonoBehaviour
                 Rigidbody JackRigidbody = Jack.GetComponent<Rigidbody>();
                 JackRigidbody.sleepThreshold = 10f;
                 
-                ai_keep_looping = ai.TakeTurn(currentBowl, JackTransform.position, Team1Bowls, Team2Bowls);
+                ai_keep_looping = ai.TakeTurn(currentBowl, JackTransform.position, Team1Bowls, Team2Bowls, 1f);
             }
             else{
                 ReadHead();

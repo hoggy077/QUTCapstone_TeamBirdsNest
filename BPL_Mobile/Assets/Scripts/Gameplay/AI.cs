@@ -17,7 +17,7 @@ public class AI
     }
 
     // TODO: remove bowls that are in the ditch and arne't still marked as active or "chalked"
-    public bool TakeTurn(GameObject CurrentBowl, Vector3 JackPos, List<GameObject> PlayerBowls, List<GameObject> AIBowls){
+    public bool TakeTurn(GameObject CurrentBowl, Vector3 JackPos, List<GameObject> PlayerBowls, List<GameObject> AIBowls, float biasStrength){
         
         #if TEST // TESTING {
             if(Input.touchCount > 0){ 
@@ -91,7 +91,7 @@ public class AI
        
         if(playerCloser){ // player has the closest bowl
 
-            var (availablePolygons, bias) = GetValidPolygons(JackPos2, PlayerPositions[0].MagFromJack, PlayerPositions, AIPositions);
+            var (availablePolygons, bias) = GetValidPolygons(JackPos2, PlayerPositions[0].MagFromJack, PlayerPositions, AIPositions, biasStrength);
             if(availablePolygons.Count > 0){ // The AI can get the bowl closer
                 DeliverBowlCloser(CurrentBowl, availablePolygons, bias);
                 return false;
@@ -107,7 +107,7 @@ public class AI
             }
         }
         else{ // AI has the closest bowl
-            var (availablePolygons, bias) = GetValidPolygons(JackPos2, PlayerPositions[0].MagFromJack, PlayerPositions, AIPositions);
+            var (availablePolygons, bias) = GetValidPolygons(JackPos2, PlayerPositions[0].MagFromJack, PlayerPositions, AIPositions, biasStrength);
             if(availablePolygons.Count > 0){ // The AI can score another point
                 DeliverBowlCloser(CurrentBowl, availablePolygons, bias);
                 return false;
@@ -129,7 +129,7 @@ public class AI
         TakeAccurateShot(CurrentBowl, position, bias);
     }
 
-    public (List<List<PointD>> polygons, Bias bias) GetValidPolygons(Vector3 position, float radius, List<BowlPosition> bowls1, List<BowlPosition> bowls2){
+    public (List<List<PointD>> polygons, Bias bias) GetValidPolygons(Vector3 position, float radius, List<BowlPosition> bowls1, List<BowlPosition> bowls2, float biasStrength){
         // check if AI can get another bowl closer than the closest players bowl
         // meaning the AI gets another point
         Bias bias = Bias.Left;
@@ -152,7 +152,7 @@ public class AI
                 }
             }
 
-            pathBoundaryPolygons = Polygon.GetPolygonPaths(bowls1, bowls2, bias);
+            pathBoundaryPolygons = Polygon.GetPolygonPaths(bowls1, bowls2, bias, biasStrength);
             availablePointsPolygons = Clipper.Difference(circle, pathBoundaryPolygons, FillRule.NonZero);
             if(availablePointsPolygons.Count != 0){
                 found = true;

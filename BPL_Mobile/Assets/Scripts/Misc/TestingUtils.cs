@@ -56,7 +56,7 @@ public class TestingUtils{
         Vector3[] points = new Vector3[steps];
         
         for(int step = 0; step < steps; step++){
-            points[step] = BowlPhysics.GameToUnityCoords(BowlPhysics.DeliveryPath(ics.InitVel, ics.Angle, ics.Bias, 0, PredictorTimeStep * step));
+            points[step] = BowlPhysics.GameToUnityCoords(BowlPhysics.DeliveryPath(ics.InitVel, ics.Angle, ics.Bias, 0, PredictorTimeStep * step, 1f));
         }
 
         lineRenderer.positionCount = steps;

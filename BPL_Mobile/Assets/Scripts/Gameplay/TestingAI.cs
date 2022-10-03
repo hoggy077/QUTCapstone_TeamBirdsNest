@@ -89,7 +89,7 @@ public class TestingAI : MonoBehaviour
                 AIBowls.Add(SpawnBowl(new Vector3(0, 0, 15) + BowlPosition*radius));
             }
 
-            ai.TakeTurn(new GameObject(), jackStartPos, PlayerBowls, AIBowls);
+            ai.TakeTurn(new GameObject(), jackStartPos, PlayerBowls, AIBowls, 1f);
         }
     }
 

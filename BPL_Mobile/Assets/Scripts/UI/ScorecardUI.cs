@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class ScorecardUI : MonoBehaviour
 {
@@ -15,61 +16,96 @@ public class ScorecardUI : MonoBehaviour
     public float scorecardSetsWonActiveOffset = -3f;
     public float scorecardSetsWonInactiveOffset = 44.7f;
     private RectTransform scorecardTransform;
+    private RectTransform parentTransform;
 
     [Header("General Display")]
     public TextMeshProUGUI endNumberDisplay;
-    public UnityEngine.UI.Image[] shotPoints;
-    public UnityEngine.UI.Image[] shotPointColours;
+    public Image[] shotPoints;
+    public Image[] shotPointColours;
 
     [Header("Team 1")]
     public TextMeshProUGUI team1NameDisplay;
-    public UnityEngine.UI.Image team1ColourDisplay;
+    public Image team1ColourDisplay;
     public TextMeshProUGUI team1ShotCountDisplay;
-    public UnityEngine.UI.Image team1ShotCountIcon;
+    public Image team1ShotCountIcon;
     public TextMeshProUGUI team1SetsWonDisplay;
     public TextMeshProUGUI team1EndsWonDisplay;
-    public UnityEngine.UI.Image team1PP;
+    public Image team1PP;
 
     [Header("Team 2")]
     public TextMeshProUGUI team2NameDisplay;
-    public UnityEngine.UI.Image team2ColourDisplay;
+    public Image team2ColourDisplay;
     public TextMeshProUGUI team2ShotCountDisplay;
-    public UnityEngine.UI.Image team2ShotCountIcon;
+    public Image team2ShotCountIcon;
     public TextMeshProUGUI team2SetsWonDisplay;
     public TextMeshProUGUI team2EndsWonDisplay;
-    public UnityEngine.UI.Image team2PP;
+    public Image team2PP;
 
     private Vector3 targetPos = Vector3.zero;
     public bool fullyOnScreen = false;
     private bool onScreen = false;
 
+    // Sub Menu Functionality
+    public SubmenuState submenuState = SubmenuState.None;
+    public enum SubmenuState
+    {
+        None,
+        TeammateSwitch,
+        PauseMenu,
+        OverheadCamera
+    }
+    public RectTransform teammateSelectionPanel;
+    private float teammaterSelectionPanelClosedPos = -1500f;
+    private float teammateSelectionPanelTargetPos = 0f;
+
     private void Start()
     {
         scorecardTransform = GetComponent<RectTransform>();
+        parentTransform = transform.parent.GetComponent<RectTransform>();
+        Reposition(false);
     }
 
     private void Update()
     {
-        fullyOnScreen = onScreen && scorecardTransform.anchoredPosition.y == targetPos.y;
+        fullyOnScreen = onScreen && parentTransform.anchoredPosition.y == targetPos.y;
 
         // Animate Elements if aPPlicable
         AnimateSetsElement();
 
         // Moving to repositioned position
-        scorecardTransform.anchoredPosition = Vector3.MoveTowards(scorecardTransform.anchoredPosition, new Vector3(scorecardTransform.anchoredPosition.x, targetPos.y, 0f), 400f * 3f * Time.deltaTime);
+        parentTransform.anchoredPosition = Vector3.MoveTowards(parentTransform.anchoredPosition, new Vector3(parentTransform.anchoredPosition.x, targetPos.y, 0f), 400f * 3f * Time.deltaTime);
+
+        // Moving Teamate Swap Menu if Required
+        teammateSelectionPanel.anchoredPosition = Vector3.MoveTowards(teammateSelectionPanel.anchoredPosition, new Vector3(teammateSelectionPanelTargetPos, teammateSelectionPanel.anchoredPosition.y), 3000f * Time.deltaTime);
+
+        // If aiming to be off screen, then force menu to close
+        if (!fullyOnScreen)
+        {
+            teammateSelectionPanel.anchoredPosition = Vector3.MoveTowards(teammateSelectionPanel.anchoredPosition, new Vector3(teammateSelectionPanelTargetPos, teammateSelectionPanel.anchoredPosition.y), 3000f * Time.deltaTime);
+        }
     }
 
     public void Reposition(bool outOfView)
     {
         // Moving Scorecard off screen
-        Vector3 currentScorePos = scorecardTransform.anchoredPosition;
+        Vector3 currentScorePos = parentTransform.anchoredPosition;
         if (outOfView)
         {
-            targetPos = new Vector3(currentScorePos.x, 400f, currentScorePos.z);
+            targetPos = new Vector3(currentScorePos.x, 600f, currentScorePos.z);
         }
         else
         {
             targetPos = new Vector3(currentScorePos.x, 0f, currentScorePos.z);
+
+            if (SystemInfo.deviceModel.Contains("iPhone") || true)
+            {
+                float screenRatio = (1.0f * Screen.height) / (1.0f * Screen.width);
+
+                if (screenRatio >= 2.1f)
+                {
+                    targetPos = new Vector3(currentScorePos.x, -70f, currentScorePos.z);
+                }
+            }
         }
 
         onScreen = !outOfView;
@@ -128,13 +164,13 @@ public class ScorecardUI : MonoBehaviour
         }
 
         // Setting Active Shot Indicators
-        foreach (UnityEngine.UI.Image indi in shotPoints)
+        foreach (Image indi in shotPoints)
         {
             indi.gameObject.SetActive(false);
         }
 
         int counter = 0;
-        foreach (UnityEngine.UI.Image indi in shotPoints)
+        foreach (Image indi in shotPoints)
         {
             if (counter == numberOfShots)
             {
@@ -147,7 +183,7 @@ public class ScorecardUI : MonoBehaviour
         }
 
         // Setting Colour of all shot counters
-        foreach (UnityEngine.UI.Image indi in shotPointColours)
+        foreach (Image indi in shotPointColours)
         {
             if(indi.IsActive())
             {
@@ -246,16 +282,34 @@ public class ScorecardUI : MonoBehaviour
         // If within reasonable threshold, update the opacity change of the sets won element
         if (Mathf.Abs(scorecardTailendLocation.localPosition.x - targetLocation) / (setsWonActiveXPosition - setsWonInactiveXPosition) > threshold)
         {
-            Color currentColor = setsWonScorecardElement.GetComponent<UnityEngine.UI.Image>().color;
+            Color currentColor = setsWonScorecardElement.GetComponent<Image>().color;
             Color targetColor = currentColor;
             targetColor.a = targetOpacity;
 
-            setsWonScorecardElement.GetComponent<UnityEngine.UI.Image>().color = Color.Lerp(currentColor, targetColor, setsWonChangeAnimationSpeed * Time.deltaTime * 2f);
-            currentColor = setsWonScorecardElement.GetComponent<UnityEngine.UI.Image>().color;
+            setsWonScorecardElement.GetComponent<Image>().color = Color.Lerp(currentColor, targetColor, setsWonChangeAnimationSpeed * Time.deltaTime * 2f);
+            currentColor = setsWonScorecardElement.GetComponent<Image>().color;
 
             team1SetsWonDisplay.color = currentColor;
             team2SetsWonDisplay.color = currentColor;
         }
     }
+    #endregion
+
+    #region Sub Menu
+
+    public void ToggleTeammateMenu()
+    {
+        if(submenuState == SubmenuState.None)
+        {
+            teammateSelectionPanelTargetPos = 0f;
+            submenuState = SubmenuState.TeammateSwitch;
+        }
+        else
+        {
+            teammateSelectionPanelTargetPos = teammaterSelectionPanelClosedPos;
+            submenuState = SubmenuState.None;
+        }
+    }
+
     #endregion
 }
