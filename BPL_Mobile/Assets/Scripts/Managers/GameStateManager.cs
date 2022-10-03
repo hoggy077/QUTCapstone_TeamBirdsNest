@@ -37,15 +37,15 @@ public class GameStateManager : MonoBehaviour
     public Team_struct Team_2 { get; set; }
 
 
-    public void UpdateTeam(uint TeamNumber, TeamScriptable team)
+    public void UpdateTeam(uint TeamNumber, TeamScriptable team, BowlsScriptable[] bowls)
     {
         if (TeamNumber > 2)
             throw new Exception($"Team number {TeamNumber} is invalid. Please enter 1 or 2");
 
         if (TeamNumber == 1)
-            Team_1 = new Team_struct() { BaseTeam = team };
+            Team_1 = new Team_struct() { BaseTeam = team , teamBowls = bowls};
         else
-            Team_2 = new Team_struct() { BaseTeam = team };
+            Team_2 = new Team_struct() { BaseTeam = team , teamBowls = bowls};
     }
     #endregion
 
@@ -141,6 +141,7 @@ public class Team_struct
     public TeamScriptable BaseTeam;
     public string Name() => BaseTeam.TeamName;
     public bool HasPowerPlay;
+    public BowlsScriptable[] teamBowls;
 }
 
 public class TurnBasedManager

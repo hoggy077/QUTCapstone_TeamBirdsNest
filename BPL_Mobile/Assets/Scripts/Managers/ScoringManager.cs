@@ -28,6 +28,8 @@ public class ScoringManager : MonoBehaviour
     private bool continueingEnd = true;
     private int[] previousTeamAndScoreLead;
 
+    private BowlsScriptable[] placeholderBowls;
+
     public struct MatchScore
     {
         public int team1Sets;
@@ -146,16 +148,11 @@ public class ScoringManager : MonoBehaviour
         currentScore.team2Sets = 0;
 
         // Setting teams for scorecard, or placing debug teams in there if menu was not used
-        if (GameStateManager.Instance.Team_1 != null && GameStateManager.Instance.Team_2 != null)
-        {
-            gsm.UpdateTeam(1, gsm.Team_1.BaseTeam);
-            gsm.UpdateTeam(2, gsm.Team_2.BaseTeam);
-        }
-        else
+        if (GameStateManager.Instance.Team_1 == null && GameStateManager.Instance.Team_2 == null)
         {
             // Getting Debug Testing Team Info
-            gsm.UpdateTeam(1, debugTeam1);
-            gsm.UpdateTeam(2, debugTeam2);
+            gsm.UpdateTeam(1, debugTeam1, placeholderBowls);
+            gsm.UpdateTeam(2, debugTeam2, placeholderBowls);
         }
 
         // Updating Scorecard

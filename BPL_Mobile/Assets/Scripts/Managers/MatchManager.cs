@@ -25,7 +25,7 @@ public class MatchManager : MonoBehaviour
     GameObject Jack;
     List<GameObject> Team1Bowls = new List<GameObject>();
     List<GameObject> Team2Bowls = new List<GameObject>();
-    bool PlayerTurn = true;
+    public bool PlayerTurn = true;
     private AI ai;
     private bool ai_keep_looping = false;
     private bool spawnbowl = true;
@@ -176,8 +176,12 @@ public class MatchManager : MonoBehaviour
 
             if(!PlayerTurn){
                 currentBowl.GetComponent<BowlID>().SetTeam(2);
-                Transform JackTransform = Jack.GetComponent<Transform>();
-                ai.TakeTurn(currentBowl, JackTransform.position, Team1Bowls, Team2Bowls, 1f);
+
+                if (!GameStateManager.Instance.isMultiplayerMode)
+                {
+                    Transform JackTransform = Jack.GetComponent<Transform>();
+                    ai.TakeTurn(currentBowl, JackTransform.position, Team1Bowls, Team2Bowls, 1f);
+                }
             }
             else{
                 currentBowl.GetComponent<BowlID>().SetTeam(1);

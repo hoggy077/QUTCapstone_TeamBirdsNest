@@ -31,6 +31,7 @@ public class ScorecardUI : MonoBehaviour
     public TextMeshProUGUI team1SetsWonDisplay;
     public TextMeshProUGUI team1EndsWonDisplay;
     public Image team1PP;
+    public Texture[] team1CharacterProfiles;
 
     [Header("Team 2")]
     public TextMeshProUGUI team2NameDisplay;
@@ -40,9 +41,15 @@ public class ScorecardUI : MonoBehaviour
     public TextMeshProUGUI team2SetsWonDisplay;
     public TextMeshProUGUI team2EndsWonDisplay;
     public Image team2PP;
+    public Texture[] team2CharacterProfiles;
+
+    [Header("Teammate Selection")]
+    public RawImage[] teammateProfilesUI;
+    public TextMeshProUGUI[] teammateNamesUI;
+    public RawImage[] bowlProfilesUI;
 
     private Vector3 targetPos = Vector3.zero;
-    public bool fullyOnScreen = false;
+    [HideInInspector] public bool fullyOnScreen = false;
     private bool onScreen = false;
 
     // Sub Menu Functionality
@@ -57,12 +64,15 @@ public class ScorecardUI : MonoBehaviour
     public RectTransform teammateSelectionPanel;
     private float teammaterSelectionPanelClosedPos = -1500f;
     private float teammateSelectionPanelTargetPos = 0f;
+    private MatchManager mm;
 
     private void Start()
     {
         scorecardTransform = GetComponent<RectTransform>();
         parentTransform = transform.parent.GetComponent<RectTransform>();
         Reposition(false);
+        teammateSelectionPanelTargetPos = teammaterSelectionPanelClosedPos;
+        mm = FindObjectOfType<MatchManager>();
     }
 
     private void Update()
@@ -82,6 +92,32 @@ public class ScorecardUI : MonoBehaviour
         if (!fullyOnScreen)
         {
             teammateSelectionPanel.anchoredPosition = Vector3.MoveTowards(teammateSelectionPanel.anchoredPosition, new Vector3(teammateSelectionPanelTargetPos, teammateSelectionPanel.anchoredPosition.y), 3000f * Time.deltaTime);
+        }
+
+        // Updating Teammate Selection Screen profiles
+        if(mm.PlayerTurn)
+        {
+            for(int i = 0; i < teammateProfilesUI.Length; i++)
+            {
+                teammateProfilesUI[i].texture = team1CharacterProfiles[i];
+                bowlProfilesUI[i].texture = GameStateManager.Instance.Team_1.teamBowls[i].BowlTexture;
+            }
+
+            teammateNamesUI[0].text = FormatPlayerName(GameStateManager.Instance.Team_1.BaseTeam.character1.characterName);
+            teammateNamesUI[1].text = FormatPlayerName(GameStateManager.Instance.Team_1.BaseTeam.character2.characterName);
+            teammateNamesUI[2].text = FormatPlayerName(GameStateManager.Instance.Team_1.BaseTeam.character3.characterName);
+        }
+        else
+        {
+            for (int i = 0; i < teammateProfilesUI.Length; i++)
+            {
+                teammateProfilesUI[i].texture = team2CharacterProfiles[i];
+                bowlProfilesUI[i].texture = GameStateManager.Instance.Team_2.teamBowls[i].BowlTexture;
+            }
+
+            teammateNamesUI[0].text = FormatPlayerName(GameStateManager.Instance.Team_2.BaseTeam.character1.characterName);
+            teammateNamesUI[1].text = FormatPlayerName(GameStateManager.Instance.Team_2.BaseTeam.character2.characterName);
+            teammateNamesUI[2].text = FormatPlayerName(GameStateManager.Instance.Team_2.BaseTeam.character3.characterName);
         }
     }
 
@@ -309,6 +345,17 @@ public class ScorecardUI : MonoBehaviour
             teammateSelectionPanelTargetPos = teammaterSelectionPanelClosedPos;
             submenuState = SubmenuState.None;
         }
+    }
+
+    private string FormatPlayerName(string input)
+    {
+        string output;
+
+        string[] segmentedInput = input.Split(' ');
+
+        output = segmentedInput[0][0].ToString() + ". " + segmentedInput[1];
+
+        return output;
     }
 
     #endregion
