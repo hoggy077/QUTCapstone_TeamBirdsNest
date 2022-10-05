@@ -48,6 +48,8 @@ public class ScoringManager : MonoBehaviour
         bowlUIRing = Instantiate(ringPrefab.gameObject, transform.position, Quaternion.Euler(Vector3.zero)).GetComponent<ClosestBowlRing>();
         bowlUIRing.ToggleRing(false);
         PowerplayFunctionality();
+
+        gsm.TeamUpdated += SaveToGSM;
     }
 
     public void ReadTheHead()
@@ -104,6 +106,9 @@ public class ScoringManager : MonoBehaviour
 
         // Updating Current Bowls remaining for each team, finding if the end has concluded
         continueingEnd = UpdateShotsRemaining(mm.GetLiveBowls());
+
+        // Updating GSM
+        UpdateGSM();
     }
 
     public void CheckScore()
@@ -236,6 +241,8 @@ public class ScoringManager : MonoBehaviour
             scorecard.UpdateEndsWon(0, 0);
             StartNewEnd();
         }
+
+        UpdateGSM();
     }
 
     // Function to handle the updating and calculation of the current shots held by a leading team
@@ -364,4 +371,74 @@ public class ScoringManager : MonoBehaviour
     {
         return team1Powerplaying || team2Powerplaying;
     }
+
+    #region Communicating To GSM
+
+    private void UpdateGSM()
+    {
+        Team_struct team1 = GameStateManager.Instance.Team_1;
+        Team_struct team2 = GameStateManager.Instance.Team_2;
+
+        bool team1PowerplayAvailability;
+        int[] team1ScoreSummary = CalculateDifferencesBetweenGSM(1, team1, out team1PowerplayAvailability);
+
+        bool team2PowerplayAvailability;
+        int[] team2ScoreSummary = CalculateDifferencesBetweenGSM(1, team2, out team2PowerplayAvailability);
+
+        gsm.UpdateTeamScores(1, (uint)team1ScoreSummary[0], (uint)team1ScoreSummary[2], (uint)team1ScoreSummary[1], team1PowerplayAvailability);
+        gsm.UpdateTeamScores(2, (uint)team2ScoreSummary[0], (uint)team2ScoreSummary[2], (uint)team2ScoreSummary[1], team2PowerplayAvailability);
+    }
+
+    private int[] CalculateDifferencesBetweenGSM(int teamNumber, Team_struct team, out bool powerplayPossible)
+    {
+        int[] scoreSummary = new int[3];
+        int shotDifference;
+        int endsDifference;
+        int setsDifference;
+
+        // Start with total shots for each team allowed
+        int team1ShotsRemaining = 6;
+        int team2ShotsRemaining = 6;
+
+        // Negate one shot for each team bowl present on the field
+        foreach (GameObject bowl in mm.GetLiveBowls())
+        {
+            if (bowl.GetComponent<BowlID>().GetTeam() == 1)
+            {
+                team1ShotsRemaining -= 1;
+            }
+            else
+            {
+                team2ShotsRemaining -= 1;
+            }
+        }
+
+        if (teamNumber == 1)
+        {
+            powerplayPossible = team1PowerplayAvailable;
+            shotDifference = team1ShotsRemaining - (int)team.Shots;
+            endsDifference = currentScore.team1Ends - (int)team.Ends;
+            setsDifference = currentScore.team1Sets - (int)team.Sets;
+        }
+        else
+        {
+            powerplayPossible = team2PowerplayAvailable;
+            shotDifference = team2ShotsRemaining - (int)team.Shots;
+            endsDifference = currentScore.team2Ends - (int)team.Ends;
+            setsDifference = currentScore.team2Sets - (int)team.Sets;
+        }
+
+        scoreSummary[0] = shotDifference;
+        scoreSummary[1] = endsDifference;
+        scoreSummary[2] = setsDifference;
+
+        return scoreSummary;
+    }
+
+    public void SaveToGSM(Team_struct ATeam)
+    {
+
+    }
+
+    #endregion
 }
