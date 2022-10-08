@@ -1,6 +1,8 @@
+using System;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "NewTeam", menuName = "Bowls Aus/Teams/Create New Team")]
+[Serializable]
 public class TeamScriptable : ScriptableObject
 {
     public Sprite TeamIcon;
@@ -11,4 +13,3 @@ public class TeamScriptable : ScriptableObject
     public CharacterSO character2;
     public CharacterSO character3;
 }
-

@@ -1,8 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "NewJersey", menuName = "Bowls Aus/Teams/Create New Jersey")]
+[Serializable]
 public class JerseySO : ScriptableObject
 {
     public Color baseColour;

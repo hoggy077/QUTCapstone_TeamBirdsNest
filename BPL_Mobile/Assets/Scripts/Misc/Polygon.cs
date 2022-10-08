@@ -10,7 +10,7 @@ using EarcutNet;
 //     get polygon path for an arc of a certain radius
 
 class Polygon{
-    public static List<List<PointD>> GetPolygonPaths(List<BowlPosition> bowls1, List<BowlPosition> bowls2, Bias bias){
+    public static List<List<PointD>> GetPolygonPaths(List<BowlPosition> bowls1, List<BowlPosition> bowls2, Bias bias, float biasStrength){
         List<List<PointD>> paths = new List<List<PointD>>();
         List<List<PointD>> circles = new List<List<PointD>>();
         float circleRadius = 0.17f;
@@ -26,11 +26,11 @@ class Polygon{
         return Clipper.Union(paths, circles, FillRule.NonZero);
     }
 
-    public static List<List<PointD>> GetPolygonPaths(List<BowlPosition> bowls, Bias bias){
+    public static List<List<PointD>> GetPolygonPaths(List<BowlPosition> bowls, Bias bias, float biasStrength){
         List<List<PointD>> paths = new List<List<PointD>>();
 
         foreach(BowlPosition bowl in bowls){
-            paths.Add(GetPolygonPath(bowl.BowlPos, bias));
+            paths.Add(GetPolygonPath(bowl.BowlPos, bias, biasStrength));
         }
        
         return Clipper.Union(paths, new List<List<PointD>>(), FillRule.NonZero);
@@ -114,8 +114,8 @@ class Polygon{
         Vector3 left_point = startPoint + left_offset;
         Vector3 right_point = startPoint + right_offset;
 
-        Vector2[] leftPoints = BowlPhysics.getBoundaryPoints(left_point, bias);
-        Vector2[] rightPoints = BowlPhysics.getBoundaryPoints(right_point, bias);
+        Vector2[] leftPoints = BowlPhysics.getBoundaryPoints(left_point, bias, biasStrength);
+        Vector2[] rightPoints = BowlPhysics.getBoundaryPoints(right_point, bias, biasStrength);
 
         double[] points = new double[2*leftPoints.Length + 2*rightPoints.Length];
         int point_i = 0;

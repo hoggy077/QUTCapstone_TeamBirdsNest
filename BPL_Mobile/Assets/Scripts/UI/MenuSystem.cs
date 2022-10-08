@@ -966,17 +966,17 @@ public class MenuSystem : MonoBehaviour
         // If we are in quickplay, head to quick play
         if (gamemode == Gamemode.Quickplay)
         {
-            GameStateManager.Instance_.UpdateTeam(1, teams[player1TeamIndex]);
+            GameStateManager.Instance.UpdateTeam(1, teams[player1TeamIndex], ConvertToBowlsArray(team1Bowls));
 
             if (multiplayer)
             {
-                GameStateManager.Instance_.UpdateTeam(2, teams[player2TeamIndex]);
-                GameStateManager.Instance_.isMultiplayerMode = true;
+                GameStateManager.Instance.UpdateTeam(2, teams[player2TeamIndex], ConvertToBowlsArray(team2Bowls));
+                GameStateManager.Instance.isMultiplayerMode = true;
             }
             else
             {
-                GameStateManager.Instance_.UpdateTeam(2, GetRandomUnpickedTeam());
-                GameStateManager.Instance_.isMultiplayerMode = false;
+                GameStateManager.Instance.UpdateTeam(2, GetRandomUnpickedTeam(), bowls);
+                GameStateManager.Instance.isMultiplayerMode = false;
             }
 
             SceneManager.LoadScene(gameScene);
@@ -984,7 +984,7 @@ public class MenuSystem : MonoBehaviour
         else
         {
             SceneManager.LoadScene(gameScene);
-            GameStateManager.Instance_.isMultiplayerMode = false;
+            GameStateManager.Instance.isMultiplayerMode = false;
         }
     }
 
@@ -1001,5 +1001,20 @@ public class MenuSystem : MonoBehaviour
         possibleTeams.Remove(teams[player1TeamIndex]);
 
         return possibleTeams[Random.Range(0, possibleTeams.Count)];
+    }
+
+    // Converting Bowls List to Bowls Array because I didn't plan this far ahead haha poopy
+    private BowlsScriptable[] ConvertToBowlsArray(List<BowlsScriptable> input)
+    {
+        BowlsScriptable[] output = new BowlsScriptable[input.Count];
+
+        int currentIndex = 0;
+        foreach(BowlsScriptable bowl in input)
+        {
+            output[currentIndex] = bowl;
+            currentIndex++;
+        }
+
+        return output;
     }
 }

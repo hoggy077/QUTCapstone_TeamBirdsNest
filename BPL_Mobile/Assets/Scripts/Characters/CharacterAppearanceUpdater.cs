@@ -95,7 +95,7 @@ public class CharacterAppearanceUpdater : MonoBehaviour
         if(!inMenu)
         {
             // Getting Team Information if Available
-            if (GameStateManager.Instance_.Team_1 != null && GameStateManager.Instance_.Team_2 != null)
+            if (GameStateManager.Instance.Team_1 != null && GameStateManager.Instance.Team_2 != null)
             {
                 // Getting Team Info
                 if (teamID == 1)

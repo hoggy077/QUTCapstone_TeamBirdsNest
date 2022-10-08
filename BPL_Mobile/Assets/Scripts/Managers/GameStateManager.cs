@@ -18,31 +18,34 @@ public class GameStateManager : MonoBehaviour
             Exist = true;
             return Instance_;
         }}
-    public static GameStateManager Instance_ = null;
+    private static GameStateManager Instance_ = null;
     static bool Exist = false;
     public bool isMultiplayerMode = false;
 
     //This just tells unity to RunOn when the game loads, accessing Instance which will create one if not available
     [RuntimeInitializeOnLoadMethod]
     static void RunOn() => _ = Instance;
-
     public static bool Exists() => Exist;
+
+    public GamemodeInfo gamemode;
+
 
     #region Game related variables
 
     #region Teams
-    public Team_struct Team_1 { get; private set; }
-    public Team_struct Team_2 { get; private set; }
+    public Team_struct Team_1 { get; set; }
+    public Team_struct Team_2 { get; set; }
 
-    public void UpdateTeam(uint TeamNumber, TeamScriptable team)
+
+    public void UpdateTeam(uint TeamNumber, TeamScriptable team, BowlsScriptable[] bowls)
     {
         if (TeamNumber > 2)
             throw new Exception($"Team number {TeamNumber} is invalid. Please enter 1 or 2");
 
         if (TeamNumber == 1)
-            Team_1 = new Team_struct() { BaseTeam = team };
+            Team_1 = new Team_struct() { BaseTeam = team , teamBowls = bowls};
         else
-            Team_2 = new Team_struct() { BaseTeam = team };
+            Team_2 = new Team_struct() { BaseTeam = team , teamBowls = bowls};
     }
     #endregion
 
@@ -126,24 +129,6 @@ public class GameStateManager : MonoBehaviour
     #endregion
 
 
-    #region Session Saving
-
-    //Session saving is disabled for now
-    private void OnApplicationPause(bool paused)
-    {
-        //-- subject to change, reports of this not working 100% since 2019. Consider OnAppliationFocus instead
-        //-- also might change because its uncertain if we're maintaining an in-match manager of this external manager
-
-        //--true means we've lost focus,
-        //--false means we've gained it back
-
-        //--so on a false load the file and on a true save it
-        //--only load tho, if the active scene isn't the game scene, and the use decides to resume?
-
-
-    }
-
-    #endregion
 }
 
 #region Team and turn manager
@@ -155,11 +140,8 @@ public class Team_struct
     public uint Ends;
     public TeamScriptable BaseTeam;
     public string Name() => BaseTeam.TeamName;
-    public object[] ChosenPlayers;//-- this will need to change
     public bool HasPowerPlay;
-
-    [XmlIgnore]
-    public List<GameObject> Teams_Active_Bowls;//we have to have this because gameobjects include transform and transform cant be serialized
+    public BowlsScriptable[] teamBowls;
 }
 
 public class TurnBasedManager
