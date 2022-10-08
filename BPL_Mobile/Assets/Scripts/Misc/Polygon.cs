@@ -12,17 +12,18 @@ using EarcutNet;
 class Polygon{
     public static List<List<PointD>> GetPolygonPaths(List<BowlPosition> bowls1, List<BowlPosition> bowls2, Bias bias){
         List<List<PointD>> paths = new List<List<PointD>>();
-
+        List<List<PointD>> circles = new List<List<PointD>>();
+        float circleRadius = 0.17f;
         foreach(BowlPosition bowl in bowls1){
             paths.Add(GetPolygonPath(bowl.BowlPos, bias));
-            paths.Add(GetCirclePolygon(bowl.BowlPos, 0.14f, 5)[0]);
+            circles.Add(GetCirclePolygon(bowl.BowlPos, circleRadius, 15)[0]);
         }
         foreach(BowlPosition bowl in bowls2){
             paths.Add(GetPolygonPath(bowl.BowlPos, bias));
-            paths.Add(GetCirclePolygon(bowl.BowlPos, 0.14f, 5)[0]);
+            circles.Add(GetCirclePolygon(bowl.BowlPos, circleRadius, 15)[0]);
         }
 
-        return Clipper.Union(paths, new List<List<PointD>>(), FillRule.NonZero);
+        return Clipper.Union(paths, circles, FillRule.NonZero);
     }
 
     public static List<List<PointD>> GetPolygonPaths(List<BowlPosition> bowls, Bias bias){
@@ -34,11 +35,82 @@ class Polygon{
        
         return Clipper.Union(paths, new List<List<PointD>>(), FillRule.NonZero);
     }
+
+    public static List<List<PointD>> GetBiasRinkBoundary(Bias bias){
+        float halfRinkW = 5/2;
+        float offset = 0.17f;
+        Vector2 point = new Vector2(0, 0);
+        if(bias == Bias.Right){
+            point = new Vector2(-halfRinkW + 0.17f, 0);
+        }else{
+            point = new Vector2(halfRinkW - 0.17f, 0);
+        }
+
+        Vector2[] boundaryPoints = BowlPhysics.getBoundaryPoints(point, bias);
+
+        double[] points = new double[(boundaryPoints.Length + 2) * 2];
+        if(bias == Bias.Right){
+            points[0] = -5*100;
+            points[1] = 0*100;
+            points[2] = -5*100;
+            points[3] = 30*100;
+            
+            int point_i = 4;
+            for(int i = boundaryPoints.Length-1; i >= 0; i--){
+                points[point_i++] = boundaryPoints[i].x * 100;
+                points[point_i++] = boundaryPoints[i].y * 100;
+            }
+        }else{
+            int point_i = 0;
+            for(int i = 0; i < boundaryPoints.Length; i++){
+                points[point_i++] = boundaryPoints[i].x * 100;
+                points[point_i++] = boundaryPoints[i].y * 100;
+            }
+
+            points[point_i++] = 5*100;
+            points[point_i++] = 30*100;
+            points[point_i++] = 5*100;
+            points[point_i++] = 0*100;
+        }
+
+        List<List<PointD>> paths = new List<List<PointD>>();
+        paths.Add(Clipper.MakePath(points));
+
+        List<List<PointD>> boundary = GetInternalRinkBoundary();
+
+        return Clipper.Difference(boundary, paths, FillRule.NonZero);
+    }
+
+    public static List<List<PointD>> GetInternalRinkBoundary(){
+        float halfRinkW = 5/2;
+        float offset = 0.17f;
+
+        List<List<PointD>> paths = new List<List<PointD>>();
+
+        double[] points = new double[] {-halfRinkW + offset, 19 - offset, halfRinkW - offset, 19 - offset, halfRinkW - offset, 12 + offset, - halfRinkW + offset, 12 + offset};
+        for(int i = 0; i<points.Length; i++){
+            points[i] = points[i] * 100;
+        }
+        paths.Add(Clipper.MakePath(points));
+
+        return paths;
+    }
     
     // TODO: generalise this so it can be used for the jack and bowls
     public static List<PointD> GetPolygonPath(Vector3 startPoint, Bias bias){
-        Vector3 right_offset = (new Vector3(1, 0, 0)) * 0.14f;
-        Vector3 left_offset = (new Vector3(-1f, 0, 0)) * 0.2f;
+        Vector3 right_offset;
+        Vector3 left_offset;
+        float circleRadius = 0.17f;
+
+        if(bias == Bias.Left){
+            left_offset = new Vector2(MathF.Cos(MathF.PI * 1/4), MathF.Sin(MathF.PI*1/4)) * circleRadius;
+            right_offset = new Vector2(MathF.Cos(MathF.PI * 3f/4), MathF.Sin(-MathF.PI*3/4)) * circleRadius;
+        }
+        else{
+            left_offset = new Vector2(MathF.Cos(MathF.PI * 3/4), MathF.Sin(MathF.PI*3/4)) * circleRadius;
+            right_offset = new Vector2(MathF.Cos(MathF.PI * 1/4), MathF.Sin(-MathF.PI*1/4)) * circleRadius;
+        }
+        
         Vector3 left_point = startPoint + left_offset;
         Vector3 right_point = startPoint + right_offset;
 
@@ -139,7 +211,7 @@ class Polygon{
         float angle = (2*MathF.PI)/totalPoints;
 
         List<PointD> path = new List<PointD>();
-        for(int i = 1; i <= totalPoints; i++){
+        for(int i = totalPoints; i != 0; i--){
             path.Add(new PointD( (center.x + MathF.Cos(angle*i) * radius) * 100, (center.y + MathF.Sin(angle*i)*radius) * 100));
         }
         List<List<PointD>> paths = new List<List<PointD>>();
@@ -161,10 +233,10 @@ class Polygon{
 
 }
 
-public class Triangle{
-    Vector2 a;
-    Vector2 b;
-    Vector2 c;
+public class Triangle : IComparable<Triangle>{
+    public Vector2 a;
+    public Vector2 b;
+    public Vector2 c;
     public float area;
 
     public Triangle(Vector2 a, Vector2 b, Vector2 c){
@@ -173,6 +245,18 @@ public class Triangle{
         this.c = c;
 
         this.area = ((a-b).magnitude * (c-b).magnitude) / 2;
+    }
+
+    public int CompareTo(Triangle t){
+        if(area < t.area){
+            return 1;
+        }
+        else if(area > t.area){
+            return -1;
+        }
+        else{
+            return 0;
+        }
     }
 
     public Vector2 RndPointInsideTriangle(){

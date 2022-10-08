@@ -63,4 +63,19 @@ public class TestingUtils{
         lineRenderer.SetPositions(points);
         lineRenderer.enabled = true;
     }
+
+    public static void DrawTriangle(Triangle t, LineRenderer lr){
+        lr.positionCount = 4;
+        lr.startWidth = 0.01f;
+        lr.endWidth = 0.01f;
+        Vector3 p1 = BowlPhysics.GameToUnityCoords(t.a);
+        Vector3 p2 = BowlPhysics.GameToUnityCoords(t.b);
+        Vector3 p3 = BowlPhysics.GameToUnityCoords(t.c);
+
+        lr.SetPosition(0, p1);
+        lr.SetPosition(1, p2);
+        lr.SetPosition(2, p3);
+        lr.SetPosition(3, p1);
+        lr.enabled = true;
+    }
 }

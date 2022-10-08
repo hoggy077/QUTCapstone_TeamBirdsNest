@@ -46,7 +46,7 @@ public class MatchManager : MonoBehaviour
         // create the jack and set it in the correct position
         Jack = Instantiate(jackPrefab, BowlPhysics.GameToUnityCoords(new Vector2(0, 15)) + new Vector3(0, 0.0215f, 0), Quaternion.identity);
         ai = new AI();
-        ai.difficulty = AIDifficulty.HARD;
+        ai.difficulty = AIDifficulty.EASY;
         mainCam = Camera.main;
         originalCameraLocation = mainCam.transform.position;
         originalCameraRotation = mainCam.transform.rotation;
@@ -195,7 +195,6 @@ public class MatchManager : MonoBehaviour
                 
                 currentBowl = null;
                 PlayerTurn = !PlayerTurn;
-                spawnbowl = true;
             }
         }
 

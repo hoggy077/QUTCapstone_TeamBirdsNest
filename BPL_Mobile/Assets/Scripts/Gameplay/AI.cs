@@ -9,160 +9,229 @@ public class AI
 {
     public List<GameObject> lrs; // currently used for testing
 
-    private GameStateManager gsm = GameStateManager.Instance_;
+    private GameStateManager gsm = GameStateManager.Instance;
     public AIDifficulty difficulty = AIDifficulty.HARD;
     private int turns = 0;
     private int accurateShots = 0;
     //private bool HavePowerPlay = true;
     
     public AI(){
+        lrs = new List<GameObject>();
     }
 
     // TODO: remove bowls that are in the ditch and arne't still marked as active or "chalked"
-    public bool TakeTurn(GameObject CurrentBowl, Vector3 JackPos, List<GameObject> PlayerBowls, List<GameObject> AIBowls){
-        turns++;
-        #if TEST // TESTING {
-            if(Input.touchCount > 0){ 
-                Touch touch = Input.GetTouch(0); 
-                // handle any touch input
-                switch(touch.phase){
-                    case TouchPhase.Began:
-                        test_next_position = true;
-                        break;
-                    default:
-                        test_next_position = false;
-                        break;
-                }
-            }
-            else{
-                test_next_position = false;
-            } 
-        #endif // TESTING }
-        
-        List<BowlPosition> PlayerPositions = new List<BowlPosition>();
-        List<BowlPosition> AIPositions = new List<BowlPosition>();
-
-        Vector2 JackPos2 = BowlPhysics.UnityToGameCoords(JackPos);
-
-        // for both teams bowls get the vector3 position vector 
-        // update it so it's in the correct coordinate system
-        // and add it to the new list
-        foreach(var bowl in PlayerBowls){
-            Transform transform = bowl.GetComponent<Transform>();
-            Vector3 bowlPos = BowlPhysics.UnityToGameCoords(transform.position);
-            PlayerPositions.Add(new BowlPosition(bowlPos,JackPos2));
-        }
-
-        foreach(var bowl in AIBowls){
-            Transform transform = bowl.GetComponent<Transform>();
-            Vector3 bowlPos = BowlPhysics.UnityToGameCoords(transform.position);
-            AIPositions.Add(new BowlPosition(bowlPos,JackPos2));
-        }
-    
-        // make sure the bowls are sorted in lowest to highest order
-        PlayerPositions.Sort();
-        AIPositions.Sort();
+    public bool TakeTurn(GameObject CurrentBowl, Vector3 _JackPos, List<GameObject> PlayerBowls, List<GameObject> AIBowls){
+        Vector2 JackPos = BowlPhysics.UnityToGameCoords(_JackPos);
+        var (PlayerPositions, AIPositions) = gameObjectToBowlPosition(PlayerBowls, AIBowls, JackPos);
+        bool playerCloser;
+        bool takeAccurateShot = GetAccurateShotDecision(difficulty);
 
         if(AIPositions.Count == 0 && PlayerPositions.Count == 0){ // first turn for anyone
-            Bias bias;
-            // get random radius
-            float radius = UnityEngine.Random.value  + 0.5f;
-
-            // get random end position
-            Vector2 target = UnityEngine.Random.insideUnitCircle.normalized * radius;
-
-            if(target.y > 0){
-                bias = Bias.Left;
-            }else{
-                bias = Bias.Right;
-            }
-
-            // take the shot
-            TakeAccurateShot(CurrentBowl, JackPos2 + target, bias);
-
-            return false;
+            TakeRandomShot(CurrentBowl, 0.5f, JackPos);
         }
 
-        bool takeAccurateShot = false;
-        float outcome = UnityEngine.Random.value;
-        switch(difficulty){
-            case AIDifficulty.EASY:
-                if(outcome <= 2/6){
-                    takeAccurateShot = true;
-                    accurateShots++;
-                }
-            break;
-            case AIDifficulty.MEDIUM:
-                if(outcome <= 3/6){
-                    takeAccurateShot = true;
-                    accurateShots++;
-                }
-            break;
-            case AIDifficulty.HARD:
-                if(outcome <= 4/6){
-                    takeAccurateShot = true;
-                    accurateShots++;
-                }
-            break;
-            case AIDifficulty.HARDER:
-                if(outcome <= 5/6){
-                    takeAccurateShot = true;
-                    accurateShots++;
-                }
-            break;
-        }
-
-        bool playerCloser;
         if( AIPositions.Count == 0 && PlayerPositions.Count == 1){ // first turn for AI, Second delivery overall
             playerCloser = true;
         }
         else{
             playerCloser = AIPositions[0].MagFromJack < PlayerPositions[0].MagFromJack ? false : true;
         }
-       
-        if(playerCloser){ // player has the closest bowl
 
-            var (availablePolygons, bias) = GetValidPolygons(JackPos2, PlayerPositions[0].MagFromJack, PlayerPositions, AIPositions);
+        if(takeAccurateShot){
+            var (availablePolygons, bias) = GetCloserPolygons(JackPos, PlayerPositions[0].MagFromJack, PlayerPositions, AIPositions);
             if(availablePolygons.Count > 0){ // The AI can get the bowl closer
-                //if(takeAccurateShot){
-                    DeliverBowlCloser(CurrentBowl, availablePolygons, bias);
-                // }else{
-                //     TakeRandomShot(CurrentBowl, PlayerPositions[0].MagFromJack, JackPos2);
-                // }
-                
+                Debug.Log("Delivered bowl CLOSER!");
+                DeliverBowlWithinPolygons(CurrentBowl, availablePolygons, bias);
                 return false;
             }
-            else if(false){ // can we hit key opponents bowl away?
+        }
+        else{
+            var (availablePolygons, bias) = GetFurtherPolygons(JackPos, PlayerPositions[0].MagFromJack, PlayerPositions, AIPositions);
+            if(availablePolygons.Count > 0){
+                Debug.Log("Delivered bowl FURTHER!");
+                DeliverBowlWithinPolygons(CurrentBowl, availablePolygons, bias);
+                return false;
+            }
+        }
 
-            }
-            else if(false){ // can we hit the jack away to a ?
-
-            }
-            else{
-                
-            }
+        if(playerCloser){ // player has the closest bowl
+            // can we hit key opponents bowl away?
+            // can we hit the jack away to a ?
         }
         else{ // AI has the closest bowl
-            var (availablePolygons, bias) = GetValidPolygons(JackPos2, PlayerPositions[0].MagFromJack, PlayerPositions, AIPositions);
-            if(availablePolygons.Count > 0){ // The AI can score another point
-                //if(takeAccurateShot){
-                    DeliverBowlCloser(CurrentBowl, availablePolygons, bias);
-                // }else{
-                //     TakeRandomShot(CurrentBowl, PlayerPositions[0].MagFromJack, JackPos2);
-                // }
-                return false;
-            }
-            else { // place a bowl to protect a bowl close to jack
-
-            }
+            // place a bowl to protect a bowl close to jack
         }
 
-        if(turns == 6){
-            turns = 0;
-            accurateShots = 0;
+        Debug.Log("Error, shouldn't get here, taking random shot");
+        TakeRandomShot(CurrentBowl, 0.5f, JackPos);
+        return false;
+    }
+
+    // decide if this shot will be accurate or not using the AI difficulty 
+    // and a random number between 0 and 1
+    // returns true if the shot will be accurate
+    // false if not
+    private bool GetAccurateShotDecision(AIDifficulty difficulty){
+        float outcome = UnityEngine.Random.value;
+        
+        switch(difficulty){
+            case AIDifficulty.EASY:
+                if(outcome <= 2f/6f){
+                    return true;
+                }
+            break;
+            case AIDifficulty.MEDIUM:
+                if(outcome <= 3f/6f){
+                    return true;
+                }
+            break;
+            case AIDifficulty.HARD:
+                if(outcome <= 4f/6f){
+                    return true;
+                }
+            break;
+            case AIDifficulty.HARDER:
+                if(outcome <= 5f/6f){
+                    return true;
+                }
+            break;
         }
 
         return false;
+    }
+    
+    // deliver the bowl to a random point within a collection of polygons so that each point within the given polygons
+    // has the same probability of being selected
+    public void DeliverBowlWithinPolygons(GameObject CurrentBowl, List<List<PointD>> availablePolygons, Bias bias){
+
+        List<Triangle> triangles = new List<Triangle>();
+        foreach(List<PointD> poly in availablePolygons){
+            triangles.AddRange(Polygon.TriangulatePolygon(poly));            
+        }
+        // sort the triangles in ascending order based on their area
+        triangles.Sort();
+
+        foreach(GameObject g in lrs){
+            GameObject.Destroy(g);
+        }
+        lrs = new List<GameObject>();
+        // find the total area of all the triangles
+        float totalArea = 0;
+        foreach(Triangle t in triangles){
+            totalArea += t.area;
+            GameObject g = new GameObject();
+            g.AddComponent<LineRenderer>();
+            lrs.Add(g);
+
+            //TestingUtils.DrawTriangle(t, g.GetComponent<LineRenderer>());
+        }
+        
+        // choose a random triangle taking into account the area of the triangle
+        // since we want to uniformly choose a random point within the available space
+        float rnd = UnityEngine.Random.value;
+        int ti = 0;
+        float runningPercentage = 0;
+        for(int i = 0; i < triangles.Count; i++){
+            runningPercentage += triangles[i].area / totalArea;
+
+            if(rnd < runningPercentage){
+                ti = i;
+                break;
+            }
+        }
+        
+        // find a random point inside the chosen triangle
+        Vector2 position = triangles[ti].RndPointInsideTriangle();
+        TakeAccurateShot(CurrentBowl, position, bias);
+    }
+
+    // returns a set of polygons that contain valid points for the bowl to be delivered to without a collision that is closer to the
+    // jack than the given radius
+    public (List<List<PointD>> polygons, Bias bias) GetFurtherPolygons(Vector3 position, float radius, List<BowlPosition> bowls1, List<BowlPosition> bowls2){
+        List<List<PointD>> circle = Polygon.GetCirclePolygon(position, radius-0.05f, 30);
+        
+        // check if AI can get another bowl closer than the closest players bowl
+        // meaning the AI gets another point
+        Bias bias = Bias.Left;
+        if(UnityEngine.Random.value < 0.5){
+            bias = Bias.Right;
+        }
+        
+        List<List<PointD>> validPolygons = new List<List<PointD>>();
+
+        for(int i = 0; i < 2; i++){
+            if(i == 1){
+                if(bias == Bias.Left){
+                    bias = Bias.Right;
+                }
+                else{
+                    bias = Bias.Left;
+                }
+            }
+
+            List<List<PointD>> rinkBounds = Polygon.GetBiasRinkBoundary(bias);
+            List<List<PointD>> polygons = Clipper.Difference(rinkBounds, circle, FillRule.EvenOdd);
+
+            validPolygons = GetValidPolygons(position, polygons, bowls1, bowls2, bias);
+
+            if(validPolygons.Count != 0){
+
+                
+
+
+
+                break;
+            }
+        }
+
+        return (validPolygons, bias);
+    }
+
+    // returns a set of polygons that contain valid points for the bowl to be delivered to without a collision that is closer to the
+    // jack than the given radius
+    public (List<List<PointD>> polygons, Bias bias) GetCloserPolygons(Vector3 position, float radius, List<BowlPosition> bowls1, List<BowlPosition> bowls2){
+        
+        List<List<PointD>> circle = Polygon.GetCirclePolygon(position, radius-0.05f, 30);
+
+        // check if AI can get another bowl closer than the closest players bowl
+        // meaning the AI gets another point
+        Bias bias = Bias.Left;
+        if(UnityEngine.Random.value < 0.5){
+            bias = Bias.Right;
+        }
+        
+        List<List<PointD>> validPolygons = new List<List<PointD>>();
+
+        for(int i = 0; i < 2; i++){
+            if(i == 1){
+                if(bias == Bias.Left){
+                    bias = Bias.Right;
+                }
+                else{
+                    bias = Bias.Left;
+                }
+            }
+
+            validPolygons = GetValidPolygons(position, circle, bowls1, bowls2, bias);
+
+            if(validPolygons.Count != 0){
+                break;
+            }
+        }
+
+        return (validPolygons, bias);
+    }
+
+    private List<List<PointD>> GetValidPolygons(Vector3 position, List<List<PointD>> polygons, List<BowlPosition> bowls1, List<BowlPosition> bowls2, Bias bias){
+        List<List<PointD>> pathBoundaryPolygons = new List<List<PointD>>();
+        List<List<PointD>> availablePointsPolygons = new List<List<PointD>>();
+
+        pathBoundaryPolygons = Polygon.GetPolygonPaths(bowls1, bowls2, bias);
+
+        availablePointsPolygons = Clipper.Difference(polygons, pathBoundaryPolygons, FillRule.NonZero);
+        availablePointsPolygons = Clipper.Intersect(availablePointsPolygons, Polygon.GetInternalRinkBoundary(), FillRule.NonZero);
+        
+        return availablePointsPolygons;
     }
 
     public void TakeRandomShot(GameObject CurrentBowl, float innerRadius, Vector2 JackPos){
@@ -185,90 +254,36 @@ public class AI
         TakeAccurateShot(CurrentBowl, JackPos + target, bias);
     }
 
-    public void DeliverBowlCloser(GameObject CurrentBowl, List<List<PointD>> availablePolygons, Bias bias){
-        int polygonIndex = (int)MathF.Ceiling((availablePolygons.Count-1) * UnityEngine.Random.value);
-        var triangles = Polygon.TriangulatePolygon(availablePolygons[polygonIndex]);
-        int triangleIndex = (int)MathF.Ceiling((triangles.Count-1) * UnityEngine.Random.value);
-        
-        Vector2 position = triangles[triangleIndex].RndPointInsideTriangle();
-        TakeAccurateShot(CurrentBowl, position, bias);
-    }
-
-    public (List<List<PointD>> polygons, Bias bias) GetValidPolygons(Vector3 position, float radius, List<BowlPosition> bowls1, List<BowlPosition> bowls2){
-        // check if AI can get another bowl closer than the closest players bowl
-        // meaning the AI gets another point
-        Bias bias = Bias.Left;
-        if(UnityEngine.Random.value < 0.5){
-            bias = Bias.Right;
-        }
-        
-        List<List<PointD>> circle = Polygon.GetCirclePolygon(position, radius-0.05f, 30);
-        List<List<PointD>> pathBoundaryPolygons = new List<List<PointD>>();
-        List<List<PointD>> availablePointsPolygons = new List<List<PointD>>();
-        bool found = false;
-
-        for(int i = 0; i < 2; i++){
-            if(i == 1){
-                if(bias == Bias.Left){
-                    bias = Bias.Right;
-                }
-                else{
-                    bias = Bias.Left;
-                }
-            }
-
-            pathBoundaryPolygons = Polygon.GetPolygonPaths(bowls1, bowls2, bias);
-            availablePointsPolygons = Clipper.Difference(circle, pathBoundaryPolygons, FillRule.NonZero);
-            if(availablePointsPolygons.Count != 0){
-                found = true;
-                break;
-            }
-        }
-
-        if(found){
-            if(lrs != null){
-                foreach(GameObject go in lrs){
-                    GameObject.Destroy(go);
-                }
-            }
-
-            // lrs = new List<GameObject>();
-            // foreach(List<PointD> path in availablePointsPolygons){
-                
-            //     GameObject go = new GameObject();
-            //     go.AddComponent<LineRenderer>();
-            //     lrs.Add(go);
-            //     TestingUtils.drawPolygon(Polygon.PathToVec2(path), go.GetComponent<LineRenderer>());
-            // }
-        }
-
-        return (availablePointsPolygons, bias);
-    }
-
-    private void TakeDifficultyScaledShot(GameObject bowl, Vector2 endPoint, Bias bias, AIDifficulty difficulty){
-        float radius = 1;
-        switch(difficulty){
-            case(AIDifficulty.EASY):
-                radius = 0.8f;
-            break;
-            case(AIDifficulty.MEDIUM):
-                radius = 0.5f;
-            break;
-            case(AIDifficulty.HARD):
-                radius = 0.2f;
-            break;
-            case(AIDifficulty.HARDER):
-                radius = 0;
-            break;
-        }
-        
-        TakeAccurateShot(bowl, endPoint + (UnityEngine.Random.insideUnitCircle * radius), bias);
-    }
-
     private void TakeAccurateShot(GameObject bowl, Vector2 endPoint, Bias bias){
         InitialConditions ics = BowlPhysics.GetInitialConditions(endPoint, bias, 0);
         BowlLauncher bl = bowl.GetComponent<BowlLauncher>();
         bl.MakeDelivery(ics.Angle, ics.InitVel, bias);
+    }
+
+    private (List<BowlPosition> playerPositions, List<BowlPosition> AIPositions) gameObjectToBowlPosition(List<GameObject> PlayerObjects, List<GameObject> AIObjects, Vector2 JackPos){
+        List<BowlPosition> PlayerPositions = new List<BowlPosition>();
+        List<BowlPosition> AIPositions = new List<BowlPosition>();
+
+        // for both teams bowls get the vector3 position vector 
+        // update it so it's in the correct coordinate system
+        // and add it to the new list
+        foreach(var bowl in PlayerObjects){
+            Transform transform = bowl.GetComponent<Transform>();
+            Vector3 bowlPos = BowlPhysics.UnityToGameCoords(transform.position);
+            PlayerPositions.Add(new BowlPosition(bowlPos, JackPos));
+        }
+
+        foreach(var bowl in AIObjects){
+            Transform transform = bowl.GetComponent<Transform>();
+            Vector3 bowlPos = BowlPhysics.UnityToGameCoords(transform.position);
+            AIPositions.Add(new BowlPosition(bowlPos, JackPos));
+        }
+    
+        // make sure the bowls are sorted in lowest to highest order
+        PlayerPositions.Sort();
+        AIPositions.Sort();
+
+        return (PlayerPositions, AIPositions);
     }
 }
 
