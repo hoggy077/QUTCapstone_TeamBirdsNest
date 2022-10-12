@@ -644,7 +644,7 @@ GameObject:
   - component: {fileID: 1586393501}
   - component: {fileID: 1586393502}
   m_Layer: 0
-  m_Name: AudioManager
+  m_Name: AudioHost
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -677,13 +677,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48675edf42035d44a94a5aa2959a2a98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sounds:
-  - name: MainMenuClick
-    clip: {fileID: 8300000, guid: f7610bfbadbeb4f42a7bee4d215aa032, type: 3}
-    volume: 0.5
-    pitch: 4.89
-    loop: 0
-    source: {fileID: 0}
 --- !u!1001 &343058001502687778
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -695,6 +688,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_RootOrder
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 343058000556759500, guid: fe058250dc0b64a44abd6e4a36358125,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.2
       objectReference: {fileID: 0}
     - target: {fileID: 343058000556759500, guid: fe058250dc0b64a44abd6e4a36358125,
         type: 3}
