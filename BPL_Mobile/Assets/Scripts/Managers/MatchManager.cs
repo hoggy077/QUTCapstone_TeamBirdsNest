@@ -98,6 +98,8 @@ public class MatchManager : MonoBehaviour
     }
 
     void Update(){
+
+        //TestAI();
         Play();
 
         if(currentBowl != null)
@@ -220,23 +222,20 @@ public class MatchManager : MonoBehaviour
     }
 
     private void TestAI(){
-        if(currentBowl == null || ai_keep_looping){
+        if(currentBowl == null){
+
+            
+
             if(!PlayerTurn){
-                if(spawnbowl){
-                    // create a new bowl
-                    ReadHead();
-                    currentBowl = SpawnBowl();
-                    currentBowl.GetComponent<BowlID>().SetTeam(2);
-                    spawnbowl = false;
-                    mainCam.transform.position = originalCameraLocation;
-                    cameraBowlOffset = originalCameraLocation - currentBowl.transform.position;
-                }
-                
-                Transform JackTransform = Jack.GetComponent<Transform>();
-                Rigidbody JackRigidbody = Jack.GetComponent<Rigidbody>();
-                JackRigidbody.sleepThreshold = 10f;
-                
-                ai_keep_looping = ai.TakeTurn(currentBowl, JackTransform.position, Team1Bowls, Team2Bowls, 1f);
+               
+                // create a new bowl
+                ReadHead();
+                currentBowl = SpawnBowl();
+                currentBowl.GetComponent<BowlID>().SetTeam(2);
+                spawnbowl = false;
+                mainCam.transform.position = originalCameraLocation;
+                cameraBowlOffset = originalCameraLocation - currentBowl.transform.position;
+            
             }
             else{
                 ReadHead();
@@ -245,6 +244,12 @@ public class MatchManager : MonoBehaviour
                 cameraBowlOffset = originalCameraLocation - currentBowl.transform.position;
                 currentBowl.GetComponent<BowlID>().SetTeam(1);
             }
+
+            mainCam.transform.position = originalCameraLocation;
+            mainCam.transform.rotation = originalCameraRotation;
+            cameraBowlOffset = originalCameraLocation - currentBowl.transform.position;
+            originalCameraBowlOffset = cameraBowlOffset;
+            rotationTime = 0;
         }
         else{
             // wait for the bowl to finish its delivery
@@ -264,7 +269,6 @@ public class MatchManager : MonoBehaviour
     }
 
     private GameObject SpawnBowl(){
-        
         // create the first bowl from the prefab, at the starting point
         GameObject currentBowl = Instantiate(bowlPrefab, BowlPhysics.GameToUnityCoords(new Vector3(0, 0, 0)), Quaternion.identity);
         Transform tf = currentBowl.transform;

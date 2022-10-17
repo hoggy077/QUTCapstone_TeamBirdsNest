@@ -15,11 +15,11 @@ class Polygon{
         List<List<PointD>> circles = new List<List<PointD>>();
         float circleRadius = 0.17f;
         foreach(BowlPosition bowl in bowls1){
-            paths.Add(GetPolygonPath(bowl.BowlPos, bias));
+            paths.Add(GetPolygonPath(bowl.BowlPos, bias, biasStrength));
             circles.Add(GetCirclePolygon(bowl.BowlPos, circleRadius, 15)[0]);
         }
         foreach(BowlPosition bowl in bowls2){
-            paths.Add(GetPolygonPath(bowl.BowlPos, bias));
+            paths.Add(GetPolygonPath(bowl.BowlPos, bias, biasStrength));
             circles.Add(GetCirclePolygon(bowl.BowlPos, circleRadius, 15)[0]);
         }
 
@@ -36,7 +36,7 @@ class Polygon{
         return Clipper.Union(paths, new List<List<PointD>>(), FillRule.NonZero);
     }
 
-    public static List<List<PointD>> GetBiasRinkBoundary(Bias bias){
+    public static List<List<PointD>> GetBiasRinkBoundary(Bias bias, float biasStrength){
         float halfRinkW = 5/2;
         float offset = 0.17f;
         Vector2 point = new Vector2(0, 0);
@@ -46,7 +46,7 @@ class Polygon{
             point = new Vector2(halfRinkW - 0.17f, 0);
         }
 
-        Vector2[] boundaryPoints = BowlPhysics.getBoundaryPoints(point, bias);
+        Vector2[] boundaryPoints = BowlPhysics.getBoundaryPoints(point, bias, biasStrength);
 
         double[] points = new double[(boundaryPoints.Length + 2) * 2];
         if(bias == Bias.Right){
@@ -97,7 +97,7 @@ class Polygon{
     }
     
     // TODO: generalise this so it can be used for the jack and bowls
-    public static List<PointD> GetPolygonPath(Vector3 startPoint, Bias bias){
+    public static List<PointD> GetPolygonPath(Vector3 startPoint, Bias bias, float biasStrength){
         Vector3 right_offset;
         Vector3 left_offset;
         float circleRadius = 0.17f;

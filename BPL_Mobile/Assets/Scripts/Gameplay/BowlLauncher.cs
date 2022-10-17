@@ -92,7 +92,6 @@ public class BowlLauncher : MonoBehaviour
 
     void destroyScript(){
         lineRenderer.enabled = false;
-        rb.useGravity = true;
         //rb.isKinematic = false;
         rb.mass = 1;
         Destroy(GetComponent<BowlLauncher>());
@@ -113,10 +112,6 @@ public class BowlLauncher : MonoBehaviour
     private void HandleDelivery(){
         if(collided){
             return;
-        }
-
-        if(time == 0){
-            rb.useGravity = true;
         }
 
         time += Time.deltaTime;
@@ -165,9 +160,11 @@ public class BowlLauncher : MonoBehaviour
                     //lineRenderer.enabled = false;
 
                     rb.mass = 1;
-                    rb.useGravity = true;
-                    rb.isKinematic = true;
+                    rb.useGravity = false;
+                    rb.isKinematic = false;
                     rb.detectCollisions = true;
+                    rb.drag = 1000;
+                    rb.angularDrag = 1000;
                     GetComponent<BowlMovement>().inDelivery = true;
 
                     BowlOverlay.instance.ToggleOpacity(false, true);
@@ -249,8 +246,10 @@ public class BowlLauncher : MonoBehaviour
         GetComponent<BowlMovement>().inDelivery = true;
         rb = GetComponent<Rigidbody>();
         rb.mass = 1;
-        rb.useGravity = true;
-        rb.isKinematic = true;
+        rb.useGravity = false;
+        rb.isKinematic = false;
+        rb.drag = 1000;
+        rb.angularDrag = 1000;
         rb.detectCollisions = true;
     }
 
@@ -261,47 +260,73 @@ public class BowlLauncher : MonoBehaviour
 
             BowlMovement bm1 = GetComponent<BowlMovement>();
             BowlMovement bm2 = collision.gameObject.GetComponent<BowlMovement>();
-            
-            Vector2 dir = BowlPhysics.GetCurrentDirection(initialVelocity, deliveryAngle, bias, 0, time, bowlBiasStrength);
-            dir = dir.normalized;
-            Vector3 velocity = new Vector3(dir.x, 0, dir.y) * BowlPhysics.GetCurrentVelocity(initialVelocity, deliveryAngle, 0, time);
-            float mass1 = 2;
-            float mass2 = collision.rigidbody.mass;
-            
-            Vector3 direction = collision.transform.position - transform.position;
-            direction.y = 0;
-            Vector3 colliderProj = (Vector3.Dot(direction, velocity) / Vector3.Dot(direction, direction)) * direction;
-            Vector3 colliderOrtho = velocity - colliderProj;
-            
-            
-            Vector3 collideeProj = (Vector3.Dot(-direction, collision.rigidbody.velocity) / Vector3.Dot(-direction, -direction)) * -direction;
-            
-            Vector3 collideeOrtho = collision.rigidbody.velocity - collideeProj;
-            Vector3 colliderFinalVel = ((((mass1 - mass2) * colliderProj) + 2 * mass2 * collideeProj)/(mass1 + mass2)) + colliderOrtho;
-            Vector3 collideeFinalVel = ((((mass2 - mass1) * collideeProj) + 2 * mass1 * colliderProj)/(mass1 + mass2)) + collideeOrtho;
 
+            if(bm2 == null){ // colliding with the environment
+                // the environment won't have rigidbodies
+                Vector2 dir = BowlPhysics.GetCurrentDirection(initialVelocity, deliveryAngle, bias, 0, time, bowlBiasStrength);
+                dir = dir.normalized;
+                Vector3 velocity = new Vector3(dir.x, 0, dir.y) * BowlPhysics.GetCurrentVelocity(initialVelocity, deliveryAngle, 0, time);
+                
+                Vector3 direction;
+                if(collision.transform.position.x < 0){
+                    direction = Vector3.left;
+                } else{
+                    direction = Vector3.right;
+                }
+                
+                Vector3 colliderProj = (Vector3.Dot(direction, velocity) / Vector3.Dot(direction, direction)) * direction;
+                Vector3 colliderOrtho = velocity - colliderProj;
+                
+                Vector3 colliderFinalVel = -colliderProj + colliderOrtho;
+                
+                Vector3 angularVel = -colliderFinalVel / BowlRadius; // 
+                Vector3 rd = Vector3.Cross(angularVel, Vector3.up).normalized; // rotational axis
+
+                bm1.av = angularVel;
+                bm1.v = colliderFinalVel;
+                bm1.iv = colliderFinalVel.magnitude;
+                bm1.rd = rd;
+                bm1.externalySet = true;
+                bm1.isMoving = true;
+            }else{ // colliding with another bowl or the jack
+                Vector2 dir = BowlPhysics.GetCurrentDirection(initialVelocity, deliveryAngle, bias, 0, time, bowlBiasStrength);
+                dir = dir.normalized;
+                Vector3 velocity = new Vector3(dir.x, 0, dir.y) * BowlPhysics.GetCurrentVelocity(initialVelocity, deliveryAngle, 0, time);
+                float mass1 = 2;
+                float mass2 = collision.rigidbody.mass;
+                
+                Vector3 direction = collision.transform.position - transform.position;
+                direction.y = 0;
+                Vector3 colliderProj = (Vector3.Dot(direction, velocity) / Vector3.Dot(direction, direction)) * direction;
+                Vector3 colliderOrtho = velocity - colliderProj;
+                
+                Vector3 collideeProj = (Vector3.Dot(-direction, collision.rigidbody.velocity) / Vector3.Dot(-direction, -direction)) * -direction;
+                
+                Vector3 collideeOrtho = collision.rigidbody.velocity - collideeProj;
+                Vector3 colliderFinalVel = ((((mass1 - mass2) * colliderProj) + 2 * mass2 * collideeProj)/(mass1 + mass2)) + colliderOrtho;
+                Vector3 collideeFinalVel = ((((mass2 - mass1) * collideeProj) + 2 * mass1 * colliderProj)/(mass1 + mass2)) + collideeOrtho;
+
+                
+                Vector3 angularVel = -colliderFinalVel / BowlRadius;
+                Vector3 rd = Vector3.Cross(angularVel, Vector3.up).normalized;
+
+                bm1.av = angularVel;
+                bm1.v = colliderFinalVel;
+                bm1.iv = colliderFinalVel.magnitude;
+                bm1.rd = rd;
+                bm1.externalySet = true;
+                bm1.isMoving = true;
             
-            Vector3 angularVel = -colliderFinalVel / BowlRadius;
-            Vector3 rd = Vector3.Cross(angularVel, Vector3.up).normalized;
+                Vector3 angularVel2 = -collideeFinalVel / BowlRadius;
+                Vector3 rd2 = Vector3.Cross(angularVel2, Vector3.up).normalized;
 
-            bm1.av = angularVel;
-            bm1.v = colliderFinalVel;
-            bm1.iv = colliderFinalVel.magnitude;
-            bm1.rd = rd;
-            bm1.externalySet = true;
-            bm1.isMoving = true;
-        
-            Vector3 angularVel2 = -collideeFinalVel / BowlRadius;
-            Vector3 rd2 = Vector3.Cross(angularVel2, Vector3.up).normalized;
-
-            bm2.av = angularVel2;
-            bm2.v = collideeFinalVel;
-            bm2.iv = collideeFinalVel.magnitude;
-            bm2.rd = rd2;
-            bm2.externalySet = true;
-            bm2.isMoving = true;
-            // Debug.Log(String.Format("this vel = {0}, speed = {1}", colliderFinalVel, colliderFinalVel.magnitude));
-            // Debug.Log(String.Format("that vel = {0}, speed = {1}", collideeFinalVel, collideeFinalVel.magnitude));
+                bm2.av = angularVel2;
+                bm2.v = collideeFinalVel;
+                bm2.iv = collideeFinalVel.magnitude;
+                bm2.rd = rd2;
+                bm2.externalySet = true;
+                bm2.isMoving = true;
+            }
         }
     }
 }
