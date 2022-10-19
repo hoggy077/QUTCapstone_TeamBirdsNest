@@ -6,6 +6,7 @@ public class BowlID : MonoBehaviour
 {
     private int team = 0;
     private MeshRenderer mr;
+    public bool toucher = false;
 
     public void SetTeam(int newTeam)
     {
@@ -30,5 +31,12 @@ public class BowlID : MonoBehaviour
     public int GetTeam()
     {
         return team;
+    }
+
+    public void SetToucher()
+    {
+        toucher = true;
+        mr.materials[0].SetFloat("_ToucherChalk", 1f);
+        mr.materials[1].SetFloat("_ToucherChalk", 1f);
     }
 }

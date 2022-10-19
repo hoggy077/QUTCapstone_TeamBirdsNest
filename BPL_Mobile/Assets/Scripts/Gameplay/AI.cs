@@ -21,6 +21,7 @@ public class AI
 
     // TODO: remove bowls that are in the ditch and arne't still marked as active or "chalked"
     public bool TakeTurn(GameObject CurrentBowl, Vector3 _JackPos, List<GameObject> PlayerBowls, List<GameObject> AIBowls, float biasStrength){
+        CurrentBowl.GetComponent<TrackThisThing>().IncludeInSave = true;
         Vector2 JackPos = BowlPhysics.UnityToGameCoords(_JackPos);
         var (PlayerPositions, AIPositions) = gameObjectToBowlPosition(PlayerBowls, AIBowls, JackPos);
         bool playerCloser;

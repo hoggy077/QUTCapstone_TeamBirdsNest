@@ -26,7 +26,7 @@ public class ClosestBowlRing : MonoBehaviour
     public void UpdateRing(Transform jack, BowlID closestBowl)
     {
         // Moving renderer to circle centre
-        transform.position = new Vector3(jack.transform.position.x, 0f, jack.transform.position.z);
+        transform.position = new Vector3(jack.transform.position.x, 0.025f, jack.transform.position.z);
 
         // Setting Up Variables
         lr.useWorldSpace = false;
