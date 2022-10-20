@@ -20,6 +20,9 @@ public static class ResumeManager
     public static readonly string extension = ".sav";
     //file extension is .sav or .sav
 
+    public delegate void SessionLoaded_();
+    public static event SessionLoaded_ SessionLoaded;
+
     public static void Reset()
     {
         hasEvaluated = false;
@@ -70,6 +73,14 @@ public static class ResumeManager
                 AsyncOperation bruv = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
                 bruv.completed += (AsyncOp) =>
                 {
+
+                    GameStateManager.Instance.gamemode = availableSession.CurrentGamemode;
+                    GameStateManager.Instance.Team_1 = availableSession.Team1_state;
+                    GameStateManager.Instance.Team_2 = availableSession.Team2_state;
+                    GameStateManager.Instance.loadedEndNumber = availableSession.endNumber;
+                    GameStateManager.Instance.isMultiplayerMode = availableSession.multiplayerMatch;
+                    GameStateManager.Instance.isPlayerTurnLoaded = availableSession.playerTurn;
+
                     foreach (TrackedObject tObj in ((SavedSession)availableSession).trackedGameObjects)
                     {
                         if (refList.references.Any((k) => { return k.name == tObj.referenceTerm; }))
@@ -78,15 +89,33 @@ public static class ResumeManager
                             basePrefab = GameObject.Instantiate(basePrefab, tObj.objMatrix.po(), tObj.objMatrix.ro());
                             basePrefab.transform.localScale = tObj.objMatrix.sc();
                             if (basePrefab.GetComponent<BowlID>() != null)
+                            {
                                 basePrefab.GetComponent<BowlID>().SetTeam(tObj.TeamRef);
+                                basePrefab.GetComponent<BowlMovement>().inDelivery = true;
+                                basePrefab.GetComponent<BowlLauncher>().destroyScript();
+                                basePrefab.GetComponent<Rigidbody>().detectCollisions = true;
+                                basePrefab.GetComponent<Rigidbody>().drag = 1000;
+                                basePrefab.GetComponent<Rigidbody>().angularDrag = 1000;
+                                basePrefab.GetComponent<TrackThisThing>().IncludeInSave = true;
+                            }
                             //basePrefab.transform.SetPositionAndRotation(tObj.objMatrix, tObj.objMatrix.toMatrix().rotation);
                         }
                     }
+
+                    SessionLoaded.Invoke();
+
                     return;
                 };
             }
 
-            foreach(TrackedObject tObj in ((SavedSession)availableSession).trackedGameObjects)
+            GameStateManager.Instance.gamemode = availableSession.CurrentGamemode;
+            GameStateManager.Instance.Team_1 = availableSession.Team1_state;
+            GameStateManager.Instance.Team_2 = availableSession.Team2_state;
+            GameStateManager.Instance.loadedEndNumber = availableSession.endNumber;
+            GameStateManager.Instance.isMultiplayerMode = availableSession.multiplayerMatch;
+            GameStateManager.Instance.isPlayerTurnLoaded = availableSession.playerTurn;
+
+            foreach (TrackedObject tObj in ((SavedSession)availableSession).trackedGameObjects)
             {
                 if (refList.references.Any((k) => { return k.name == tObj.referenceTerm; }))
                 {
@@ -94,21 +123,27 @@ public static class ResumeManager
                     basePrefab = GameObject.Instantiate(basePrefab, tObj.objMatrix.po(), tObj.objMatrix.ro());
                     basePrefab.transform.localScale = tObj.objMatrix.sc();
                     if (basePrefab.GetComponent<BowlID>() != null)
+                    {
                         basePrefab.GetComponent<BowlID>().SetTeam(tObj.TeamRef);
+                        basePrefab.GetComponent<BowlMovement>().inDelivery = true;
+                        basePrefab.GetComponent<BowlLauncher>().destroyScript();
+                        basePrefab.GetComponent<Rigidbody>().detectCollisions = true;
+                        basePrefab.GetComponent<Rigidbody>().drag = 1000;
+                        basePrefab.GetComponent<Rigidbody>().angularDrag = 1000;
+                        basePrefab.GetComponent<TrackThisThing>().IncludeInSave = true;
+                    }
                     //basePrefab.transform.SetPositionAndRotation(tObj.objMatrix.toMatrix().GetPosition(), tObj.objMatrix.toMatrix().rotation);
                 }
-            }
+            }            
 
-            GameStateManager.Instance.gamemode = availableSession.CurrentGamemode;
-            GameStateManager.Instance.Team_1 = availableSession.Team1_state;
-            GameStateManager.Instance.Team_2 = availableSession.Team2_state;
+            SessionLoaded.Invoke();
         }
     }
-
 
     //Change to save points. Saves will be made at the end of a bowl 
     public static void SaveGame()
     {
+        Debug.Log("Save Occured -" + Time.time);
         TrackThisThing[] things2track = GameObject.FindObjectsOfType<TrackThisThing>();
         TrackedObject[] tracking = new TrackedObject[things2track.Length];
         for (int i = 0; i < things2track.Length; i++)
@@ -126,12 +161,19 @@ public static class ResumeManager
             CurrentGamemode = GameStateManager.Instance.gamemode,
 
             Team1_state = GameStateManager.Instance.Team_1,
-            Team2_state = GameStateManager.Instance.Team_2
-
+            Team2_state = GameStateManager.Instance.Team_2,
+            endNumber = GameObject.FindObjectOfType<ScoringManager>().currentEnd,
+            multiplayerMatch = GameStateManager.Instance.isMultiplayerMode,
+            playerTurn = GameObject.FindObjectOfType<MatchManager>().PlayerTurn
         };
         SaveSystemJson.SaveGenericJson(ss, "lastSession.sav");
     }
 
+    public static void WipeSaveFile()
+    {
+        if (File.Exists($"{SaveSystem.PersistentPath}\\lastSession{extension}"))
+            SaveSystem.performDelete($"lastSession{extension}");
+    }
 
     private static ReferenceStorage refList = null;
     public static void SetReferenceTable(ReferenceStorage refTable) =>
@@ -149,6 +191,9 @@ public class SavedSession
     public Team_struct Team1_state;
     public Team_struct Team2_state;
     public TurnBasedManager.Turn CurrentTurn;
+    public int endNumber;
+    public bool multiplayerMatch;
+    public bool playerTurn;
 }
 
 [Serializable]

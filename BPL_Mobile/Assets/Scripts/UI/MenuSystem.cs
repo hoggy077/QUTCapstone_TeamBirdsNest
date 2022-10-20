@@ -44,6 +44,7 @@ public class MenuSystem : MonoBehaviour
     // Variables to manage swiping
     private Vector2 fingerDownPosition;
     private Vector2 fingerUpPosition;
+    [SerializeField] private Button resumeButton;
 
     [Header("Team Selection Screen")]
     [SerializeField] private UnityEngine.UI.Image logoDisplay;
@@ -128,6 +129,9 @@ public class MenuSystem : MonoBehaviour
         {
             bg = FindObjectOfType<GradientBackground>();
         }
+
+        ResumeManager.EvaluateSession();
+        resumeButton.interactable = ResumeManager.hasPriorGame;
 
         // Looping through and finding all character appearance updaters for future use
         foreach(CharacterAppearanceUpdater character in FindObjectsOfType<CharacterAppearanceUpdater>())
@@ -477,6 +481,10 @@ public class MenuSystem : MonoBehaviour
                 currentSelectionIndex = 0;
                 UpdateTeamSelectionScreen();
                 firstPlayerSelected = false;
+                break;
+
+            case "Resume":
+                ResumeManager.LoadGame("TempQuickPlay");
                 break;
 
             case "":

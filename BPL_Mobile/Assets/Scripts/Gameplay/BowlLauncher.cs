@@ -90,10 +90,10 @@ public class BowlLauncher : MonoBehaviour
         }
     }
 
-    void destroyScript(){
-        lineRenderer.enabled = false;
+    public void destroyScript(){
+        GetComponent<LineRenderer>().enabled = false;
         //rb.isKinematic = false;
-        rb.mass = 1;
+        GetComponent<Rigidbody>().mass = 1;
         Destroy(GetComponent<BowlLauncher>());
     }
 
@@ -166,6 +166,7 @@ public class BowlLauncher : MonoBehaviour
                     rb.drag = 1000;
                     rb.angularDrag = 1000;
                     GetComponent<BowlMovement>().inDelivery = true;
+                    GetComponent<TrackThisThing>().IncludeInSave = true;
 
                     BowlOverlay.instance.ToggleOpacity(false, true);
                     CameraZoom.instance.zoom = false;
@@ -228,7 +229,7 @@ public class BowlLauncher : MonoBehaviour
         }
         
         for(int step = 0; step < steps; step++){
-            points[step] = BowlPhysics.GameToUnityCoords(BowlPhysics.DeliveryPath(initialVelocity, deliveryAngle, bias, 0, PredictorTimeStep * step, bowlBiasStrength));
+            points[step] = BowlPhysics.GameToUnityCoords(BowlPhysics.DeliveryPath(initialVelocity, deliveryAngle, bias, 0, PredictorTimeStep * step, bowlBiasStrength)) + new Vector3(0f, 0.05f);
         }
 
         lineRenderer.positionCount = steps;
@@ -244,6 +245,7 @@ public class BowlLauncher : MonoBehaviour
         deliver = true;
         DeliveryEndTime = BowlPhysics.DeliveryEndTime(initialVelocity, deliveryAngle, 0);
         GetComponent<BowlMovement>().inDelivery = true;
+        Handheld.Vibrate();
         rb = GetComponent<Rigidbody>();
         rb.mass = 1;
         rb.useGravity = false;

@@ -159,7 +159,7 @@ LineRenderer:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.08108139
+        value: 0.048114777
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -248,6 +248,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e7e61f38dd01b9a418d8ac085a49036f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  toucher: 0
 --- !u!114 &-416128045470161086
 MonoBehaviour:
   m_ObjectHideFlags: 0

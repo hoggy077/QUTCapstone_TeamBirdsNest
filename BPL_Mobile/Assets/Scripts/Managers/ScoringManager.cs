@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System;
 
 public class ScoringManager : MonoBehaviour
 {
@@ -15,7 +16,7 @@ public class ScoringManager : MonoBehaviour
     public TeamScriptable debugTeam1;
     public TeamScriptable debugTeam2;
 
-    private int currentEnd = 1;
+    public int currentEnd = 1;
     public int endsPerSet = 5;
 
     // Powerplay Functionality
@@ -30,26 +31,38 @@ public class ScoringManager : MonoBehaviour
 
     private BowlsScriptable[] placeholderBowls;
 
-    public struct MatchScore
+    private bool loadedSession = false;
+
+    [Serializable]
+    public class MatchScore
     {
         public int team1Sets;
         public int team2Sets;
         public int team1Ends;
         public int team2Ends;
+        public uint[] team1teammateShots;
+        public uint[] team2teammateShots;
+    }
+
+    private void Awake()
+    {
+        gsm = GameStateManager.Instance;
+        mm = FindObjectOfType<MatchManager>();
+        scorecard = FindObjectOfType<ScorecardUI>();
+        ResumeManager.SessionLoaded += LoadPreviousSessionsScore;
     }
 
     // Initializing Match
     private void Start()
     {
-        gsm = GameStateManager.Instance;
-        scorecard = FindObjectOfType<ScorecardUI>();
-        mm = FindObjectOfType<MatchManager>();
-        SetupStartingScores();
         bowlUIRing = Instantiate(ringPrefab.gameObject, transform.position, Quaternion.Euler(Vector3.zero)).GetComponent<ClosestBowlRing>();
         bowlUIRing.ToggleRing(false);
-        PowerplayFunctionality();
 
-        gsm.TeamUpdated += SaveToGSM;
+        if (!loadedSession)
+        {
+            SetupStartingScores();
+            PowerplayFunctionality();
+        }
     }
 
     public void ReadTheHead()
@@ -59,6 +72,8 @@ public class ScoringManager : MonoBehaviour
         GameObject jack = mm.GetJack();
 
         // Calculating and Rearranging list from closest to furthest away from jack
+        int team1Shots = 0;
+        int team2Shots = 0;
         foreach(GameObject bowl in mm.GetLiveBowls())
         {
             // If its the first bowl to be read, add it on and move on
@@ -92,6 +107,15 @@ public class ScoringManager : MonoBehaviour
                     bowls.Add(bowl);
                 }
             }
+
+            if(bowl.GetComponent<BowlID>().GetTeam() == 1)
+            {
+                team1Shots++;
+            }
+            else
+            {
+                team2Shots++;
+            }
         }
 
         // Checking which team holds the shots
@@ -108,7 +132,7 @@ public class ScoringManager : MonoBehaviour
         continueingEnd = UpdateShotsRemaining(mm.GetLiveBowls());
 
         // Updating GSM
-        UpdateGSM();
+        UpdateGSM(team1Shots, team2Shots);
     }
 
     public void CheckScore()
@@ -119,10 +143,12 @@ public class ScoringManager : MonoBehaviour
             if (previousTeamAndScoreLead[0] == 1)
             {
                 currentScore.team1Ends += previousTeamAndScoreLead[1];
+                mm.PlayerTurn = true;
             }
             else if (previousTeamAndScoreLead[0] == 2)
             {
                 currentScore.team2Ends += previousTeamAndScoreLead[1];
+                mm.PlayerTurn = false;
             }
 
             // Updating Scorecard End Scores
@@ -169,6 +195,9 @@ public class ScoringManager : MonoBehaviour
         // Updating End Number
         currentEnd = 1;
         scorecard.UpdateEndNumber(currentEnd);
+
+        currentScore.team1teammateShots = new uint[3] { 3, 3, 3 };
+        currentScore.team2teammateShots = new uint[3] { 3, 3, 3 };
     }
 
     // For starting a new end
@@ -186,6 +215,8 @@ public class ScoringManager : MonoBehaviour
         // Update Displays
         scorecard.UpdateEndNumber(currentEnd, tiebreaker);
         bowlUIRing.ToggleRing(false);
+
+        ResumeManager.SaveGame();
     }
 
     // For the finishing and starting of a new set
@@ -242,7 +273,7 @@ public class ScoringManager : MonoBehaviour
             StartNewEnd();
         }
 
-        UpdateGSM();
+        UpdateGSM(0, 0);
     }
 
     // Function to handle the updating and calculation of the current shots held by a leading team
@@ -285,6 +316,7 @@ public class ScoringManager : MonoBehaviour
     // Function to handle concluding of match
     private void FinishMatch()
     {
+        ResumeManager.WipeSaveFile();
         SceneManager.LoadScene(0);
     }
 
@@ -339,6 +371,11 @@ public class ScoringManager : MonoBehaviour
         {
             PowerplayQuery.instance.OfferPowerplay(team1PowerplayAvailable, team2PowerplayAvailable);
         }
+
+        GameStateManager.Instance.Team_1.UsingPowerplay = team1Powerplaying;
+        GameStateManager.Instance.Team_2.UsingPowerplay = team2Powerplaying;
+        GameStateManager.Instance.Team_1.HasPowerPlay = team1PowerplayAvailable;
+        GameStateManager.Instance.Team_2.HasPowerPlay = team2PowerplayAvailable;
     }
 
     public void ActivatePowerplay(int team)
@@ -365,6 +402,11 @@ public class ScoringManager : MonoBehaviour
         }
 
         scorecard.UpdatePowerPlayStatus(team1Powerplaying, team2Powerplaying);
+
+        GameStateManager.Instance.Team_1.UsingPowerplay = team1Powerplaying;
+        GameStateManager.Instance.Team_2.UsingPowerplay = team2Powerplaying;
+        GameStateManager.Instance.Team_1.HasPowerPlay = team1PowerplayAvailable;
+        GameStateManager.Instance.Team_2.HasPowerPlay = team2PowerplayAvailable;
     }
 
     public bool CurrentlyInPowerplay()
@@ -372,72 +414,45 @@ public class ScoringManager : MonoBehaviour
         return team1Powerplaying || team2Powerplaying;
     }
 
+    public void LoadPreviousSessionsScore()
+    {
+        currentScore.team1Ends = (int)GameStateManager.Instance.Team_1.Ends;
+        currentScore.team1Sets = (int)GameStateManager.Instance.Team_1.Sets;
+        currentScore.team1teammateShots = GameStateManager.Instance.Team_1.teammateShotsLeft;
+
+        currentScore.team2Ends = (int)GameStateManager.Instance.Team_2.Ends;
+        currentScore.team2Sets = (int)GameStateManager.Instance.Team_2.Sets;
+        currentScore.team2teammateShots = GameStateManager.Instance.Team_2.teammateShotsLeft;
+
+        team1PowerplayAvailable = GameStateManager.Instance.Team_1.HasPowerPlay;
+        team1Powerplaying = GameStateManager.Instance.Team_1.UsingPowerplay;
+
+        team2PowerplayAvailable = GameStateManager.Instance.Team_2.HasPowerPlay;
+        team2Powerplaying = GameStateManager.Instance.Team_2.UsingPowerplay;
+
+        currentScore.team1teammateShots = GameStateManager.Instance.Team_1.teammateShotsLeft;
+        currentScore.team2teammateShots = GameStateManager.Instance.Team_2.teammateShotsLeft;
+
+        currentEnd = GameStateManager.Instance.loadedEndNumber;
+
+        loadedSession = true;
+
+        // Updating Scorecard
+        scorecard.UpdateTeam1Info(gsm.Team_1.Name(), gsm.Team_1.BaseTeam.TeamColors[0]);
+        scorecard.UpdateTeam2Info(gsm.Team_2.Name(), gsm.Team_2.BaseTeam.TeamColors[0]);
+        scorecard.UpdateEndNumber(currentEnd);
+        scorecard.UpdateSetsWon(currentScore.team1Sets, currentScore.team2Sets);
+        scorecard.UpdateEndsWon(currentScore.team1Ends, currentScore.team2Ends);
+
+        scorecard.UpdatePowerPlayStatus(team1Powerplaying, team2Powerplaying);
+    }
+
     #region Communicating To GSM
 
-    private void UpdateGSM()
+    private void UpdateGSM(int shotsTakenT1, int shotsTakenT2)
     {
-        Team_struct team1 = GameStateManager.Instance.Team_1;
-        Team_struct team2 = GameStateManager.Instance.Team_2;
-
-        bool team1PowerplayAvailability;
-        int[] team1ScoreSummary = CalculateDifferencesBetweenGSM(1, team1, out team1PowerplayAvailability);
-
-        bool team2PowerplayAvailability;
-        int[] team2ScoreSummary = CalculateDifferencesBetweenGSM(1, team2, out team2PowerplayAvailability);
-
-        gsm.UpdateTeamScores(1, (uint)team1ScoreSummary[0], (uint)team1ScoreSummary[2], (uint)team1ScoreSummary[1], team1PowerplayAvailability);
-        gsm.UpdateTeamScores(2, (uint)team2ScoreSummary[0], (uint)team2ScoreSummary[2], (uint)team2ScoreSummary[1], team2PowerplayAvailability);
-    }
-
-    private int[] CalculateDifferencesBetweenGSM(int teamNumber, Team_struct team, out bool powerplayPossible)
-    {
-        int[] scoreSummary = new int[3];
-        int shotDifference;
-        int endsDifference;
-        int setsDifference;
-
-        // Start with total shots for each team allowed
-        int team1ShotsRemaining = 6;
-        int team2ShotsRemaining = 6;
-
-        // Negate one shot for each team bowl present on the field
-        foreach (GameObject bowl in mm.GetLiveBowls())
-        {
-            if (bowl.GetComponent<BowlID>().GetTeam() == 1)
-            {
-                team1ShotsRemaining -= 1;
-            }
-            else
-            {
-                team2ShotsRemaining -= 1;
-            }
-        }
-
-        if (teamNumber == 1)
-        {
-            powerplayPossible = team1PowerplayAvailable;
-            shotDifference = team1ShotsRemaining - (int)team.Shots;
-            endsDifference = currentScore.team1Ends - (int)team.Ends;
-            setsDifference = currentScore.team1Sets - (int)team.Sets;
-        }
-        else
-        {
-            powerplayPossible = team2PowerplayAvailable;
-            shotDifference = team2ShotsRemaining - (int)team.Shots;
-            endsDifference = currentScore.team2Ends - (int)team.Ends;
-            setsDifference = currentScore.team2Sets - (int)team.Sets;
-        }
-
-        scoreSummary[0] = shotDifference;
-        scoreSummary[1] = endsDifference;
-        scoreSummary[2] = setsDifference;
-
-        return scoreSummary;
-    }
-
-    public void SaveToGSM(Team_struct ATeam)
-    {
-
+        gsm.UpdateTeamScores(1, (uint)shotsTakenT1, (uint)currentScore.team1Sets, (uint)currentScore.team1Ends, team1PowerplayAvailable, currentScore.team1teammateShots);
+        gsm.UpdateTeamScores(2, (uint)shotsTakenT2, (uint)currentScore.team2Sets, (uint)currentScore.team2Ends, team2PowerplayAvailable, currentScore.team2teammateShots);
     }
 
     #endregion

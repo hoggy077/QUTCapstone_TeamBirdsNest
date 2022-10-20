@@ -36,13 +36,27 @@ public class MatchManager : MonoBehaviour
     public UIFlyInFlyOut touchToContinue;
     private bool updatedScoring = false;
 
+    private bool loadedBowls = true;
+
     [Header("Jack Skins")]
     [SerializeField] private Material normalJack;
     [SerializeField] private Material powerplayJack;
 
+    private void Awake()
+    {
+        ResumeManager.SessionLoaded += LoadFromPreviousSession;
+    }
+
     void Start(){
-        // create the jack and set it in the correct position
-        Jack = Instantiate(jackPrefab, BowlPhysics.GameToUnityCoords(new Vector2(0, 15)) + new Vector3(0, 0.0215f, 0), Quaternion.identity);
+        // create the jack and set it in the correct positionc -- unless we loaded one in from the save system boiii
+        if (Jack == null && GameObject.FindGameObjectsWithTag("Jack").Length == 0)
+        {
+            Jack = Instantiate(jackPrefab, BowlPhysics.GameToUnityCoords(new Vector2(0, 15)) + new Vector3(0, 0.0215f, 0), Quaternion.identity);
+        }
+        else
+        {
+            Jack = GameObject.FindGameObjectWithTag("Jack");
+        }
         ai = new AI();
         ai.difficulty = AIDifficulty.EASY;
         mainCam = Camera.main;
@@ -71,7 +85,11 @@ public class MatchManager : MonoBehaviour
         if (!stillMoving() && !scorecardUpdateAnimationPlayed && !scorecardViewed)
         {
             sUI.Reposition(false);
-            mainCam.GetComponent<CameraFollow>().enabled = true;
+
+            if(mainCam != null)
+            {
+                mainCam.GetComponent<CameraFollow>().enabled = true;
+            }
 
             if(sUI.fullyOnScreen)
             {
@@ -116,6 +134,38 @@ public class MatchManager : MonoBehaviour
             }
 
             mainCam.transform.position = Vector3.Lerp(mainCam.transform.position, currentBowl.transform.position + cameraBowlOffset, 0.2f);
+        }
+
+        // If Jack has not had reference gathered after 
+        if(Jack == null)
+        {
+            Jack = GameObject.FindGameObjectWithTag("Jack");
+            mainCam.GetComponent<CameraFollow>().LookAt(Jack.transform);
+        }
+
+        // Check if bowls have been loaded from a save, if they have save the bowls to their correct groups for further useage
+        if(loadedBowls == false)
+        {
+            loadedBowls = true;
+
+            foreach(BowlID bowl in FindObjectsOfType<BowlID>())
+            {
+                if (bowl.GetComponent<BowlMovement>().inDelivery)
+                {
+                    if (bowl.GetTeam() == 1 && !Team1Bowls.Contains(bowl.gameObject))
+                    {
+                        bowl.SetTeam(1);
+                        Team1Bowls.Add(bowl.gameObject);
+                    }
+                    else if (bowl.GetTeam() == 2 && !Team2Bowls.Contains(bowl.gameObject))
+                    {
+                        bowl.SetTeam(2);
+                        Team2Bowls.Add(bowl.gameObject);
+                    }
+                }
+            }
+
+            scm.ReadTheHead();
         }
     }
 
@@ -176,6 +226,7 @@ public class MatchManager : MonoBehaviour
 
             if(!PlayerTurn){
                 currentBowl.GetComponent<BowlID>().SetTeam(2);
+                ResumeManager.SaveGame();
 
                 if (!GameStateManager.Instance.isMultiplayerMode)
                 {
@@ -184,16 +235,18 @@ public class MatchManager : MonoBehaviour
                 }
             }
             else{
+                ResumeManager.SaveGame();
                 currentBowl.GetComponent<BowlID>().SetTeam(1);
             }
         }
         else{
             // wait for the bowl to finish its delivery
             if(currentBowl.GetComponent<BowlLauncher>() == null){
-                if(PlayerTurn){
+                if(PlayerTurn && !Team1Bowls.Contains(currentBowl))
+                {
                     Team1Bowls.Add(currentBowl);
                 }
-                else{
+                else if(!PlayerTurn && !Team2Bowls.Contains(currentBowl)) {
                     Team2Bowls.Add(currentBowl);
                 }
                 
@@ -210,9 +263,13 @@ public class MatchManager : MonoBehaviour
         objects.Add(Jack);
 
         foreach(GameObject bowl in objects){
-            BowlMovement bm = bowl.GetComponent<BowlMovement>();
-            if(bm.isMoving){
-                return true;
+            if (bowl != null)
+            {
+                BowlMovement bm = bowl.GetComponent<BowlMovement>();
+                if (bm.isMoving)
+                {
+                    return true;
+                }
             }
         }
 
@@ -221,9 +278,6 @@ public class MatchManager : MonoBehaviour
 
     private void TestAI(){
         if(currentBowl == null){
-
-            
-
             if(!PlayerTurn){
                
                 // create a new bowl
@@ -304,24 +358,47 @@ public class MatchManager : MonoBehaviour
     }
 
     // Called Externally to reset bowls and jack for new end
-    public void CleanUpBowls()
+    public void CleanUpBowls(bool replaceJack = true)
     {
         // Looping through and destroying all bowls within current bowls list
         for(int index = 0; index < Team1Bowls.Count; index++)
         {
+            Team1Bowls[index].GetComponent<TrackThisThing>().IncludeInSave = false;
             Destroy(Team1Bowls[index]);
         }
         for(int index = 0; index < Team2Bowls.Count; index++)
         {
+            Team2Bowls[index].GetComponent<TrackThisThing>().IncludeInSave = false;
             Destroy(Team2Bowls[index]);
         }
 
         // Resetting List
         Team1Bowls = new List<GameObject>();
         Team2Bowls = new List<GameObject>();
+
         // Creating new Jack
-        Destroy(Jack.gameObject);
-        Jack = Instantiate(jackPrefab, BowlPhysics.GameToUnityCoords(new Vector2(0, 15)) + new Vector3(0, 0.0215f, 0), Quaternion.identity);
-        mainCam.GetComponent<CameraFollow>().LookAt(Jack.transform);
+        if (Jack != null)
+        {
+            Jack.GetComponent<TrackThisThing>().IncludeInSave = false;
+            Destroy(Jack.gameObject);
+        }
+
+        if (replaceJack)
+        {
+            Jack = Instantiate(jackPrefab, BowlPhysics.GameToUnityCoords(new Vector2(0, 15)) + new Vector3(0, 0.0215f, 0), Quaternion.identity);
+            mainCam.GetComponent<CameraFollow>().LookAt(Jack.transform);
+        }
+    }
+
+    // Function called at Loading of a previous Session
+    public void LoadFromPreviousSession()
+    {
+        // Respawning Jack from Shadow Realm
+        CleanUpBowls(false);
+
+        // Respawning Bowls From Shadow Realm
+        loadedBowls = false;
+
+        PlayerTurn = GameStateManager.Instance.isPlayerTurnLoaded;
     }
 }

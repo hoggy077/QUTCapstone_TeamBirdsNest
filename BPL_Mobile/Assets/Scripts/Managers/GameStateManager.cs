@@ -26,7 +26,8 @@ public class GameStateManager : MonoBehaviour
     [RuntimeInitializeOnLoadMethod]
     static void RunOn() => _ = Instance;
     public static bool Exists() => Exist;
-
+    public int loadedEndNumber = 0;
+    public bool isPlayerTurnLoaded;
     public GamemodeInfo gamemode;
 
 
@@ -84,47 +85,53 @@ public class GameStateManager : MonoBehaviour
     public event TeamUpdated_ TeamUpdated;
 
     //@Riley
-    //us this function so TeamUpdate works. This is additive, so you only need to pass 1 to +1
-    //call this if you want to use TeamUpdated
-    public void UpdateTeamScores(uint TeamNumber, uint? shots = null, uint? sets = null, uint? ends = null, bool? powerplay = null)
+    public void UpdateTeamScores(uint TeamNumber, uint? shots = null, uint? sets = null, uint? ends = null, bool? powerplay = null, uint[]? teammateShots = null)
     {
         switch (TeamNumber)
         {
             case (1):
                 if (shots != null)
-                    Team_1.Shots += (uint)shots;
+                    Team_1.Shots = (uint)shots;
 
                 if (sets != null)
-                    Team_1.Sets += (uint)sets;
+                    Team_1.Sets = (uint)sets;
 
                 if (ends != null)
-                    Team_1.Ends += (uint)ends;
+                    Team_1.Ends = (uint)ends;
 
                 if (powerplay != null)
                     Team_1.HasPowerPlay = (bool)powerplay;
 
-                TeamUpdated.Invoke(Team_1);
+                if (teammateShots != null)
+                    Team_1.teammateShotsLeft = teammateShots;
+
+                //TeamUpdated.Invoke(Team_1);
                 break;
 
             case (2):
                 if (shots != null)
-                    Team_2.Shots += (uint)shots;
+                    Team_2.Shots = (uint)shots;
 
                 if (sets != null)
-                    Team_2.Sets += (uint)sets;
+                    Team_2.Sets = (uint)sets;
 
                 if (ends != null)
-                    Team_2.Ends += (uint)ends;
+                    Team_2.Ends = (uint)ends;
 
                 if (powerplay != null)
                     Team_2.HasPowerPlay = (bool)powerplay;
 
-                TeamUpdated.Invoke(Team_2);
+                if (teammateShots != null)
+                    Team_2.teammateShotsLeft = teammateShots;
+
+                //TeamUpdated.Invoke(Team_2);
                 break;
             default:
                 return;
         }
     }
+
+
 
     #endregion
 
@@ -141,7 +148,9 @@ public class Team_struct
     public TeamScriptable BaseTeam;
     public string Name() => BaseTeam.TeamName;
     public bool HasPowerPlay;
+    public bool UsingPowerplay;
     public BowlsScriptable[] teamBowls;
+    public uint[] teammateShotsLeft;
 }
 
 public class TurnBasedManager
