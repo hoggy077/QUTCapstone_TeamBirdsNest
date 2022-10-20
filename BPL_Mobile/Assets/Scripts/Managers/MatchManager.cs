@@ -27,8 +27,6 @@ public class MatchManager : MonoBehaviour
     List<GameObject> Team2Bowls = new List<GameObject>();
     public bool PlayerTurn = true;
     private AI ai;
-    private bool ai_keep_looping = false;
-    private bool spawnbowl = true;
 
     // For functionality with new powerplay query menu and delays between throws
     private ScorecardUI sUI;
@@ -108,7 +106,7 @@ public class MatchManager : MonoBehaviour
                 if(rotationTime < endRotationTime){
                     rotationTime += Time.deltaTime;
                     float endAngle = 50;
-                    float endRadius = 4;
+                    //float endRadius = 4;
 
                     Vector3 endVector = new Vector3(0, MathF.Cos(endAngle * (MathF.PI/180)), -MathF.Sin(endAngle * (MathF.PI/180))) * 4;
                     cameraBowlOffset = Vector3.Slerp(originalCameraBowlOffset, endVector, rotationTime/endRotationTime);
@@ -232,7 +230,6 @@ public class MatchManager : MonoBehaviour
                 ReadHead();
                 currentBowl = SpawnBowl();
                 currentBowl.GetComponent<BowlID>().SetTeam(2);
-                spawnbowl = false;
                 mainCam.transform.position = originalCameraLocation;
                 cameraBowlOffset = originalCameraLocation - currentBowl.transform.position;
             
@@ -263,7 +260,6 @@ public class MatchManager : MonoBehaviour
                 
                 currentBowl = null;
                 PlayerTurn = !PlayerTurn;
-                spawnbowl = true;
             }
         }
     }

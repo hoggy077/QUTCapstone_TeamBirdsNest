@@ -41,9 +41,9 @@ class Polygon{
         float offset = 0.17f;
         Vector2 point = new Vector2(0, 0);
         if(bias == Bias.Right){
-            point = new Vector2(-halfRinkW + 0.17f, 0);
+            point = new Vector2(-halfRinkW + offset, 0);
         }else{
-            point = new Vector2(halfRinkW - 0.17f, 0);
+            point = new Vector2(halfRinkW - offset, 0);
         }
 
         Vector2[] boundaryPoints = BowlPhysics.getBoundaryPoints(point, bias, biasStrength);
@@ -154,8 +154,6 @@ class Polygon{
 
         return returnPoints;
     }
-
-    
 
     public static List<Triangle> TriangulatePolygon(List<PointD> path){
         List<double> points = new List<double>();

@@ -11,8 +11,6 @@ public class AI
 
     private GameStateManager gsm = GameStateManager.Instance;
     public AIDifficulty difficulty = AIDifficulty.HARD;
-    private int turns = 0;
-    private int accurateShots = 0;
     //private bool HavePowerPlay = true;
     
     public AI(){

@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class BowlID : MonoBehaviour
 {
+    public bool chalked = false;
+    public bool inDitch = false;
     private int team = 0;
     private MeshRenderer mr;
 
