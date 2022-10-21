@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.37555858, g: 0.6143686, b: 0.8669875, a: 1}
+  m_IndirectSpecularColor: {r: 0.37578228, g: 0.61411315, b: 0.8668404, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1452,10 +1452,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d375a1d0c05c754695d92724bf146ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  currentScore:
+    team1Sets: 0
+    team2Sets: 0
+    team1Ends: 0
+    team2Ends: 0
+    team1teammateShots: 
+    team2teammateShots: 
   ringPrefab: {fileID: 7422057463883680134, guid: 49387b0a636fe32488a734023346c389,
     type: 3}
   debugTeam1: {fileID: 11400000, guid: 725cc9e9f91a640409feb76a424fffd9, type: 2}
   debugTeam2: {fileID: 11400000, guid: 372d759ba64402149996f68fb2c1b1bf, type: 2}
+  currentEnd: 1
   endsPerSet: 5
 --- !u!120 &594779097
 LineRenderer:

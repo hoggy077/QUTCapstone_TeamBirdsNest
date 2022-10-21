@@ -111,7 +111,6 @@ public static class SaveSystemJson
 
         if (deletePostRead)
             SaveSystem.performDelete(FileName);
-
     }
 
     public static bool VerifyFile<T>(string FileName)
