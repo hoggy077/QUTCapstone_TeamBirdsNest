@@ -20,7 +20,7 @@ public class MatchManager : MonoBehaviour
     private ScoringManager scm;
 
     //GameStateManager gsm = GameStateManager.Instance;
-    GameObject currentBowl = null;
+    public GameObject currentBowl = null;
     Transform currentBowlTr = null;
     GameObject Jack;
     List<GameObject> Team1Bowls = new List<GameObject>();
@@ -223,8 +223,17 @@ public class MatchManager : MonoBehaviour
             originalCameraBowlOffset = cameraBowlOffset;
             rotationTime = 0;
             ReadHead();
+            ResumeManager.WipeSaveFile();
 
-            if(!PlayerTurn){
+            List<int> shotsRemainingTeammate = new List<int>();
+
+            if (!PlayerTurn){
+
+                foreach(uint shot in scm.currentScore.team2teammateShots)
+                {
+                    shotsRemainingTeammate.Add((int)shot);
+                }
+
                 currentBowl.GetComponent<BowlID>().SetTeam(2);
                 ResumeManager.SaveGame();
 
@@ -233,11 +242,23 @@ public class MatchManager : MonoBehaviour
                     Transform JackTransform = Jack.GetComponent<Transform>();
                     ai.TakeTurn(currentBowl, JackTransform.position, Team1Bowls, Team2Bowls, 1f);
                 }
+
+                scm.SetTeammate(scm.team2CurrentTeammate);
             }
             else{
+
+                foreach (uint shot in scm.currentScore.team1teammateShots)
+                {
+                    shotsRemainingTeammate.Add((int)shot);
+                }
+
                 ResumeManager.SaveGame();
                 currentBowl.GetComponent<BowlID>().SetTeam(1);
+
+                scm.SetTeammate(scm.team1CurrentTeammate);
             }
+
+            sUI.UpdateTeammateShots(shotsRemainingTeammate.ToArray());
         }
         else{
             // wait for the bowl to finish its delivery

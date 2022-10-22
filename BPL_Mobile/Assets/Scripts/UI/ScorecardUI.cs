@@ -47,6 +47,7 @@ public class ScorecardUI : MonoBehaviour
     public RawImage[] teammateProfilesUI;
     public TextMeshProUGUI[] teammateNamesUI;
     public RawImage[] bowlProfilesUI;
+    public TextMeshProUGUI[] teammateBowlCounts;
 
     private Vector3 targetPos = Vector3.zero;
     [HideInInspector] public bool fullyOnScreen = false;
@@ -85,19 +86,21 @@ public class ScorecardUI : MonoBehaviour
         // Moving to repositioned position
         parentTransform.anchoredPosition = Vector3.MoveTowards(parentTransform.anchoredPosition, new Vector3(parentTransform.anchoredPosition.x, targetPos.y, 0f), 400f * 3f * Time.deltaTime);
 
-        // Moving Teamate Swap Menu if Required
-        teammateSelectionPanel.anchoredPosition = Vector3.MoveTowards(teammateSelectionPanel.anchoredPosition, new Vector3(teammateSelectionPanelTargetPos, teammateSelectionPanel.anchoredPosition.y), 3000f * Time.deltaTime);
-
         // If aiming to be off screen, then force menu to close
         if (!fullyOnScreen)
         {
+            teammateSelectionPanel.anchoredPosition = Vector3.MoveTowards(teammateSelectionPanel.anchoredPosition, new Vector3(teammaterSelectionPanelClosedPos, teammateSelectionPanel.anchoredPosition.y), 3000f * Time.deltaTime);
+        }
+        else
+        {
+            // Moving Teamate Swap Menu if Required
             teammateSelectionPanel.anchoredPosition = Vector3.MoveTowards(teammateSelectionPanel.anchoredPosition, new Vector3(teammateSelectionPanelTargetPos, teammateSelectionPanel.anchoredPosition.y), 3000f * Time.deltaTime);
         }
 
         // Updating Teammate Selection Screen profiles
-        if(mm.PlayerTurn)
+        if (mm.PlayerTurn)
         {
-            for(int i = 0; i < teammateProfilesUI.Length; i++)
+            for (int i = 0; i < teammateProfilesUI.Length; i++)
             {
                 teammateProfilesUI[i].texture = team1CharacterProfiles[i];
                 bowlProfilesUI[i].texture = GameStateManager.Instance.Team_1.teamBowls[i].BowlTexture;
@@ -163,13 +166,40 @@ public class ScorecardUI : MonoBehaviour
     // Function to reset shot count, scoring and update display
     public void UpdateEndNumber(int endNumber, bool tiebreak = false)
     {
-        if(!tiebreak)
+        if (!tiebreak)
         {
             endNumberDisplay.text = "END " + endNumber.ToString();
         }
         else
         {
             endNumberDisplay.text = "TIEBREAK";
+        }
+    }
+
+    public void UpdateTeammateShots(int[] shots)
+    {
+        for (int i = 0; i < shots.Length; i++)
+        {
+            teammateBowlCounts[i].text = shots[i].ToString();
+        }
+    }
+
+    public void UpdateCurrentTeammate(int activeTeammate)
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            if (i == activeTeammate)
+            {
+                teammateNamesUI[i].color = new Color(0.7f, 1f, 0.7f);
+                bowlProfilesUI[i].color = new Color(0.7f, 1f, 0.7f);
+                teammateBowlCounts[i].color = new Color(0.7f, 1f, 0.7f);
+            }
+            else
+            {
+                teammateNamesUI[i].color = Color.white;
+                bowlProfilesUI[i].color = Color.white;
+                teammateBowlCounts[i].color = Color.white;
+            }
         }
     }
 

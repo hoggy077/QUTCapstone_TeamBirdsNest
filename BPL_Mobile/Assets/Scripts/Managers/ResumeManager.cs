@@ -41,7 +41,7 @@ public static class ResumeManager
                 //availableSession = SaveSystemJson.LoadGenericJson<SavedSession>(false, $"lastSession{extension}");
                 SaveSystemJson.LoadGenericJson<SavedSession>(ref availableSession, false, $"lastSession{extension}");
 #else
-                availableSession = SaveSystemJson.LoadGenericJson<SavedSession>(true, $"lastSession{extension}");
+                SaveSystemJson.LoadGenericJson<SavedSession>(ref availableSession, false, $"lastSession{extension}");
 #endif
                 hasEvaluated = true;
                 isAvail = true;
@@ -54,7 +54,7 @@ public static class ResumeManager
             }
             catch (Exception e)
             {
-
+                Logger.Log(e.Message, "", LogType.Error);
             }
         }
     }

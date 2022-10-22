@@ -33,6 +33,9 @@ public class ScoringManager : MonoBehaviour
 
     private bool loadedSession = false;
 
+    public int team1CurrentTeammate = 0;
+    public int team2CurrentTeammate = 0;
+
     [Serializable]
     public class MatchScore
     {
@@ -137,6 +140,11 @@ public class ScoringManager : MonoBehaviour
 
     public void CheckScore()
     {
+        if(mm.GetLiveBowls().Count > 0)
+        {
+            PlayerShotTaken();
+        }
+
         if (!continueingEnd)
         {
             // Adding current shots to end score
@@ -217,6 +225,13 @@ public class ScoringManager : MonoBehaviour
         bowlUIRing.ToggleRing(false);
 
         ResumeManager.SaveGame();
+
+        // Resetting Teammate Bowl Shot Limits
+        team1CurrentTeammate = 0;
+        team2CurrentTeammate = 0;
+
+        currentScore.team1teammateShots = new uint[3] { 3, 3, 3 };
+        currentScore.team2teammateShots = new uint[3] { 3, 3, 3 };
     }
 
     // For the finishing and starting of a new set
@@ -456,4 +471,34 @@ public class ScoringManager : MonoBehaviour
     }
 
     #endregion
+
+
+    // Handling Teammate Switching
+    public void SetTeammate(int targetTeammate)
+    {
+        if(mm.PlayerTurn)
+        {
+            team1CurrentTeammate = targetTeammate;
+            mm.currentBowl.GetComponent<BowlLauncher>().bowlBiasStrength = (float)GameStateManager.Instance.Team_1.teamBowls[team1CurrentTeammate].Bias;
+            scorecard.UpdateCurrentTeammate(team1CurrentTeammate);
+        }
+        else
+        {
+            team2CurrentTeammate = targetTeammate;
+            mm.currentBowl.GetComponent<BowlLauncher>().bowlBiasStrength = (float)GameStateManager.Instance.Team_2.teamBowls[team2CurrentTeammate].Bias;
+            scorecard.UpdateCurrentTeammate(team2CurrentTeammate);
+        }
+    }
+
+    public void PlayerShotTaken()
+    {
+        if(!mm.PlayerTurn)
+        {
+            currentScore.team1teammateShots[team1CurrentTeammate] -= 1;
+        }
+        else
+        {
+            currentScore.team2teammateShots[team2CurrentTeammate] -= 1;
+        }
+    }
 }
