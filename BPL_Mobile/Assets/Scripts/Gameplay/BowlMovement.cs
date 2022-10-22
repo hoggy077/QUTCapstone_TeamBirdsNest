@@ -90,7 +90,14 @@ public class BowlMovement : MonoBehaviour
     }
 
     void OnCollisionEnter(Collision collision){
-        if(externalySet){
+
+        // Setting toucher if that bad boy is a jack
+        if (collision.gameObject.tag == "Jack" && GetComponent<BowlID>() && GetComponent<BowlLauncher>())
+        {
+            GetComponent<BowlID>().SetToucher();
+        }
+
+        if (externalySet){
             externalySet = false;
             return;
         }
@@ -126,7 +133,7 @@ public class BowlMovement : MonoBehaviour
                 FindObjectOfType<AudioManager>().PlaySound("IFB399-MetalCollisionSFX");
             }
             else{
-                bm2.tr = collision.gameObject.GetComponent<Transform>();
+                bm2.tr = collision.gameObject.GetComponent<Transform>();                
 
                 time = 0;
                 Vector3 direction = bm2.tr.position - tr.position;
