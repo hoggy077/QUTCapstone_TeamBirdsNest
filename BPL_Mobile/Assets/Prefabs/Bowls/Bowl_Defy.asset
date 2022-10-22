@@ -15,4 +15,4 @@ MonoBehaviour:
   DefaultMesh: {fileID: 4711208715938537054, guid: a54ce362a8af7c2499c0dae5ffe6cf01,
     type: 3}
   BowlTexture: {fileID: 2800000, guid: 034a0f4c30a040e4eb778d09b1e68624, type: 3}
-  Bias: 0
+  Bias: 1

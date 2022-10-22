@@ -18,7 +18,7 @@ public class Logger
     static Logger Instance_ = null;
 
 
-    public static bool RunOnLaunch = false;
+    public static bool RunOnLaunch = true;
 
 
     [RuntimeInitializeOnLoadMethod]
@@ -29,12 +29,14 @@ public class Logger
         if (!RunOnLaunch)
             return;
 
+        LogFileName = $"{DateTime.Now.ToString("ddmmyy")}.txt";
+
         Application.logMessageReceived += Log;
         Application.quitting += () => LogFileWriter.Close();
     }
 
 
-    static string LogFileName = $"{DateTime.Now.ToString("ddmmyy")}.txt";
+    static string LogFileName = "";
 
     static StreamWriter LogFileWriter { get { if (LogFileWriter_ == null) { LogFileWriter_ = new StreamWriter($"{PersistentPath}\\{LogFileName}", append: true); } return LogFileWriter_; } }
     static StreamWriter LogFileWriter_ = null;

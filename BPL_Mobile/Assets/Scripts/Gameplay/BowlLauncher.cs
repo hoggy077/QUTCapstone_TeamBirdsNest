@@ -180,11 +180,11 @@ public class BowlLauncher : MonoBehaviour
                     BowlOverlay.instance.MoveToBowl(transform.position);
                 }
                 BowlOverlay.instance.ToggleOpacity(true, true);
-                CameraZoom.instance.zoom = true;
                 goto case TouchPhase.Moved;
             case TouchPhase.Moved:
                 // touch input should only be valid on the bottom (1/3)rd-ish of the phone
                 if(touch.position.y < VALID_Y_INPUT){
+                    CameraZoom.instance.zoom = true;
                     float middle = Screen.width/2;
                     float distFromMidX = touch.position.x - middle;
                     float distFromValidY = System.Math.Abs(touch.position.y - VALID_Y_INPUT);
@@ -206,6 +206,7 @@ public class BowlLauncher : MonoBehaviour
                     BowlOverlay.instance.UpdateLinePullback(touch.position);
                 }else{
                     updatePredictor = false;
+                    CameraZoom.instance.zoom = false;
                 }
                 break;
             default:

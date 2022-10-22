@@ -5,8 +5,8 @@ using UnityEngine;
 public class ClosestBowlRing : MonoBehaviour
 {
     private LineRenderer lr;
-    private int segments = 360;
-    private float lineWidth = 0.02f;
+    private int segments = 720;
+    private float lineWidth = 0.04f;
     private float ringDisplayRadiusThreshold = 0.3f;
 
     // Setting up variables
@@ -26,10 +26,10 @@ public class ClosestBowlRing : MonoBehaviour
     public void UpdateRing(Transform jack, BowlID closestBowl)
     {
         // Moving renderer to circle centre
-        transform.position = new Vector3(jack.transform.position.x, 0.025f, jack.transform.position.z);
+        transform.position = new Vector3(jack.transform.position.x, 0.01f, jack.transform.position.z);
 
         // Setting Up Variables
-        lr.useWorldSpace = false;
+        lr.useWorldSpace = true;
         lr.startWidth = lineWidth;
         lr.endWidth = lineWidth;
         lr.positionCount = segments + 1;
@@ -50,7 +50,10 @@ public class ClosestBowlRing : MonoBehaviour
             for (int i = 0; i < pointCount; i++)
             {
                 var rad = Mathf.Deg2Rad * (i * 360f / segments);
-                points[i] = new Vector3(Mathf.Sin(rad) * radius, 0.02f * Mathf.Sin(i * Mathf.PI/4f), Mathf.Cos(rad) * radius);
+                points[i] = new Vector3(Mathf.Sin(rad) * radius, 0.04f * Mathf.Sin(i * Mathf.PI/4f), Mathf.Cos(rad) * radius);
+                points[i] += new Vector3(jack.transform.position.x, 0f, jack.transform.position.z);
+                points[i].x = Mathf.Clamp(points[i].x, -3f, 3f);
+                points[i].z = Mathf.Clamp(points[i].z, points[i].z, 18.92f);
             }
 
             // Sending information to renderer

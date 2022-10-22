@@ -5,6 +5,7 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 
 #region storage
+[Serializable]
 public class ReferenceStorage : ScriptableObject
 {
     [SerializeField]

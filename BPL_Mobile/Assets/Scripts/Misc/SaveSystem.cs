@@ -95,6 +95,8 @@ public static class SaveSystemJson
     {
         SaveSystem.verifyDirectory();
 
+        Logger.Log($"{ ToJson(item)} - {Encoding.UTF8.GetBytes(ToJson(item)).Length}", "", LogType.Log);
+
         File.WriteAllBytes($"{PersistentPath}\\{FileName}",Encoding.UTF8.GetBytes(ToJson(item)));
     }
 
@@ -111,7 +113,6 @@ public static class SaveSystemJson
 
         if (deletePostRead)
             SaveSystem.performDelete(FileName);
-
     }
 
     public static bool VerifyFile<T>(string FileName)

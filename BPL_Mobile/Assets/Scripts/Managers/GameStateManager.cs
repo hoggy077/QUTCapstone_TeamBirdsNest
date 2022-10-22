@@ -30,7 +30,6 @@ public class GameStateManager : MonoBehaviour
     public bool isPlayerTurnLoaded;
     public GamemodeInfo gamemode;
 
-
     #region Game related variables
 
     #region Teams
