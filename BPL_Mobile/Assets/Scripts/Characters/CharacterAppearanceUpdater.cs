@@ -185,6 +185,7 @@ public class CharacterAppearanceUpdater : MonoBehaviour
             if (playerBowling)
             {
                 transform.position = new Vector3(200f, -200f + uniquenessForcer, 200f);
+                animator.Play("Idle1", 0, Random.Range(0f, 1f));
             }
             else
             {

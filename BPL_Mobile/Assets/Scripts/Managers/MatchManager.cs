@@ -149,9 +149,9 @@ public class MatchManager : MonoBehaviour
                     float angle = endAngle * (rotationTime/endRotationTime) - mainCam.transform.localEulerAngles.x;
                     mainCam.transform.Rotate(angle, 0, 0);
                 }
-            }
 
-            mainCam.transform.position = Vector3.Lerp(mainCam.transform.position, currentBowl.transform.position + cameraBowlOffset, 0.2f);
+                mainCam.transform.position = Vector3.Lerp(mainCam.transform.position, currentBowl.transform.position + cameraBowlOffset, 0.2f);
+            }
         }
 
         // If Jack has not had reference gathered after 
@@ -184,6 +184,21 @@ public class MatchManager : MonoBehaviour
             }
 
             scm.ReadTheHead();
+        }
+
+        // Moving Camera to Overview State if Button is Pressed
+        if(Jack != null)
+        {
+            if (sUI.submenuState == ScorecardUI.SubmenuState.OverheadCamera)
+            {
+                mainCam.transform.position = Vector3.Lerp(mainCam.transform.position, Jack.transform.position + new Vector3(0f, 5f, 0f), Time.deltaTime * 5f);
+                mainCam.transform.LookAt(Jack.transform.position);
+            }
+            else if(currentBowl != null && !currentBowl.GetComponent<BowlMovement>().inDelivery)
+            {
+                mainCam.transform.position = Vector3.Lerp(mainCam.transform.position, originalCameraLocation, Time.deltaTime * 5f);
+                mainCam.transform.rotation = Quaternion.Lerp(mainCam.transform.rotation, originalCameraRotation, Time.deltaTime * 5f);
+            }
         }
     }
 

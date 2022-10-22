@@ -183,7 +183,7 @@ MonoBehaviour:
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_DisabledColor: {r: 0.3584906, g: 0.3584906, b: 0.3584906, a: 1}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -5627,7 +5627,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 22711439116356591}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 7115419504873291}
+        m_TargetAssemblyTypeName: ScorecardUI, Assembly-CSharp
+        m_MethodName: ToggleOverheadCamera
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &5272348232039661763
 GameObject:
   m_ObjectHideFlags: 0
@@ -6332,6 +6344,7 @@ MonoBehaviour:
   - {fileID: 4142844794686923803}
   - {fileID: 7813913025632964268}
   - {fileID: 1026105921050766550}
+  teammateSelectionButton: {fileID: 8875411848046289417}
   fullyOnScreen: 0
   submenuState: 0
   teammateSelectionPanel: {fileID: 2205332716935680340}

@@ -49,6 +49,7 @@ public class ScorecardUI : MonoBehaviour
     public RawImage[] bowlProfilesUI;
     public TextMeshProUGUI[] teammateBowlCounts;
     public Button[] teammateSelectionButtons;
+    public Button teammateSelectionButton;
 
     private Vector3 targetPos = Vector3.zero;
     [HideInInspector] public bool fullyOnScreen = false;
@@ -67,6 +68,7 @@ public class ScorecardUI : MonoBehaviour
     private float teammaterSelectionPanelClosedPos = -1500f;
     private float teammateSelectionPanelTargetPos = 0f;
     private MatchManager mm;
+    private ScoringManager scm;
 
     private void Start()
     {
@@ -75,6 +77,7 @@ public class ScorecardUI : MonoBehaviour
         Reposition(false);
         teammateSelectionPanelTargetPos = teammaterSelectionPanelClosedPos;
         mm = FindObjectOfType<MatchManager>();
+        scm = FindObjectOfType<ScoringManager>();
     }
 
     private void Update()
@@ -86,6 +89,17 @@ public class ScorecardUI : MonoBehaviour
 
         // Moving to repositioned position
         parentTransform.anchoredPosition = Vector3.MoveTowards(parentTransform.anchoredPosition, new Vector3(parentTransform.anchoredPosition.x, targetPos.y, 0f), 400f * 3f * Time.deltaTime);
+
+        // Deactivating Button 
+        if (submenuState == SubmenuState.TeammateSwitch)
+        {
+            teammateSelectionButton.interactable = false;
+        }
+        else
+        {
+            teammateSelectionButton.interactable = true;
+            teammateSelectionPanelTargetPos = teammaterSelectionPanelClosedPos;
+        }
 
         // If aiming to be off screen, then force menu to close
         if (!fullyOnScreen)
@@ -124,7 +138,7 @@ public class ScorecardUI : MonoBehaviour
             teammateNamesUI[0].text = FormatPlayerName(GameStateManager.Instance.Team_2.BaseTeam.character1.characterName);
             teammateNamesUI[1].text = FormatPlayerName(GameStateManager.Instance.Team_2.BaseTeam.character2.characterName);
             teammateNamesUI[2].text = FormatPlayerName(GameStateManager.Instance.Team_2.BaseTeam.character3.characterName);
-        }
+        }        
     }
 
     public void Reposition(bool outOfView)
@@ -384,6 +398,39 @@ public class ScorecardUI : MonoBehaviour
         else
         {
             teammateSelectionPanelTargetPos = teammaterSelectionPanelClosedPos;
+            submenuState = SubmenuState.None;
+        }
+    }
+
+    public void ToggleOverheadCamera()
+    {
+        if (submenuState != SubmenuState.OverheadCamera)
+        {
+            bool toggleCamera = true;
+
+            if (mm.PlayerTurn)
+            {
+                if(scm.currentScore.team1teammateShots[scm.team1CurrentTeammate] < 1)
+                {
+                    toggleCamera = false;
+                }
+            }
+            else
+            {
+                if (scm.currentScore.team2teammateShots[scm.team2CurrentTeammate] < 1)
+                {
+                    toggleCamera = false;
+                }
+            }
+
+            if (toggleCamera)
+            {
+                submenuState = SubmenuState.OverheadCamera;
+                teammateSelectionPanelTargetPos = teammaterSelectionPanelClosedPos;
+            }
+        }
+        else
+        {
             submenuState = SubmenuState.None;
         }
     }

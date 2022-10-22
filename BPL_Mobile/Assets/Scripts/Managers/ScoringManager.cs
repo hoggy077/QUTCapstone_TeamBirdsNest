@@ -480,27 +480,27 @@ public class ScoringManager : MonoBehaviour
     {
         if (mm.PlayerTurn)
         {
-            mm.currentBowl.GetComponent<BowlLauncher>().bowlBiasStrength = (float)GameStateManager.Instance.Team_1.teamBowls[team1CurrentTeammate].Bias;
-            scorecard.UpdateCurrentTeammate(team1CurrentTeammate);
-
             if (targetTeammate != team1CurrentTeammate || mm.GetLiveBowls().Count < 2)
             {
                 team1CurrentTeammate = targetTeammate;
                 mm.HideBowlingPlayer(1, team1CurrentTeammate + 1);
                 mm.SetNewPlayerPositions(1);
             }
+
+            scorecard.UpdateCurrentTeammate(team1CurrentTeammate);
+            mm.currentBowl.GetComponent<BowlLauncher>().bowlBiasStrength = (float)GameStateManager.Instance.Team_1.teamBowls[team1CurrentTeammate].Bias;
         }
         else
         {
-            mm.currentBowl.GetComponent<BowlLauncher>().bowlBiasStrength = (float)GameStateManager.Instance.Team_2.teamBowls[team2CurrentTeammate].Bias;
-            scorecard.UpdateCurrentTeammate(team2CurrentTeammate);
-
             if (targetTeammate != team2CurrentTeammate || mm.GetLiveBowls().Count < 2)
             {
                 team2CurrentTeammate = targetTeammate;
                 mm.HideBowlingPlayer(2, team2CurrentTeammate + 1);
                 mm.SetNewPlayerPositions(2);
             }
+
+            scorecard.UpdateCurrentTeammate(team2CurrentTeammate);
+            mm.currentBowl.GetComponent<BowlLauncher>().bowlBiasStrength = (float)GameStateManager.Instance.Team_2.teamBowls[team2CurrentTeammate].Bias;
         }
 
         if (scorecard.submenuState == ScorecardUI.SubmenuState.TeammateSwitch)
