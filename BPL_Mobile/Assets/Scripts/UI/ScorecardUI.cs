@@ -48,6 +48,7 @@ public class ScorecardUI : MonoBehaviour
     public TextMeshProUGUI[] teammateNamesUI;
     public RawImage[] bowlProfilesUI;
     public TextMeshProUGUI[] teammateBowlCounts;
+    public Button[] teammateSelectionButtons;
 
     private Vector3 targetPos = Vector3.zero;
     [HideInInspector] public bool fullyOnScreen = false;
@@ -89,6 +90,8 @@ public class ScorecardUI : MonoBehaviour
         // If aiming to be off screen, then force menu to close
         if (!fullyOnScreen)
         {
+            teammateSelectionPanelTargetPos = teammaterSelectionPanelClosedPos;
+            submenuState = SubmenuState.None;
             teammateSelectionPanel.anchoredPosition = Vector3.MoveTowards(teammateSelectionPanel.anchoredPosition, new Vector3(teammaterSelectionPanelClosedPos, teammateSelectionPanel.anchoredPosition.y), 3000f * Time.deltaTime);
         }
         else
@@ -181,6 +184,14 @@ public class ScorecardUI : MonoBehaviour
         for (int i = 0; i < shots.Length; i++)
         {
             teammateBowlCounts[i].text = shots[i].ToString();
+            if(shots[i] < 1)
+            {
+                teammateSelectionButtons[i].interactable = false;
+            }
+            else
+            {
+                teammateSelectionButtons[i].interactable = true;
+            }
         }
     }
 
@@ -365,7 +376,7 @@ public class ScorecardUI : MonoBehaviour
 
     public void ToggleTeammateMenu()
     {
-        if(submenuState == SubmenuState.None)
+        if(submenuState != SubmenuState.TeammateSwitch)
         {
             teammateSelectionPanelTargetPos = 0f;
             submenuState = SubmenuState.TeammateSwitch;

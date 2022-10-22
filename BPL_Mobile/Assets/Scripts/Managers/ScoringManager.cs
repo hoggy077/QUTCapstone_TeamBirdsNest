@@ -140,11 +140,6 @@ public class ScoringManager : MonoBehaviour
 
     public void CheckScore()
     {
-        if(mm.GetLiveBowls().Count > 0)
-        {
-            PlayerShotTaken();
-        }
-
         if (!continueingEnd)
         {
             // Adding current shots to end score
@@ -488,17 +483,28 @@ public class ScoringManager : MonoBehaviour
             mm.currentBowl.GetComponent<BowlLauncher>().bowlBiasStrength = (float)GameStateManager.Instance.Team_2.teamBowls[team2CurrentTeammate].Bias;
             scorecard.UpdateCurrentTeammate(team2CurrentTeammate);
         }
+
+        if (scorecard.submenuState == ScorecardUI.SubmenuState.TeammateSwitch)
+        {
+            scorecard.ToggleTeammateMenu();
+        }
     }
 
     public void PlayerShotTaken()
     {
-        if(!mm.PlayerTurn)
+        if(mm.PlayerTurn)
         {
-            currentScore.team1teammateShots[team1CurrentTeammate] -= 1;
+            if(currentScore.team1teammateShots[team1CurrentTeammate] > 0)
+            {
+                currentScore.team1teammateShots[team1CurrentTeammate] -= 1;
+            }
         }
         else
         {
-            currentScore.team2teammateShots[team2CurrentTeammate] -= 1;
+            if (currentScore.team2teammateShots[team2CurrentTeammate] > 0)
+            {
+                currentScore.team2teammateShots[team2CurrentTeammate] -= 1;
+            }
         }
     }
 }

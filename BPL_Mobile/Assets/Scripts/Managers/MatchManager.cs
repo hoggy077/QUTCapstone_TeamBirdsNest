@@ -191,8 +191,28 @@ public class MatchManager : MonoBehaviour
 
             touchToContinue.FlyOut();
 
+            // Update Shots Display for Each Player
+            List<int> shotsRemainingTeammate = new List<int>();
+
+            if (PlayerTurn)
+            {
+                foreach (uint shot in scm.currentScore.team1teammateShots)
+                {
+                    shotsRemainingTeammate.Add((int)shot);
+                }
+            }
+            else
+            {
+                foreach (uint shot in scm.currentScore.team2teammateShots)
+                {
+                    shotsRemainingTeammate.Add((int)shot);
+                }
+            }
+
+            sUI.UpdateTeammateShots(shotsRemainingTeammate.ToArray());
+
             // Wait for Powerplay Selection
-            if(PowerplayQuery.instance.CurrentlyOpen())
+            if (PowerplayQuery.instance.CurrentlyOpen())
             {
                 return;
             }
@@ -225,40 +245,38 @@ public class MatchManager : MonoBehaviour
             ReadHead();
             ResumeManager.WipeSaveFile();
 
-            List<int> shotsRemainingTeammate = new List<int>();
+            
 
             if (!PlayerTurn){
 
-                foreach(uint shot in scm.currentScore.team2teammateShots)
-                {
-                    shotsRemainingTeammate.Add((int)shot);
-                }
-
                 currentBowl.GetComponent<BowlID>().SetTeam(2);
                 ResumeManager.SaveGame();
+                scm.SetTeammate(scm.team2CurrentTeammate);
 
                 if (!GameStateManager.Instance.isMultiplayerMode)
                 {
                     Transform JackTransform = Jack.GetComponent<Transform>();
                     ai.TakeTurn(currentBowl, JackTransform.position, Team1Bowls, Team2Bowls, 1f);
                 }
-
-                scm.SetTeammate(scm.team2CurrentTeammate);
+                else
+                {
+                    if (GetLiveBowls().Count < 2 || scm.currentScore.team2teammateShots[scm.team2CurrentTeammate] == 0)
+                    {
+                        sUI.ToggleTeammateMenu();
+                    }
+                }
             }
             else{
-
-                foreach (uint shot in scm.currentScore.team1teammateShots)
-                {
-                    shotsRemainingTeammate.Add((int)shot);
-                }
-
                 ResumeManager.SaveGame();
                 currentBowl.GetComponent<BowlID>().SetTeam(1);
 
                 scm.SetTeammate(scm.team1CurrentTeammate);
-            }
 
-            sUI.UpdateTeammateShots(shotsRemainingTeammate.ToArray());
+                if (GetLiveBowls().Count < 2 || scm.currentScore.team1teammateShots[scm.team1CurrentTeammate] == 0)
+                {
+                    sUI.ToggleTeammateMenu();
+                }
+            }
         }
         else{
             // wait for the bowl to finish its delivery
@@ -272,6 +290,9 @@ public class MatchManager : MonoBehaviour
                 }
                 
                 currentBowl = null;
+
+                // Updating Teammate Scorecard
+                scm.PlayerShotTaken();
                 PlayerTurn = !PlayerTurn;
             }
         }

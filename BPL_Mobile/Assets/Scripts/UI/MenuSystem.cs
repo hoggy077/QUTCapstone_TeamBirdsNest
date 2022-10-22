@@ -983,7 +983,7 @@ public class MenuSystem : MonoBehaviour
             }
             else
             {
-                GameStateManager.Instance.UpdateTeam(2, GetRandomUnpickedTeam(), bowls);
+                GameStateManager.Instance.UpdateTeam(2, GetRandomUnpickedTeam(), new BowlsScriptable[3] { bowls[2], bowls[2], bowls[2] });
                 GameStateManager.Instance.isMultiplayerMode = false;
             }
 

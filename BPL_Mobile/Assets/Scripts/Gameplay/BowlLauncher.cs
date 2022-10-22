@@ -28,6 +28,8 @@ public class BowlLauncher : MonoBehaviour
     private Vector3[] points;
     private float PredictorTimeStep = 0.1f;
 
+    private ScorecardUI sUI;
+
     // angle of bowl is calculated by scaling the MAX_ROTATION
     // by finding the distance of the input from the center of the x-axis,
     // the further away from the center the higher the magnitude of the angle
@@ -54,12 +56,12 @@ public class BowlLauncher : MonoBehaviour
 
     void Start(){
         points = new Vector3[pointsSize];
-
+        
         Bounds bounds = GetComponent<Renderer>().bounds;
         //BowlRadius = bounds.extents.y;
         rb = GetComponent<Rigidbody>();
         tr = GetComponent<Transform>();
-
+        sUI = FindObjectOfType<ScorecardUI>();
         BowlOverlay.instance.scorecard.Reposition(false);
     }
 
@@ -154,7 +156,8 @@ public class BowlLauncher : MonoBehaviour
             case TouchPhase.Ended:
                 // if the position is within the bottom (1/3)rd-ish then launch the bowl
                 // otherwise don't launch it
-                if(touch.position.y < VALID_Y_INPUT){
+                if(touch.position.y < VALID_Y_INPUT && sUI.submenuState == ScorecardUI.SubmenuState.None)
+                {
                     deliver = true;
                     DeliveryEndTime = BowlPhysics.DeliveryEndTime(initialVelocity, deliveryAngle, 0) - 0.75f;
                     //lineRenderer.enabled = false;
@@ -183,7 +186,8 @@ public class BowlLauncher : MonoBehaviour
                 goto case TouchPhase.Moved;
             case TouchPhase.Moved:
                 // touch input should only be valid on the bottom (1/3)rd-ish of the phone
-                if(touch.position.y < VALID_Y_INPUT){
+                if(touch.position.y < VALID_Y_INPUT && sUI.submenuState == ScorecardUI.SubmenuState.None)
+                {
                     CameraZoom.instance.zoom = true;
                     float middle = Screen.width/2;
                     float distFromMidX = touch.position.x - middle;
