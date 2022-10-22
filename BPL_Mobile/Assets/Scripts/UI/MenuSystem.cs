@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
@@ -110,6 +111,9 @@ public class MenuSystem : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        //Start Playing Background Music
+        FindObjectOfType<AudioManager>().PlaySound("IFB399-RelaxedBGM");
+
         // Adding all screens to shared list for later reference
         allScreens.Add(titleScreen);
         allScreens.Add(mainMenu);
@@ -424,6 +428,9 @@ public class MenuSystem : MonoBehaviour
     // Function to move to play menu
     public void ButtonPress(string targetAction)
     {
+        //Confirm Click SFX
+        FindObjectOfType<AudioManager>().PlaySound("IFB399-MenuClickSFX");
+
         // Depending on command, perform action
         switch (targetAction)
         {
@@ -748,6 +755,9 @@ public class MenuSystem : MonoBehaviour
             currentSelectionIndex = 0;
             UpdateBowlSelectionScreen();
         }
+
+        //Confirm Selecting of Teams SFX
+        FindObjectOfType<AudioManager>().PlaySound("IFB399-ConfirmSFX");
     }
 
     // Function to handle the selecting of bowls
@@ -815,6 +825,9 @@ public class MenuSystem : MonoBehaviour
             bothPlayersSelected = false;
             HandoverToGameScene();
         }
+
+        //Confirm Bowls Types Selected SFX
+        FindObjectOfType<AudioManager>().PlaySound("IFB399-ConfirmSFX");
     }
 
     // Roll To Next Team
@@ -893,6 +906,9 @@ public class MenuSystem : MonoBehaviour
             currentSelectionIndex = player2TeamIndex;
             UpdateTeamSelectionScreen();
         }
+
+        //Confirm Back Button SFX
+        FindObjectOfType<AudioManager>().PlaySound("IFB399-ConfirmSFX");
     }
 
     // Function to handle the selecting of bowls
@@ -967,6 +983,9 @@ public class MenuSystem : MonoBehaviour
             firstPlayerSelected = multiplayer;
             bothPlayersSelected = false;
         }
+
+        //Confirm Back Button SFX
+        FindObjectOfType<AudioManager>().PlaySound("IFB399-ConfirmSFX");
     }
 
     private void HandoverToGameScene()
