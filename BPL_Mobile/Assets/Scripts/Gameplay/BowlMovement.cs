@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 using UnityEngine;
+using UnityEngine.Audio;
 
 public class BowlMovement : MonoBehaviour
 {
@@ -120,6 +121,9 @@ public class BowlMovement : MonoBehaviour
                 rd = Vector3.Cross(angularVel, Vector3.up).normalized;
 
                 isMoving = true;
+
+                //Confirm Collision SFX
+                FindObjectOfType<AudioManager>().PlaySound("IFB399-MetalCollisionSFX");
             }
             else{
                 bm2.tr = collision.gameObject.GetComponent<Transform>();
@@ -154,6 +158,9 @@ public class BowlMovement : MonoBehaviour
                 bm2.rd = rd2;
                 bm2.externalySet = true;
                 bm2.isMoving = true;
+
+                //Confirm Collision SFX
+                FindObjectOfType<AudioManager>().PlaySound("IFB399-MetalCollisionSFX");
             }
         }
     }

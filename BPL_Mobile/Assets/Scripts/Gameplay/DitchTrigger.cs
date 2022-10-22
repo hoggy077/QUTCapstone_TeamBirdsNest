@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 using UnityEngine;
+using UnityEngine.Audio;
 
 public class DitchTrigger : MonoBehaviour
 {
@@ -14,5 +15,8 @@ public class DitchTrigger : MonoBehaviour
         collider.attachedRigidbody.angularDrag = 1;
         collider.attachedRigidbody.drag = 1;
         collider.attachedRigidbody.useGravity = true;
+
+        //Confirm CrowdUpset SFX
+        FindObjectOfType<AudioManager>().PlaySound("IFB399-CrowdNegativeSFX");
     }
 }

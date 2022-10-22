@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Audio;
 using System;
 
 public class ScoringManager : MonoBehaviour
@@ -129,6 +130,9 @@ public class ScoringManager : MonoBehaviour
         {
             bowlUIRing.ToggleRing(true);
             bowlUIRing.UpdateRing(jack.transform, bowls[0].GetComponent<BowlID>());
+
+            //Confirm CrowdHappy SFX
+            FindObjectOfType<AudioManager>().PlaySound("IFB399-CrowdPositiveSFX");
         }
 
         // Updating Current Bowls remaining for each team, finding if the end has concluded
@@ -265,6 +269,9 @@ public class ScoringManager : MonoBehaviour
         if (currentScore.team1Sets + currentScore.team2Sets >= 2 && currentScore.team1Sets != currentScore.team2Sets)
         {
             FinishMatch();
+
+            //Confirm CrowdHappy SFX
+            FindObjectOfType<AudioManager>().PlaySound("IFB399-CrowdPositiveSFX");
         }
 
         // Start Tiebreaker FINALE if required
