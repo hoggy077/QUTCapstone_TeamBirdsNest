@@ -41,20 +41,19 @@ public static class ResumeManager
                 //availableSession = SaveSystemJson.LoadGenericJson<SavedSession>(false, $"lastSession{extension}");
                 SaveSystemJson.LoadGenericJson<SavedSession>(ref availableSession, false, $"lastSession{extension}");
 #else
-                SaveSystemJson.LoadGenericJson<SavedSession>(ref availableSession, false, $"lastSession{extension}");
+                SaveSystemJson.LoadGenericJson<SavedSession>(ref availableSession, true, $"lastSession{extension}");
 #endif
                 hasEvaluated = true;
                 isAvail = true;
                 hasPriorGame = true;
 
 #if UNITY_EDITOR
-                refList = AssetDatabase.LoadAssetAtPath<ReferenceStorage>("Assets/RefTable.asset");
+                //refList = AssetDatabase.LoadAssetAtPath<ReferenceStorage>("Assets/RefTable.asset");
 #endif
-
             }
             catch (Exception e)
             {
-                Logger.Log(e.Message, "", LogType.Error);
+                Logger.Log($"Load error: {e.Message}", "", LogType.Error);
             }
         }
     }
@@ -65,6 +64,8 @@ public static class ResumeManager
     {
         if(!hasEvaluated)
             EvaluateSession();
+
+        Debug.Log($"ref is null: {refList == null}");
 
         if(isAvail)
         {
@@ -85,9 +86,11 @@ public static class ResumeManager
                     {
                         if (refList.references.Any((k) => { return k.name == tObj.referenceTerm; }))
                         {
+                            Debug.Log($"h1 {tObj.referenceTerm}");
                             GameObject basePrefab = (GameObject)refList.references.First((k) => { return k.name == tObj.referenceTerm; }).value;
                             basePrefab = GameObject.Instantiate(basePrefab, tObj.objMatrix.po(), tObj.objMatrix.ro());
                             basePrefab.transform.localScale = tObj.objMatrix.sc();
+                            Debug.Log($"h2 {basePrefab.name}");
                             if (basePrefab.GetComponent<BowlID>() != null)
                             {
                                 basePrefab.GetComponent<BowlID>().SetTeam(tObj.TeamRef);
@@ -106,6 +109,7 @@ public static class ResumeManager
 
                     return;
                 };
+                return;
             }
 
             GameStateManager.Instance.gamemode = availableSession.CurrentGamemode;
@@ -119,6 +123,7 @@ public static class ResumeManager
             {
                 if (refList.references.Any((k) => { return k.name == tObj.referenceTerm; }))
                 {
+                    Debug.Log($"h1 {tObj.referenceTerm}");
                     GameObject basePrefab = (GameObject)refList.references.First((k) => { return k.name == tObj.referenceTerm; }).value;
                     basePrefab = GameObject.Instantiate(basePrefab, tObj.objMatrix.po(), tObj.objMatrix.ro());
                     basePrefab.transform.localScale = tObj.objMatrix.sc();
@@ -143,7 +148,7 @@ public static class ResumeManager
     //Change to save points. Saves will be made at the end of a bowl 
     public static void SaveGame()
     {
-        Debug.Log("Save Occured -" + Time.time);
+        Debug.Log("Save Occured: " + Time.time);
         TrackThisThing[] things2track = GameObject.FindObjectsOfType<TrackThisThing>();
         TrackedObject[] tracking = new TrackedObject[things2track.Length];
         for (int i = 0; i < things2track.Length; i++)
@@ -176,8 +181,17 @@ public static class ResumeManager
     }
 
     private static ReferenceStorage refList = null;
-    public static void SetReferenceTable(ReferenceStorage refTable) =>
-        refList = refTable;
+    public static void SetReferenceTable(ReferenceStorage refTable)
+    {
+        if (refList == null)
+        {
+            Debug.Log("reftable set");
+            refList = refTable;
+            return;
+        }
+        Debug.Log("reftable already set");
+        Debug.Log($"ref {refList.Count}");
+    }
 }
 
 
@@ -217,7 +231,7 @@ public struct TrackedObject
 public class TransformData
 {
     public TransformData() { }
-    #region Old - System Numerics
+#region Old - System Numerics
     //public TransformData(Matrix4x4 d) 
     //{
     //    Vector3 p = d.GetPosition();
@@ -235,7 +249,7 @@ public class TransformData
     //public System.Numerics.Vector3 pos;
     //public System.Numerics.Vector4 rot;
     //public System.Numerics.Vector3 scl;
-    #endregion
+#endregion
 
     public float[] pos = new float[3];
     public float[] rot = new float[4];
