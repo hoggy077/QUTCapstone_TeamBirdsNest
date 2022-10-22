@@ -29,6 +29,7 @@ public class BowlLauncher : MonoBehaviour
     private float PredictorTimeStep = 0.1f;
 
     private ScorecardUI sUI;
+    private MatchManager mm;
 
     // angle of bowl is calculated by scaling the MAX_ROTATION
     // by finding the distance of the input from the center of the x-axis,
@@ -62,6 +63,7 @@ public class BowlLauncher : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         tr = GetComponent<Transform>();
         sUI = FindObjectOfType<ScorecardUI>();
+        mm = FindObjectOfType<MatchManager>();
         BowlOverlay.instance.scorecard.Reposition(false);
     }
 
@@ -182,7 +184,6 @@ public class BowlLauncher : MonoBehaviour
                 {
                     BowlOverlay.instance.MoveToBowl(transform.position);
                 }
-                BowlOverlay.instance.ToggleOpacity(true, true);
                 goto case TouchPhase.Moved;
             case TouchPhase.Moved:
                 // touch input should only be valid on the bottom (1/3)rd-ish of the phone
@@ -208,9 +209,15 @@ public class BowlLauncher : MonoBehaviour
                     
                     updatePredictor = true;
                     BowlOverlay.instance.UpdateLinePullback(touch.position);
-                }else{
+
+                    BowlOverlay.instance.ToggleOpacity(true, true);
+                    mm.ToggleHidePlayers(true);
+                }
+                else{
                     updatePredictor = false;
                     CameraZoom.instance.zoom = false;
+                    BowlOverlay.instance.ToggleOpacity(false, false);
+                    mm.ToggleHidePlayers(false);
                 }
                 break;
             default:

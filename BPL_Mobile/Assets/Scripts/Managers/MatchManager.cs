@@ -42,9 +42,24 @@ public class MatchManager : MonoBehaviour
     [SerializeField] private Material normalJack;
     [SerializeField] private Material powerplayJack;
 
+    [Header("Player Objects")]
+    private List<CharacterAppearanceUpdater> team1Players = new List<CharacterAppearanceUpdater>();
+    private List<CharacterAppearanceUpdater> team2Players = new List<CharacterAppearanceUpdater>();
+
     private void Awake()
     {
         ResumeManager.SessionLoaded += LoadFromPreviousSession;
+        foreach(CharacterAppearanceUpdater player in FindObjectsOfType<CharacterAppearanceUpdater>())
+        {
+            if(player.teamID == 1)
+            {
+                team1Players.Add(player);
+            }
+            else
+            {
+                team2Players.Add(player);
+            }
+        }
     }
 
     void Start(){
@@ -69,6 +84,9 @@ public class MatchManager : MonoBehaviour
 
         mainCam.GetComponent<CameraFollow>().LookAt(Jack.transform);
         sUI = FindObjectOfType<ScorecardUI>();
+
+        //SetNewPlayerPositions(1);
+        //SetNewPlayerPositions(2);
     }
 
     // Read the head for scoring purposes
@@ -235,6 +253,8 @@ public class MatchManager : MonoBehaviour
             scorecardUpdateDelay = 0.4f;
             scorecardViewed = false;
 
+            ToggleHidePlayers(false);
+
             currentBowl = SpawnBowl();
             currentBowlTr = currentBowl.GetComponent<Transform>();
             mainCam.transform.position = originalCameraLocation;
@@ -255,6 +275,11 @@ public class MatchManager : MonoBehaviour
 
                 if (!GameStateManager.Instance.isMultiplayerMode)
                 {
+                    ToggleHidePlayers(true);
+
+                    scm.team2CurrentTeammate = UnityEngine.Random.Range(0, 2);
+                    scm.SetTeammate(scm.team2CurrentTeammate);
+
                     Transform JackTransform = Jack.GetComponent<Transform>();
                     ai.TakeTurn(currentBowl, JackTransform.position, Team1Bowls, Team2Bowls, 1f);
                 }
@@ -442,5 +467,91 @@ public class MatchManager : MonoBehaviour
         loadedBowls = false;
 
         PlayerTurn = GameStateManager.Instance.isPlayerTurnLoaded;
+    }
+
+    public void ToggleHidePlayers(bool hide)
+    {
+        foreach(CharacterAppearanceUpdater player in team1Players)
+        {
+            player.hideCharacter = hide;
+        }
+
+        foreach (CharacterAppearanceUpdater player in team2Players)
+        {
+            player.hideCharacter = hide;
+        }
+    }
+
+    public void HideBowlingPlayer(int teamID, int characterID)
+    {
+        if(teamID == 1)
+        {
+            foreach(CharacterAppearanceUpdater player in team1Players)
+            {
+                if(player.characterID == characterID)
+                {
+                    player.playerBowling = true;
+                }
+                else
+                {
+                    player.playerBowling = false;
+                }
+            }
+        }
+        else
+        {
+            foreach (CharacterAppearanceUpdater player in team2Players)
+            {
+                if (player.characterID == characterID)
+                {
+                    player.playerBowling = true;
+                }
+                else
+                {
+                    player.playerBowling = false;
+                }
+            }
+        }
+    }
+
+    public void SetNewPlayerPositions(int team)
+    {
+        bool outsideRink = true;
+        if (team == 1)
+        {
+            foreach (CharacterAppearanceUpdater player in team1Players)
+            {
+                List<GameObject> obstacles = new List<GameObject>();
+                //obstacles.AddRange(GetLiveBowls());
+                foreach (CharacterAppearanceUpdater t2player in team2Players)
+                {
+                    obstacles.Add(t2player.gameObject);
+                }
+
+                player.RepositionCharacter(Jack.transform, GetLiveBowls(), !outsideRink);
+                if (!player.playerBowling)
+                {
+                    outsideRink = false;
+                }
+            }
+        }
+        else
+        {
+            foreach (CharacterAppearanceUpdater player in team2Players)
+            {
+                List<GameObject> obstacles = new List<GameObject>();
+                //obstacles.AddRange(GetLiveBowls());
+                foreach (CharacterAppearanceUpdater t1player in team1Players)
+                {
+                    obstacles.Add(t1player.gameObject);
+                }
+
+                player.RepositionCharacter(Jack.transform, GetLiveBowls(), !outsideRink);
+                if (!player.playerBowling)
+                {
+                    outsideRink = false;
+                }
+            }
+        }
     }
 }
