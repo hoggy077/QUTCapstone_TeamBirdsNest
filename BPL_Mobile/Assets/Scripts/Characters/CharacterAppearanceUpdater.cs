@@ -247,17 +247,21 @@ public class CharacterAppearanceUpdater : MonoBehaviour
             float random = Random.Range(0f, 1f);
 
             // Randomly Select Animation
-            if (random > 0.88f)
+            if (random > 0.75f)
             {
                 animator.Play("BowlGander1", 0, Random.Range(0f, 1f));
             }
-            else if (random > 0.44f)
+            else if (random > 0.5f)
             {
                 animator.Play("BowlGander2", 0, Random.Range(0f, 1f));
             }
-            else
+            else if (random > 0.25f)
             {
                 animator.Play("BowlGander3", 0, Random.Range(0f, 1f));
+            }
+            else
+            {
+                animator.Play("BowlGander4", 0, Random.Range(0f, 1f));
             }
 
             // Resetting if Beyond Boundary
