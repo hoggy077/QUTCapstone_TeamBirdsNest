@@ -41,7 +41,7 @@ public static class ResumeManager
                 //availableSession = SaveSystemJson.LoadGenericJson<SavedSession>(false, $"lastSession{extension}");
                 SaveSystemJson.LoadGenericJson<SavedSession>(ref availableSession, false, $"lastSession{extension}");
 #else
-                SaveSystemJson.LoadGenericJson<SavedSession>(ref availableSession, true, $"lastSession{extension}");
+                SaveSystemJson.LoadGenericJson<SavedSession>(ref availableSession, false, $"lastSession{extension}");
 #endif
                 hasEvaluated = true;
                 isAvail = true;
@@ -145,6 +145,20 @@ public static class ResumeManager
         }
     }
 
+    public static void LoadAudioVolume()
+    {
+        if (!hasEvaluated)
+            EvaluateSession();
+
+        Debug.Log($"ref is null: {refList == null}");
+
+        if (isAvail)
+        {
+            AudioManager.instance.sounds[0].volume = availableSession.sfxValue;
+            AudioManager.instance.sounds[5].volume = availableSession.bgmValue;
+        }
+    }
+
     //Change to save points. Saves will be made at the end of a bowl 
     public static void SaveGame()
     {
@@ -169,7 +183,10 @@ public static class ResumeManager
             Team2_state = GameStateManager.Instance.Team_2,
             endNumber = GameObject.FindObjectOfType<ScoringManager>().currentEnd,
             multiplayerMatch = GameStateManager.Instance.isMultiplayerMode,
-            playerTurn = GameObject.FindObjectOfType<MatchManager>().PlayerTurn
+            playerTurn = GameObject.FindObjectOfType<MatchManager>().PlayerTurn,
+            sfxValue = AudioManager.instance.sounds[0].volume,
+            bgmValue = AudioManager.instance.sounds[5].volume
+            //sensitivityValue = 
         };
         SaveSystemJson.SaveGenericJson(ss, "lastSession.sav");
     }
@@ -208,6 +225,8 @@ public class SavedSession
     public int endNumber;
     public bool multiplayerMatch;
     public bool playerTurn;
+    public float sfxValue, bgmValue;
+    public float sensitivityValue;
 }
 
 [Serializable]

@@ -17,6 +17,6 @@ public class DitchTrigger : MonoBehaviour
         collider.attachedRigidbody.useGravity = true;
 
         //Confirm CrowdUpset SFX
-        FindObjectOfType<AudioManager>().PlaySound("IFB399-CrowdNegativeSFX");
+        AudioManager.instance.PlaySound("IFB399-CrowdNegativeSFX");
     }
 }

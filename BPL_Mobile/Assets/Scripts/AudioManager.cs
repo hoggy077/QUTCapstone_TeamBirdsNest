@@ -1,10 +1,12 @@
 using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Audio;
+using UnityEngine.UI;
 
 ///*
 /// Specific sound files can be played in other scripts using the following line of code: (also required "using UnityEngine.Audio;" in headspace)
-///     FindObjectOfType<AudioManager>().PlaySound("SoundNameHere");
+///     AudioManager.instance.PlaySound("SoundNameHere");
 ///
 
 public class AudioManager : MonoBehaviour
@@ -12,9 +14,14 @@ public class AudioManager : MonoBehaviour
     //Variables
     public SoundClass[] sounds;
     public static AudioManager instance;
+    [SerializeField] public Slider volumeSfxSlider;
+    [SerializeField] public Slider volumeBgmSlider;
+    public TextMeshProUGUI sfxText;
+    public TextMeshProUGUI bgmText;
 
     void Awake()
     {
+
         //Prevents destroying or duplicating audiomanager during scene change/loading
         if (instance == null)
         {
@@ -51,5 +58,34 @@ public class AudioManager : MonoBehaviour
         }
         s.source.Play();
         //Debug.Log("SoundFound");
+    }
+
+    //Updates the sound to match the Options SFX Slider (& Resets BGM to not change)
+    public void ChangeSFXVolume()
+    {
+        float bgmTemp = sounds[5].source.volume;
+
+        foreach (SoundClass s in sounds)
+        {
+            s.source.volume = volumeSfxSlider.value;
+        }
+
+        sounds[5].source.volume = bgmTemp;
+
+        sfxText.text = (Math.Round(volumeSfxSlider.value * 100) + "%").ToString();
+
+    }
+
+    public void ChangeBGMVolume()
+    {
+        sounds[5].source.volume = volumeBgmSlider.value;
+        bgmText.text = (Math.Round(volumeBgmSlider.value * 100) + "%").ToString();
+    }
+
+    //Function which updates the UI slider on load
+    public void UpdateSliders()
+    {
+        volumeBgmSlider.value = sounds[5].source.volume;
+        volumeSfxSlider.value = sounds[0].source.volume;
     }
 }

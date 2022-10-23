@@ -132,7 +132,7 @@ public class ScoringManager : MonoBehaviour
             bowlUIRing.UpdateRing(jack.transform, bowls[0].GetComponent<BowlID>());
 
             //Confirm CrowdHappy SFX
-            FindObjectOfType<AudioManager>().PlaySound("IFB399-CrowdPositiveSFX");
+            AudioManager.instance.PlaySound("IFB399-CrowdPositiveSFX");
         }
 
         // Updating Current Bowls remaining for each team, finding if the end has concluded
@@ -271,7 +271,7 @@ public class ScoringManager : MonoBehaviour
             FinishMatch();
 
             //Confirm CrowdHappy SFX
-            FindObjectOfType<AudioManager>().PlaySound("IFB399-CrowdPositiveSFX");
+            AudioManager.instance.PlaySound("IFB399-CrowdPositiveSFX");
         }
 
         // Start Tiebreaker FINALE if required

@@ -130,7 +130,7 @@ public class BowlMovement : MonoBehaviour
                 isMoving = true;
 
                 //Confirm Collision SFX
-                FindObjectOfType<AudioManager>().PlaySound("IFB399-MetalCollisionSFX");
+                AudioManager.instance.PlaySound("IFB399-MetalCollisionSFX");
             }
             else{
                 bm2.tr = collision.gameObject.GetComponent<Transform>();                
@@ -167,7 +167,7 @@ public class BowlMovement : MonoBehaviour
                 bm2.isMoving = true;
 
                 //Confirm Collision SFX
-                FindObjectOfType<AudioManager>().PlaySound("IFB399-MetalCollisionSFX");
+                AudioManager.instance.PlaySound("IFB399-MetalCollisionSFX");
             }
         }
     }

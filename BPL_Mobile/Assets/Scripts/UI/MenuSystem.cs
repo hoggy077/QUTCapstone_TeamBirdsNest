@@ -112,7 +112,7 @@ public class MenuSystem : MonoBehaviour
     void Start()
     {
         //Start Playing Background Music
-        FindObjectOfType<AudioManager>().PlaySound("IFB399-RelaxedBGM");
+        AudioManager.instance.PlaySound("IFB399-RelaxedBGM");
 
         // Adding all screens to shared list for later reference
         allScreens.Add(titleScreen);
@@ -160,6 +160,10 @@ public class MenuSystem : MonoBehaviour
         // Setting Logo 2's Original Variables
         logo2OGPosition = logoDisplay2.rectTransform.localPosition;
         logo2OGScale = logoDisplay2.rectTransform.localScale;
+
+        //Loading Audio Settings
+        ResumeManager.LoadAudioVolume();
+        AudioManager.instance.UpdateSliders();
     }
 
     // Update is called once per frame
@@ -429,7 +433,7 @@ public class MenuSystem : MonoBehaviour
     public void ButtonPress(string targetAction)
     {
         //Confirm Click SFX
-        FindObjectOfType<AudioManager>().PlaySound("IFB399-MenuClickSFX");
+        AudioManager.instance.PlaySound("IFB399-MenuClickSFX");
 
         // Depending on command, perform action
         switch (targetAction)
@@ -757,7 +761,7 @@ public class MenuSystem : MonoBehaviour
         }
 
         //Confirm Selecting of Teams SFX
-        FindObjectOfType<AudioManager>().PlaySound("IFB399-ConfirmSFX");
+        AudioManager.instance.PlaySound("IFB399-ConfirmSFX");
     }
 
     // Function to handle the selecting of bowls
@@ -827,7 +831,7 @@ public class MenuSystem : MonoBehaviour
         }
 
         //Confirm Bowls Types Selected SFX
-        FindObjectOfType<AudioManager>().PlaySound("IFB399-ConfirmSFX");
+        AudioManager.instance.PlaySound("IFB399-ConfirmSFX");
     }
 
     // Roll To Next Team
@@ -908,7 +912,7 @@ public class MenuSystem : MonoBehaviour
         }
 
         //Confirm Back Button SFX
-        FindObjectOfType<AudioManager>().PlaySound("IFB399-ConfirmSFX");
+        AudioManager.instance.PlaySound("IFB399-ConfirmSFX");
     }
 
     // Function to handle the selecting of bowls
@@ -985,7 +989,7 @@ public class MenuSystem : MonoBehaviour
         }
 
         //Confirm Back Button SFX
-        FindObjectOfType<AudioManager>().PlaySound("IFB399-ConfirmSFX");
+        AudioManager.instance.PlaySound("IFB399-ConfirmSFX");
     }
 
     private void HandoverToGameScene()
