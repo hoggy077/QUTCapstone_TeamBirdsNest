@@ -22,7 +22,7 @@ public class ScoringManager : MonoBehaviour
 
     // Powerplay Functionality
     private bool team1PowerplayAvailable = true;
-    private bool team2PowerplayAvailable = true;
+    public bool team2PowerplayAvailable = true;
     private bool team1Powerplaying = false;
     private bool team2Powerplaying = false;
 

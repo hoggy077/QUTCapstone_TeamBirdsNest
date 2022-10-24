@@ -255,6 +255,16 @@ public class MatchManager : MonoBehaviour
                 return;
             }
 
+            // AI choose to enter Powerplay or not
+            if (!GameStateManager.Instance.isMultiplayerMode){
+                if(UnityEngine.Random.value < 1/5f && scm.team2PowerplayAvailable){
+                    scm.ActivatePowerplay(2);
+                }
+                else if(scm.currentEnd == 5 && scm.team2PowerplayAvailable){
+                    scm.ActivatePowerplay(2);
+                }
+            }
+
             // Updating Jack to Reflect Powerplay State
             if (scm.CurrentlyInPowerplay())
             {
