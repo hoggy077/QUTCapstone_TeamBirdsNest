@@ -56,7 +56,7 @@ public static class CareerRecordManager
         //    if (isSave)
         //    {
         //        serializer.Serialize(stream, playerCareer);
-        //        using FileStream fStream = File.OpenWrite($"{PersistentPath}\\{FileName}");
+        //        using FileStream fStream = File.OpenWrite($"{PersistentPath}/{FileName}");
         //        fStream.Write(stream.ToArray());
         //        fStream.Close();
         //        return null;
@@ -65,13 +65,13 @@ public static class CareerRecordManager
         //    {
         //        verifyDirectory();
 
-        //        if (!File.Exists($"{PersistentPath}\\{FileName}"))
+        //        if (!File.Exists($"{PersistentPath}/{FileName}"))
         //        {
-        //            File.Create($"{PersistentPath}\\{FileName}");
+        //            File.Create($"{PersistentPath}/{FileName}");
         //            return new PlayerCareer();
         //        }
 
-        //        using FileStream fStream = File.OpenRead($"{PersistentPath}\\{FileName}");
+        //        using FileStream fStream = File.OpenRead($"{PersistentPath}/{FileName}");
         //        return (PlayerCareer)serializer.Deserialize(fStream);
         //    }
         //}

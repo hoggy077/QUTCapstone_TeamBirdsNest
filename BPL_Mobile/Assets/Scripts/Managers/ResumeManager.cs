@@ -193,7 +193,7 @@ public static class ResumeManager
 
     public static void WipeSaveFile()
     {
-        if (File.Exists($"{SaveSystem.PersistentPath}\\lastSession{extension}"))
+        if (File.Exists($"{SaveSystem.PersistentPath}/lastSession{extension}"))
             SaveSystem.performDelete($"lastSession{extension}");
     }
 
@@ -352,7 +352,7 @@ public class SessionWindow : EditorWindow
 
         if(GUILayout.Button("Wipe save file."))
         {
-            if(File.Exists($"{SaveSystem.PersistentPath}\\lastSession{ResumeManager.extension}"))
+            if(File.Exists($"{SaveSystem.PersistentPath}/lastSession{ResumeManager.extension}"))
                 SaveSystem.performDelete($"lastSession{ResumeManager.extension}");
         }
 

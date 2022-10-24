@@ -11,7 +11,7 @@ using System.Text;
 public static class SaveSystem
 {
 #if UNITY_EDITOR
-    public static readonly string PersistentPath = $"{Environment.CurrentDirectory}\\gameInfo";
+    public static readonly string PersistentPath = $"{Environment.CurrentDirectory}/gameInfo";
 #else
     public static readonly string PersistentPath = $"{Application.persistentDataPath}";
 #endif
@@ -21,7 +21,7 @@ public static class SaveSystem
         verifyDirectory();
 
         XmlSerializer serializer = new XmlSerializer(typeof(T));
-        using FileStream stream = File.OpenWrite($"{PersistentPath}\\{FileName}");
+        using FileStream stream = File.OpenWrite($"{PersistentPath}/{FileName}");
         serializer.Serialize(stream, target);
         stream.Close();
 
@@ -31,13 +31,13 @@ public static class SaveSystem
     {
         verifyDirectory();
 
-        if (!File.Exists($"{PersistentPath}\\{FileName}"))
+        if (!File.Exists($"{PersistentPath}/{FileName}"))
             throw new Exception("File not found");
 
         XmlSerializer serializer = new XmlSerializer(typeof(T));
         object Result = null;
 
-        using FileStream stream = File.OpenRead($"{PersistentPath}\\{FileName}");
+        using FileStream stream = File.OpenRead($"{PersistentPath}/{FileName}");
         Result = serializer.Deserialize(stream);
         stream.Close();
 
@@ -52,7 +52,7 @@ public static class SaveSystem
 
     public static bool verifyFile<T>(string FileName)
     {
-        if(!File.Exists($"{PersistentPath}\\{FileName}"))
+        if(!File.Exists($"{PersistentPath}/{FileName}"))
             return false;
 
         try
@@ -60,7 +60,7 @@ public static class SaveSystem
             XmlSerializer serializer = new XmlSerializer(typeof(T));
             object Result = null;
 
-            using FileStream stream = File.OpenRead($"{PersistentPath}\\{FileName}");
+            using FileStream stream = File.OpenRead($"{PersistentPath}/{FileName}");
             Result = serializer.Deserialize(stream);
             stream.Close();
 
@@ -73,7 +73,7 @@ public static class SaveSystem
         }
     }
 
-    public static void performDelete(string FileName) => File.Delete($"{PersistentPath}\\{FileName}");
+    public static void performDelete(string FileName) => File.Delete($"{PersistentPath}/{FileName}");
     public static void verifyDirectory()
     {
         if (!Directory.Exists(PersistentPath))
@@ -85,7 +85,7 @@ public static class SaveSystem
 public static class SaveSystemJson
 {
 #if UNITY_EDITOR
-    public static readonly string PersistentPath = $"{Environment.CurrentDirectory}\\gameInfo";
+    public static readonly string PersistentPath = $"{Environment.CurrentDirectory}/gameInfo";
 #else
     public static readonly string PersistentPath = $"{Application.persistentDataPath}";
 #endif
@@ -96,8 +96,8 @@ public static class SaveSystemJson
         SaveSystem.verifyDirectory();
 #endif
         //Logger.Log($"{ ToJson(item)} - {Encoding.UTF8.GetBytes(ToJson(item)).Length}", "", LogType.Log);
-
-        File.WriteAllBytes($"{PersistentPath}\\{FileName}",Encoding.UTF8.GetBytes(ToJson(item)));
+        Debug.Log($"{PersistentPath}/{FileName}");
+        File.WriteAllBytes($"{PersistentPath}/{FileName}",Encoding.UTF8.GetBytes(ToJson(item)));
     }
 
     public static void LoadGenericJson<T>(ref T item, bool deletePostRead, string FileName)
@@ -106,10 +106,10 @@ public static class SaveSystemJson
         SaveSystem.verifyDirectory();
 #endif
 
-        if (!File.Exists($"{PersistentPath}\\{FileName}"))
+        if (!File.Exists($"{PersistentPath}/{FileName}"))
             throw new Exception("File not found");
 
-        byte[] outgoing = File.ReadAllBytes($"{PersistentPath}\\{FileName}");
+        byte[] outgoing = File.ReadAllBytes($"{PersistentPath}/{FileName}");
         object e = new object();
         FromJsonOverwrite(Encoding.UTF8.GetString(outgoing), item);
 
@@ -119,12 +119,12 @@ public static class SaveSystemJson
 
     public static bool VerifyFile<T>(string FileName)
     {
-        if (!File.Exists($"{PersistentPath}\\{FileName}"))
+        if (!File.Exists($"{PersistentPath}/{FileName}"))
             return false;
 
         try
         {
-            byte[] outgoing = File.ReadAllBytes($"{PersistentPath}\\{FileName}");
+            byte[] outgoing = File.ReadAllBytes($"{PersistentPath}/{FileName}");
             object raw = new object();
             FromJsonOverwrite(Encoding.UTF8.GetString(outgoing), raw);
 
