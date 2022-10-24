@@ -285,7 +285,11 @@ public class MatchManager : MonoBehaviour
             if (!PlayerTurn){
 
                 currentBowl.GetComponent<BowlID>().SetTeam(2);
+
+                // Saving Game and Career
                 ResumeManager.SaveGame();
+                CareerRecordManager.SaveCareer();
+
                 scm.SetTeammate(scm.team2CurrentTeammate);
 
                 if (!GameStateManager.Instance.isMultiplayerMode)
@@ -307,6 +311,7 @@ public class MatchManager : MonoBehaviour
                 }
             }
             else{
+
                 ResumeManager.SaveGame();
                 currentBowl.GetComponent<BowlID>().SetTeam(1);
 

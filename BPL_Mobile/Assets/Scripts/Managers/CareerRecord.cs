@@ -7,12 +7,12 @@ public static class CareerRecordManager
 {
 
     public static PlayerCareer playerCareer { get; private set; }// = new PlayerCareer();
-    public static void UpdateCareerValues(string name, uint? gamesWon, uint? bowlsRolled, uint? roundsWon)
+    public static void UpdateCareerValues(string name, uint? gamesWon, uint? bowlsRolled, uint? roundsWon, uint? matchesPlayed)
     {
         if (name != null)
             playerCareer.Name = name;
 
-        //before you ask, it gets pissy without the cast
+        //before you ask, it gets pissy without the cast // But Why tho???? 
         if (gamesWon != null)
             playerCareer.GamesWon = (uint)gamesWon;
 
@@ -21,6 +21,9 @@ public static class CareerRecordManager
 
         if (roundsWon != null)
             playerCareer.RoundsWon = (uint)roundsWon;
+
+        if (matchesPlayed != null)
+            playerCareer.GamesPlayed = (uint)matchesPlayed;
     }
 
 
@@ -85,4 +88,5 @@ public class PlayerCareer
     public uint GamesWon = 0;
     public uint RoundsWon = 0;
     public uint BowlsRolled = 0;
+    public uint GamesPlayed = 0;
 }
