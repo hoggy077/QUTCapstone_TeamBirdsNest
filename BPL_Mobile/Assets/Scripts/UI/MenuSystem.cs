@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.UI;
+using System;
 using UnityEngine.SceneManagement;
 
 public class MenuSystem : MonoBehaviour
 {
     [Header("Flow into Game")]
     private string gameScene = "TempQuickPlay";
-    private Gamemode gamemode;
+    private Gamemode gamemode = Gamemode.Quickplay;
     public enum Gamemode
     {
         Tournament,
@@ -94,6 +95,16 @@ public class MenuSystem : MonoBehaviour
     [SerializeField] private TMPro.TextMeshProUGUI endsWon;
     [SerializeField] private TMPro.TextMeshProUGUI bowlsRolled;
     [SerializeField] private TMPro.TextMeshProUGUI winLossRatio;
+
+    [Header("Tournament Screen")]
+    [SerializeField] private RectTransform activeTourney;
+    [SerializeField] private RectTransform inactiveTourney;
+    [SerializeField] private RectTransform noTourney;
+    [SerializeField] private TMPro.TextMeshProUGUI placing;
+    [SerializeField] private TMPro.TextMeshProUGUI flavourText;
+    [SerializeField] private TeamLeaderboardSlot[] leaderboardSlots;
+    [SerializeField] private TMPro.TextMeshProUGUI gamesRemaining;
+    [SerializeField] private TMPro.TextMeshProUGUI gameResumeOrNot;
 
     // Variable to manage background gradient effect
     private GradientBackground bg;
@@ -494,7 +505,100 @@ public class MenuSystem : MonoBehaviour
 
             case "Tournament":
                 UpdateMenuDisplay(MenuState.Tournament);
+                gamemode = Gamemode.Tournament;
+                firstPlayerSelected = false;
+                currentSelectionIndex = 0;
                 multiplayer = false;
+
+                // If fresh save file
+                if(!CareerRecordManager.playerCareer.TournamentRunning && !CareerRecordManager.playerCareer.PreviousTournamentFinished)
+                {
+                    noTourney.gameObject.SetActive(true);
+                    activeTourney.gameObject.SetActive(false);
+                    inactiveTourney.gameObject.SetActive(false);
+                }
+                // If tourney over
+                else if(!CareerRecordManager.playerCareer.TournamentRunning && CareerRecordManager.playerCareer.PreviousTournamentFinished)
+                {
+                    noTourney.gameObject.SetActive(false);
+                    activeTourney.gameObject.SetActive(false);
+                    inactiveTourney.gameObject.SetActive(true);
+
+                    string placingText = "";
+                    uint currentHighest = 0;
+
+                    uint[] sortedScores = CareerRecordManager.playerCareer.TeamScores;
+                    Array.Sort(sortedScores);
+
+                    // Getting Highest Position
+                    foreach (uint score in sortedScores)
+                    {
+                        if (CareerRecordManager.playerCareer.TeamScores[CareerRecordManager.playerCareer.playerTeamIndex] >= score)
+                        {
+                            currentHighest++;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
+                    placing.text = "#" + (10 - currentHighest).ToString();
+
+                    if (currentHighest == 9)
+                    {
+                        flavourText.text = "WINNER!!";
+                    }
+                    else if (currentHighest == 8)
+                    {
+                        flavourText.text = "SO Close!";
+                    }
+                    else if (currentHighest == 7)
+                    {
+                        flavourText.text = "Winners are grinners!";
+                    }
+                    else if (currentHighest == 6)
+                    {
+                        flavourText.text = "Nice Effort";
+                    }
+                    else if (currentHighest == 5)
+                    {
+                        flavourText.text = "Well done!";
+                    }
+                    else
+                    {
+                        flavourText.text = "Better Luck Next Time...";
+                    }
+                }
+                // If tournament currently active
+                else
+                {
+                    noTourney.gameObject.SetActive(false);
+                    activeTourney.gameObject.SetActive(true);
+                    inactiveTourney.gameObject.SetActive(false);
+
+                    gamesRemaining.text = CareerRecordManager.playerCareer.TournamentMatchesRemaining + " GAMES REMAIN";
+
+                    if(CareerRecordManager.playerCareer.MidMatch && ResumeManager.hasPriorGame)
+                    {
+                        gameResumeOrNot.text = "RESUME MATCH";
+                    }
+                    else
+                    {
+                        gameResumeOrNot.text = "BEGIN NEXT MATCH";
+                    }
+
+                    for(int i = 0; i < leaderboardSlots.Length; i++)
+                    {
+                        leaderboardSlots[i].UpdateTeam(teams[i].TeamIcon, teams[i].TeamName, CareerRecordManager.playerCareer.TeamScores[i].ToString());
+
+                        if(i == CareerRecordManager.playerCareer.playerTeamIndex)
+                        {
+                            leaderboardSlots[i].GetComponent<Image>().color = Color.blue;
+                        }
+                    }
+                }
+
                 break;
 
             case "Career":
@@ -508,9 +612,52 @@ public class MenuSystem : MonoBehaviour
 
             case "SelectTeam_1P":
                 UpdateMenuDisplay(MenuState.SelectTeam);
-                multiplayer = false;
-                currentSelectionIndex = 0;
-                UpdateTeamSelectionScreen();
+
+                if (gamemode == Gamemode.Quickplay)
+                {
+                    multiplayer = false;
+                    currentSelectionIndex = 0;
+                    UpdateTeamSelectionScreen();
+                }
+
+                // Look at Tournament Functionality
+                else
+                {
+                    // If fresh save file
+                    if (!CareerRecordManager.playerCareer.TournamentRunning && !CareerRecordManager.playerCareer.PreviousTournamentFinished)
+                    {
+                        CareerRecordManager.UpdateTournamentStatistics(true, false, (uint)6, new uint[10] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 0, false, null);
+                        multiplayer = false;
+                        currentSelectionIndex = 0;
+                        UpdateTeamSelectionScreen();
+                    }
+
+                    // If tourney over
+                    else if (!CareerRecordManager.playerCareer.TournamentRunning && CareerRecordManager.playerCareer.PreviousTournamentFinished)
+                    {
+                        CareerRecordManager.UpdateTournamentStatistics(true, false, (uint)6, new uint[10] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 0, false, null);
+                        multiplayer = false;
+                        currentSelectionIndex = 0;
+                        UpdateTeamSelectionScreen();
+                    }
+
+                    // If tournament currently active
+                    else
+                    {
+                        // If Mid-Match, resume that bad boy
+                        if (CareerRecordManager.playerCareer.MidMatch)
+                        {
+                            ResumeManager.LoadGame("TempQuickPlay");
+                        }
+                        // Otherwise Begin Next Round
+                        else
+                        {
+                            CareerRecordManager.UpdateTournamentStatistics(true, null, null, null, null, true, null);
+                            HandoverToGameScene();
+                        }
+                    }
+                }
+
                 break;
 
             case "SelectTeam_2P":
@@ -1037,12 +1184,62 @@ public class MenuSystem : MonoBehaviour
                 GameStateManager.Instance.isMultiplayerMode = false;
             }
 
+            if (CareerRecordManager.playerCareer.MidMatch)
+            {
+                CareerRecordManager.UpdateTournamentStatistics(true, null, null, null, null, false, null);
+                CareerRecordManager.SaveCareer();
+            }
+
             SceneManager.LoadScene(gameScene);
         }
         else
         {
-            SceneManager.LoadScene(gameScene);
-            GameStateManager.Instance.isMultiplayerMode = false;
+            // New Tournament Save
+            if (CareerRecordManager.playerCareer.TournamentMatchesRemaining >= 6 && !CareerRecordManager.playerCareer.MidMatch)
+            {
+                List<uint> bowlIDs = new List<uint>();
+
+                foreach(BowlsScriptable bowl in team1Bowls)
+                {
+                    int i = 0;
+
+                    for(i = 0; i < bowls.Length; i++)
+                    {
+                        if(bowls[i] == bowl)
+                        {
+                            break;
+                        }
+                    }
+
+                    bowlIDs.Add((uint)i);
+                }
+
+                GameStateManager.Instance.UpdateTeam(1, teams[player1TeamIndex], ConvertToBowlsArray(team1Bowls));
+                CareerRecordManager.UpdateTournamentStatistics(true, null, null, null, (uint)player1TeamIndex, true, bowlIDs.ToArray());
+                GameStateManager.Instance.isMultiplayerMode = false;
+                GameStateManager.Instance.UpdateTeam(2, GetRandomUnpickedTeam(), new BowlsScriptable[3] { bowls[2], bowls[2], bowls[2] });
+                CareerRecordManager.SaveCareer();
+
+                SceneManager.LoadScene(gameScene);
+            }
+            // Opening new Tournament Game in Existing Tournament
+            else
+            {
+                team1Bowls = new List<BowlsScriptable>();
+
+                foreach(uint bowl in CareerRecordManager.playerCareer.teamSelectedBowls)
+                {
+                    team1Bowls.Add(bowls[bowl]);
+                }
+
+                GameStateManager.Instance.UpdateTeam(1, teams[CareerRecordManager.playerCareer.playerTeamIndex], ConvertToBowlsArray(team1Bowls));
+                CareerRecordManager.UpdateTournamentStatistics(true, null, null, null, null, true, null);
+                GameStateManager.Instance.isMultiplayerMode = false;
+                GameStateManager.Instance.UpdateTeam(2, GetRandomUnpickedTeam(), new BowlsScriptable[3] { bowls[2], bowls[2], bowls[2] });
+                CareerRecordManager.SaveCareer();
+
+                SceneManager.LoadScene(gameScene);
+            }
         }
     }
 
@@ -1058,7 +1255,7 @@ public class MenuSystem : MonoBehaviour
 
         possibleTeams.Remove(teams[player1TeamIndex]);
 
-        return possibleTeams[Random.Range(0, possibleTeams.Count)];
+        return possibleTeams[UnityEngine.Random.Range(0, possibleTeams.Count)];
     }
 
     // Converting Bowls List to Bowls Array because I didn't plan this far ahead haha poopy

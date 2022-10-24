@@ -26,6 +26,31 @@ public static class CareerRecordManager
             playerCareer.GamesPlayed = (uint)matchesPlayed;
     }
 
+    public static void UpdateTournamentStatistics(bool tournamentRunning, bool? previousTournamentFinished, uint? matchesRemaining, uint[]? teamScores, uint? playerIndex, bool? midMatch, uint[]? bowlSelection)
+    {
+        if (tournamentRunning != null)
+            playerCareer.TournamentRunning = (bool)tournamentRunning;
+
+        //before you ask, it gets pissy without the cast // But Why tho???? 
+        if (previousTournamentFinished != null)
+            playerCareer.PreviousTournamentFinished = (bool)previousTournamentFinished;
+
+        if (matchesRemaining != null)
+            playerCareer.TournamentMatchesRemaining = (uint)matchesRemaining;
+
+        if (teamScores != null)
+            playerCareer.TeamScores = teamScores;
+
+        if (playerIndex != null)
+            playerCareer.playerTeamIndex = (uint)playerIndex;
+
+        if (midMatch != null)
+            playerCareer.MidMatch = (bool)midMatch;
+
+        if (bowlSelection != null)
+            playerCareer.teamSelectedBowls = bowlSelection;
+    }
+
 
     public static void SaveCareer() => SaveSystem.saveGeneric(playerCareer, "careerInfo.career");
 
@@ -89,4 +114,12 @@ public class PlayerCareer
     public uint RoundsWon = 0;
     public uint BowlsRolled = 0;
     public uint GamesPlayed = 0;
+
+    public bool TournamentRunning = false;
+    public bool PreviousTournamentFinished = false;
+    public uint TournamentMatchesRemaining = 0;
+    public uint[] TeamScores = new uint[1];
+    public uint playerTeamIndex = 0;
+    public bool MidMatch = false;
+    public uint[] teamSelectedBowls;
 }

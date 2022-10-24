@@ -62,6 +62,11 @@ public class MatchManager : MonoBehaviour
         }
     }
 
+    void OnDisable()
+    {
+        ResumeManager.SessionLoaded -= LoadFromPreviousSession;
+    }
+
     void Start(){
         // create the jack and set it in the correct positionc -- unless we loaded one in from the save system boiii
         if (Jack == null && GameObject.FindGameObjectsWithTag("Jack").Length == 0)

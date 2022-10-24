@@ -102,6 +102,7 @@
     <Compile Include="Assets\Scripts\Managers\TournamentManager.cs" />
     <Compile Include="Assets\Curviture.cs" />
     <Compile Include="Assets\Scripts\UI\PowerplayQuery.cs" />
+    <Compile Include="Assets\Scripts\UI\TeamLeaderboardSlot.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

@@ -345,15 +345,78 @@ public class ScoringManager : MonoBehaviour
     // Function to handle concluding of match
     private void FinishMatch()
     {
+        // Saving Winner Bool
+        bool playerWon = false;
+
         // Determining Winner
         if(currentScore.team1Sets > currentScore.team2Sets && !GameStateManager.Instance.isMultiplayerMode)
         {
             // Add Victory to Career
             CareerRecordManager.UpdateCareerValues("player", CareerRecordManager.playerCareer.GamesWon + 1, null, null, null);
+            playerWon = true;
         }
 
-        // Add Match Completion to Career and Save
-        CareerRecordManager.UpdateCareerValues("player", null, null, null, CareerRecordManager.playerCareer.GamesPlayed + 1);
+        if (!GameStateManager.Instance.isMultiplayerMode)
+        {
+            // Add Match Completion to Career and Save
+            CareerRecordManager.UpdateCareerValues("player", null, null, null, CareerRecordManager.playerCareer.GamesPlayed + 1);
+        }
+
+        // If this was a tournament match, update tournament details before exiting
+        if(CareerRecordManager.playerCareer.MidMatch)
+        {
+            uint[] newTeamScores = new uint[10];
+
+            // Calculate Victors
+            List<int> victorIndexes = new List<int>();
+
+            // Selecting 5 Winners
+            for(int i = 0; i < 6; i++)
+            {
+                int randomVictor = UnityEngine.Random.Range(0, 9);
+
+                while(victorIndexes.Contains(randomVictor))
+                {
+                    randomVictor = UnityEngine.Random.Range(0, 9);
+                }
+
+                victorIndexes.Add(randomVictor);
+            }
+
+            // Tallying Up Scores
+            int currentIndex = 0;
+            foreach(uint score in CareerRecordManager.playerCareer.TeamScores)
+            {
+                if (victorIndexes.Contains(currentIndex))
+                    newTeamScores[currentIndex] = score + 1;
+                else
+                    newTeamScores[currentIndex] = score - 1;
+
+                if(currentIndex == CareerRecordManager.playerCareer.playerTeamIndex && playerWon)
+                    newTeamScores[currentIndex] = score + 1;
+                else if(currentIndex == CareerRecordManager.playerCareer.playerTeamIndex && !playerWon)
+                    newTeamScores[currentIndex] = score - 1;
+
+                currentIndex++;
+            }
+
+            // Calculating Tournament State
+            int currentMatchNumber = (int)CareerRecordManager.playerCareer.TournamentMatchesRemaining;
+            bool tournamentOver = false;
+
+            if(currentMatchNumber - 1 == 0)
+            {
+                currentMatchNumber = 0;
+                tournamentOver = true;
+            }
+            else
+            {
+                currentMatchNumber -= 1;
+            }
+
+            CareerRecordManager.UpdateTournamentStatistics(!tournamentOver, tournamentOver, (uint)currentMatchNumber, newTeamScores, null, false, null);
+        }
+
         CareerRecordManager.SaveCareer();
 
 
