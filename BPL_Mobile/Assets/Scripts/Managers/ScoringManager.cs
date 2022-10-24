@@ -389,12 +389,12 @@ public class ScoringManager : MonoBehaviour
             {
                 if (victorIndexes.Contains(currentIndex))
                     newTeamScores[currentIndex] = score + 1;
-                else
+                else if(score > 0)
                     newTeamScores[currentIndex] = score - 1;
 
                 if(currentIndex == CareerRecordManager.playerCareer.playerTeamIndex && playerWon)
                     newTeamScores[currentIndex] = score + 1;
-                else if(currentIndex == CareerRecordManager.playerCareer.playerTeamIndex && !playerWon)
+                else if(currentIndex == CareerRecordManager.playerCareer.playerTeamIndex && !playerWon && score > 0)
                     newTeamScores[currentIndex] = score - 1;
 
                 currentIndex++;
