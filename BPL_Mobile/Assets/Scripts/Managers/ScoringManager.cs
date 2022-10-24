@@ -498,7 +498,6 @@ public class ScoringManager : MonoBehaviour
 
     #endregion
 
-
     // Handling Teammate Switching
     public void SetTeammate(int targetTeammate)
     {

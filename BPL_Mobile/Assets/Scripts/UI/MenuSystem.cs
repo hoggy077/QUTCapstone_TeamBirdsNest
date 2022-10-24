@@ -1075,4 +1075,10 @@ public class MenuSystem : MonoBehaviour
 
         return output;
     }
+
+    // Function to handle opening of website from main menu
+    public void OpenBowlsWebsite()
+    {
+        Application.OpenURL("https://www.bowls.com.au/events-page/national-events/bowls-premier-league/");
+    }
 }
