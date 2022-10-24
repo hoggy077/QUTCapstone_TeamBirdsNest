@@ -175,6 +175,9 @@ public class BowlLauncher : MonoBehaviour
 
                     BowlOverlay.instance.ToggleOpacity(false, true);
                     CameraZoom.instance.zoom = false;
+
+                    // Added Rolled Bowl to Career
+                    CareerRecordManager.UpdateCareerValues("player", null, CareerRecordManager.playerCareer.BowlsRolled + 1, null, null);
                 }
                 BowlOverlay.instance.ToggleOpacity(false, false);
                 CameraZoom.instance.zoom = false;

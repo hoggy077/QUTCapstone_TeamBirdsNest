@@ -89,6 +89,12 @@ public class MenuSystem : MonoBehaviour
     [SerializeField] private SelectionsSummaryUI player1SS;
     [SerializeField] private SelectionsSummaryUI player2SS;
 
+    [Header("Career Screen")]
+    [SerializeField] private TMPro.TextMeshProUGUI matchesWon;
+    [SerializeField] private TMPro.TextMeshProUGUI endsWon;
+    [SerializeField] private TMPro.TextMeshProUGUI bowlsRolled;
+    [SerializeField] private TMPro.TextMeshProUGUI winLossRatio;
+
     // Variable to manage background gradient effect
     private GradientBackground bg;
 
@@ -164,6 +170,26 @@ public class MenuSystem : MonoBehaviour
         //Loading Audio Settings
         ResumeManager.LoadAudioVolume();
         AudioManager.instance.UpdateSliders();
+
+        // Updating Career Display
+        CareerRecordManager.LoadCareer();
+        matchesWon.text = CareerRecordManager.playerCareer.GamesWon.ToString();
+        endsWon.text = CareerRecordManager.playerCareer.RoundsWon.ToString();
+        bowlsRolled.text = CareerRecordManager.playerCareer.BowlsRolled.ToString();
+
+        if (CareerRecordManager.playerCareer.GamesWon > 0 && CareerRecordManager.playerCareer.GamesPlayed > 0)
+        {
+            float ratio = Mathf.Round(CareerRecordManager.playerCareer.GamesPlayed / CareerRecordManager.playerCareer.GamesWon * 1000f) / 10f;
+            winLossRatio.text = ratio.ToString();
+        }
+        else if (CareerRecordManager.playerCareer.GamesWon == 0 && CareerRecordManager.playerCareer.GamesPlayed > 0)
+        {
+            winLossRatio.text = "0%";
+        }
+        else
+        {
+            winLossRatio.text = "N/A";
+        }    
     }
 
     // Update is called once per frame
@@ -473,6 +499,7 @@ public class MenuSystem : MonoBehaviour
 
             case "Career":
                 UpdateMenuDisplay(MenuState.CareerMenu);
+
                 break;
 
             case "Tutorial":
@@ -1047,5 +1074,11 @@ public class MenuSystem : MonoBehaviour
         }
 
         return output;
+    }
+
+    // Function to handle opening of website from main menu
+    public void OpenBowlsWebsite()
+    {
+        Application.OpenURL("https://www.bowls.com.au/events-page/national-events/bowls-premier-league/");
     }
 }

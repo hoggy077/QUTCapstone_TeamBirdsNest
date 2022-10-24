@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class ScorecardUI : MonoBehaviour
 {
@@ -67,6 +68,9 @@ public class ScorecardUI : MonoBehaviour
     public RectTransform teammateSelectionPanel;
     private float teammaterSelectionPanelClosedPos = -1500f;
     private float teammateSelectionPanelTargetPos = 0f;
+    public RectTransform pauseMenu;
+    private float pauseMenuClosedPos = 1500f;
+    private float pauseMenuTarget = 0f;
     private MatchManager mm;
     private ScoringManager scm;
 
@@ -106,12 +110,20 @@ public class ScorecardUI : MonoBehaviour
         {
             teammateSelectionPanelTargetPos = teammaterSelectionPanelClosedPos;
             submenuState = SubmenuState.None;
+            pauseMenuTarget = pauseMenuClosedPos;
+
             teammateSelectionPanel.anchoredPosition = Vector3.MoveTowards(teammateSelectionPanel.anchoredPosition, new Vector3(teammaterSelectionPanelClosedPos, teammateSelectionPanel.anchoredPosition.y), 3000f * Time.deltaTime);
+
+            // Moving Pause Menu if Required
+            pauseMenu.anchoredPosition = Vector3.MoveTowards(pauseMenu.anchoredPosition, new Vector3(pauseMenuClosedPos, pauseMenu.anchoredPosition.y), 3000f * Time.deltaTime);
         }
         else
         {
             // Moving Teamate Swap Menu if Required
             teammateSelectionPanel.anchoredPosition = Vector3.MoveTowards(teammateSelectionPanel.anchoredPosition, new Vector3(teammateSelectionPanelTargetPos, teammateSelectionPanel.anchoredPosition.y), 3000f * Time.deltaTime);
+
+            // Moving Pause Menu if Required
+            pauseMenu.anchoredPosition = Vector3.MoveTowards(pauseMenu.anchoredPosition, new Vector3(pauseMenuTarget, pauseMenu.anchoredPosition.y), 3000f * Time.deltaTime);
         }
 
         // Updating Teammate Selection Screen profiles
@@ -298,6 +310,7 @@ public class ScorecardUI : MonoBehaviour
         if(team1SetsWon == 0 && team2SetsWon == 0)
         {
             displaySetScore = false;
+            //if(setsWonScorecardElement =)
             setsWonScorecardElement.SetActive(false);
         }
         else
@@ -393,6 +406,7 @@ public class ScorecardUI : MonoBehaviour
         if(submenuState != SubmenuState.TeammateSwitch)
         {
             teammateSelectionPanelTargetPos = 0f;
+            pauseMenuTarget = pauseMenuClosedPos;
             submenuState = SubmenuState.TeammateSwitch;
         }
         else
@@ -427,11 +441,47 @@ public class ScorecardUI : MonoBehaviour
             {
                 submenuState = SubmenuState.OverheadCamera;
                 teammateSelectionPanelTargetPos = teammaterSelectionPanelClosedPos;
+                pauseMenuTarget = pauseMenuClosedPos;
             }
         }
         else
         {
             submenuState = SubmenuState.None;
+        }
+    }
+
+    public void TogglePauseMenu()
+    {
+        if (submenuState != SubmenuState.PauseMenu)
+        {
+            bool toggleMenu = true;
+
+            if (mm.PlayerTurn)
+            {
+                if (scm.currentScore.team1teammateShots[scm.team1CurrentTeammate] < 1)
+                {
+                    toggleMenu = false;
+                }
+            }
+            else
+            {
+                if (scm.currentScore.team2teammateShots[scm.team2CurrentTeammate] < 1)
+                {
+                    toggleMenu = false;
+                }
+            }
+
+            if (toggleMenu)
+            {
+                submenuState = SubmenuState.PauseMenu;
+                teammateSelectionPanelTargetPos = teammaterSelectionPanelClosedPos;
+                pauseMenuTarget = 0f;
+            }
+        }
+        else
+        {
+            submenuState = SubmenuState.None;
+            pauseMenuTarget = pauseMenuClosedPos;
         }
     }
 
@@ -444,6 +494,14 @@ public class ScorecardUI : MonoBehaviour
         output = segmentedInput[0][0].ToString() + ". " + segmentedInput[1];
 
         return output;
+    }
+
+    public void ExitMatch()
+    {
+        if (submenuState == SubmenuState.PauseMenu)
+        {
+            SceneManager.LoadScene(0);
+        }
     }
 
     #endregion

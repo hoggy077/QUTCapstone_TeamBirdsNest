@@ -56,6 +56,11 @@ public class ScoringManager : MonoBehaviour
         ResumeManager.SessionLoaded += LoadPreviousSessionsScore;
     }
 
+    void OnDisable()
+    {
+        ResumeManager.SessionLoaded -= LoadPreviousSessionsScore;
+    }
+
     // Initializing Match
     private void Start()
     {
@@ -151,6 +156,13 @@ public class ScoringManager : MonoBehaviour
             {
                 currentScore.team1Ends += previousTeamAndScoreLead[1];
                 mm.PlayerTurn = true;
+
+                // If not multiplayer, track winning end
+                if (!GameStateManager.Instance.isMultiplayerMode)
+                {
+                    // Add Won End to Career
+                    CareerRecordManager.UpdateCareerValues("player", null, null, CareerRecordManager.playerCareer.RoundsWon + 1, null);
+                }
             }
             else if (previousTeamAndScoreLead[0] == 2)
             {
@@ -333,6 +345,18 @@ public class ScoringManager : MonoBehaviour
     // Function to handle concluding of match
     private void FinishMatch()
     {
+        // Determining Winner
+        if(currentScore.team1Sets > currentScore.team2Sets && !GameStateManager.Instance.isMultiplayerMode)
+        {
+            // Add Victory to Career
+            CareerRecordManager.UpdateCareerValues("player", CareerRecordManager.playerCareer.GamesWon + 1, null, null, null);
+        }
+
+        // Add Match Completion to Career and Save
+        CareerRecordManager.UpdateCareerValues("player", null, null, null, CareerRecordManager.playerCareer.GamesPlayed + 1);
+        CareerRecordManager.SaveCareer();
+
+
         ResumeManager.WipeSaveFile();
         SceneManager.LoadScene(0);
     }
@@ -473,7 +497,6 @@ public class ScoringManager : MonoBehaviour
     }
 
     #endregion
-
 
     // Handling Teammate Switching
     public void SetTeammate(int targetTeammate)
