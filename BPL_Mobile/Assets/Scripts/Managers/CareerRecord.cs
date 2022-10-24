@@ -6,7 +6,7 @@ using UnityEngine;
 public static class CareerRecordManager
 {
 
-    public static PlayerCareer playerCareer { get; private set; } = new PlayerCareer();
+    public static PlayerCareer playerCareer { get; private set; }// = new PlayerCareer();
     public static void UpdateCareerValues(string name, uint? gamesWon, uint? bowlsRolled, uint? roundsWon)
     {
         if (name != null)

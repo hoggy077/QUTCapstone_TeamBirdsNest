@@ -9,7 +9,7 @@ public class Logger
 #if UNITY_EDITOR
     public static readonly string PersistentPath = $"{Environment.CurrentDirectory}\\Logs";
 #else
-    public static readonly string PersistentPath = $"{Application.persistentDataPath}\\Logs";
+    public static readonly string PersistentPath = $"{Application.persistentDataPath}";
 #endif
 
 
@@ -18,7 +18,7 @@ public class Logger
     static Logger Instance_ = null;
 
 
-    public static bool RunOnLaunch = true;
+    public static bool RunOnLaunch = false;
 
 
     [RuntimeInitializeOnLoadMethod]

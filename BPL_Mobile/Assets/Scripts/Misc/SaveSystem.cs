@@ -13,7 +13,7 @@ public static class SaveSystem
 #if UNITY_EDITOR
     public static readonly string PersistentPath = $"{Environment.CurrentDirectory}\\gameInfo";
 #else
-    public static readonly string PersistentPath = $"{Application.persistentDataPath}\\gameInfo";
+    public static readonly string PersistentPath = $"{Application.persistentDataPath}";
 #endif
 
     public static void saveGeneric<T>(T target, string FileName)
@@ -71,7 +71,6 @@ public static class SaveSystem
         {
             return false;
         }
-        return false;
     }
 
     public static void performDelete(string FileName) => File.Delete($"{PersistentPath}\\{FileName}");
@@ -88,21 +87,24 @@ public static class SaveSystemJson
 #if UNITY_EDITOR
     public static readonly string PersistentPath = $"{Environment.CurrentDirectory}\\gameInfo";
 #else
-    public static readonly string PersistentPath = $"{Application.persistentDataPath}\\gameInfo";
+    public static readonly string PersistentPath = $"{Application.persistentDataPath}";
 #endif
 
     public static void SaveGenericJson<T>(T item, string FileName)
     {
+#if UNITY_STANDALONE || UNITY_EDITOR
         SaveSystem.verifyDirectory();
-
-        Logger.Log($"{ ToJson(item)} - {Encoding.UTF8.GetBytes(ToJson(item)).Length}", "", LogType.Log);
+#endif
+        //Logger.Log($"{ ToJson(item)} - {Encoding.UTF8.GetBytes(ToJson(item)).Length}", "", LogType.Log);
 
         File.WriteAllBytes($"{PersistentPath}\\{FileName}",Encoding.UTF8.GetBytes(ToJson(item)));
     }
 
     public static void LoadGenericJson<T>(ref T item, bool deletePostRead, string FileName)
     {
+#if UNITY_STANDALONE || UNITY_EDITOR
         SaveSystem.verifyDirectory();
+#endif
 
         if (!File.Exists($"{PersistentPath}\\{FileName}"))
             throw new Exception("File not found");

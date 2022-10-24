@@ -6,10 +6,8 @@ public class ManagerInitalizer : MonoBehaviour
 
     void Awake()
     {
-        _ = Logger.Instance;
         CareerRecordManager.LoadCareer(); //Load the career manager
         //ResumeManager.SetReferenceTable(refStorage);
         //Load any other managers or other shit we may need here
-        _ = Logger.Instance;
     }
 }
