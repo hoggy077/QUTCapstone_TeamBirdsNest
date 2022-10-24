@@ -39,10 +39,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _CurrentRot: -44.857773
+    - _CurrentRot: -79.66354
     - _HorizontalInfluence: 0.91
     - _VerticalInfluence: 1
     m_Colors:
-    - _Color1: {r: 0, g: 0.227451, b: 0.38431376, a: 1}
-    - _Color2: {r: 0.16470589, g: 0.7411765, b: 0.69411767, a: 1}
+    - _Color1: {r: 0.16435133, g: 0.7400706, b: 0.6934507, a: 1}
+    - _Color2: {r: 0.0003545853, g: 0.22855699, b: 0.38498074, a: 1}
   m_BuildTextureStacks: []

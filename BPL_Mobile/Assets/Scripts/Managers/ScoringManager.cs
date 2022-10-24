@@ -56,6 +56,11 @@ public class ScoringManager : MonoBehaviour
         ResumeManager.SessionLoaded += LoadPreviousSessionsScore;
     }
 
+    void OnDisable()
+    {
+        ResumeManager.SessionLoaded -= LoadPreviousSessionsScore;
+    }
+
     // Initializing Match
     private void Start()
     {

@@ -313,6 +313,8 @@ public class MatchManager : MonoBehaviour
             else{
 
                 ResumeManager.SaveGame();
+                CareerRecordManager.SaveCareer();
+
                 currentBowl.GetComponent<BowlID>().SetTeam(1);
 
                 scm.SetTeammate(scm.team1CurrentTeammate);
