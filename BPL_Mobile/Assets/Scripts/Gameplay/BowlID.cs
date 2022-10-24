@@ -6,6 +6,7 @@ public class BowlID : MonoBehaviour
 {
     public bool chalked = false;
     public bool inDitch = false;
+    public bool enteredDitch = false;
     private int team = 0;
     private MeshRenderer mr;
     public bool toucher = false;

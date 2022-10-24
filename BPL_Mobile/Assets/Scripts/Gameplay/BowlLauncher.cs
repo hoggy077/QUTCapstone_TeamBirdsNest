@@ -7,6 +7,7 @@ public class BowlLauncher : MonoBehaviour
 {
     public Collider rinkFloor;
     public LineRenderer lineRenderer;
+    private BowlID bi;
     private Rigidbody rb;
     private Transform tr;
     private float BowlRadius = 0.0635f;
@@ -64,17 +65,18 @@ public class BowlLauncher : MonoBehaviour
         tr = GetComponent<Transform>();
         sUI = FindObjectOfType<ScorecardUI>();
         mm = FindObjectOfType<MatchManager>();
+        bi = GetComponent<BowlID>();
         BowlOverlay.instance.scorecard.Reposition(false);
     }
 
     void FixedUpdate(){
-        if(deliver && !collided){ 
+        if(deliver && !collided && !bi.inDitch){ 
             if(time < DeliveryEndTime){
                 Vector2 direction = BowlPhysics.GetCurrentDirection(initialVelocity, deliveryAngle, bias, 0, time, bowlBiasStrength);
                 direction = direction.normalized;
                 Vector3 velocity = new Vector3(direction.x, 0, direction.y) * BowlPhysics.GetCurrentVelocity(initialVelocity, deliveryAngle, 0, time);
                 rb.velocity = velocity;
-
+                
                 // update the angular velocity
                 float rotAngle = (velocity.magnitude / BowlRadius) / (MathF.PI/180);
                 Vector3 dr = tr.TransformPoint(Vector3.right);
@@ -84,6 +86,11 @@ public class BowlLauncher : MonoBehaviour
                 Vector3 angularVelocityVec = new Vector3(0, 0, angularVelocitySpeed);
                 
                 rb.AddRelativeTorque(-angularVelocityVec, ForceMode.VelocityChange);
+
+                if(bi.enteredDitch){
+                    bi.inDitch = true;
+                    destroyScript();
+                }
             }
             else{
                 destroyScript();
@@ -104,7 +111,7 @@ public class BowlLauncher : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(deliver){
+        if(deliver && !bi.inDitch){
             BowlOverlay.instance.scorecard.Reposition(true);
             HandleDelivery();
         }

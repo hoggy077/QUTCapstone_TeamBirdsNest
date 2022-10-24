@@ -143,7 +143,7 @@ public class AI
 
     // returns a set of polygons that contain valid points for the bowl to be delivered to without a collision that is closer to the
     // jack than the given radius
-    public (List<List<PointD>> polygons, Bias bias) GetFurtherPolygons(Vector3 position, float radius, List<BowlPosition> bowls1, List<BowlPosition> bowls2, float biasStrength){
+    public (List<List<PointD>> polygons, Bias bias) GetFurtherPolygons(Vector2 position, float radius, List<BowlPosition> bowls1, List<BowlPosition> bowls2, float biasStrength){
         List<List<PointD>> circle = Polygon.GetCirclePolygon(position, radius-0.05f, 30);
         
         // check if AI can get another bowl closer than the closest players bowl
@@ -180,7 +180,7 @@ public class AI
 
     // returns a set of polygons that contain valid points for the bowl to be delivered to without a collision that is closer to the
     // jack than the given radius
-    public (List<List<PointD>> polygons, Bias bias) GetCloserPolygons(Vector3 position, float radius, List<BowlPosition> bowls1, List<BowlPosition> bowls2, float biasStrength){
+    public (List<List<PointD>> polygons, Bias bias) GetCloserPolygons(Vector2 position, float radius, List<BowlPosition> bowls1, List<BowlPosition> bowls2, float biasStrength){
         
         List<List<PointD>> circle = Polygon.GetCirclePolygon(position, radius-0.05f, 30);
 

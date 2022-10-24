@@ -71,14 +71,14 @@ public class MatchManager : MonoBehaviour
         // create the jack and set it in the correct positionc -- unless we loaded one in from the save system boiii
         if (Jack == null && GameObject.FindGameObjectsWithTag("Jack").Length == 0)
         {
-            Jack = Instantiate(jackPrefab, BowlPhysics.GameToUnityCoords(new Vector2(0, 15)) + new Vector3(0, 0.0215f, 0), Quaternion.identity);
+            Jack = Instantiate(jackPrefab, BowlPhysics.GameToUnityCoords(new Vector2(0, 32)) + new Vector3(0, 0.0215f, 0), Quaternion.identity);
         }
         else
         {
             Jack = GameObject.FindGameObjectWithTag("Jack");
         }
         ai = new AI();
-        ai.difficulty = AIDifficulty.EASY;
+        ai.difficulty = AIDifficulty.MEDIUM;
         mainCam = Camera.main;
         originalCameraLocation = mainCam.transform.position;
         originalCameraRotation = mainCam.transform.rotation;

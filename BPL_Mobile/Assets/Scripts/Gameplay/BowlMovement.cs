@@ -8,6 +8,7 @@ public class BowlMovement : MonoBehaviour
 {
     public Rigidbody rb;
     public Transform tr;
+    public BowlID bi;
     public float mass;
     public bool isJack;
     private MeshCollider bowlmc;
@@ -29,16 +30,20 @@ public class BowlMovement : MonoBehaviour
     void Start(){
         if(!isJack){
             bowlmc = GetComponent<MeshCollider>();
+            bi = GetComponent<BowlID>();
+        }
+        else{
+            bi = gameObject.AddComponent<BowlID>() as BowlID;
         }
     }
 
     void FixedUpdate(){
-        if(isMoving){
+        if(isMoving && !bi.inDitch){
             time += Time.deltaTime;
             float speed = iv - mu*g*time; // velocity at particular time step
             v = v.normalized * speed;
 
-            if(speed > 0.001){
+            if(speed > 0.001f && !bi.enteredDitch){
                 
                 float rotAngle = (speed / BowlRadius) / (MathF.PI/180);
                 tr.RotateAround(tr.position, rd,  rotAngle * Time.deltaTime);
@@ -50,14 +55,11 @@ public class BowlMovement : MonoBehaviour
                 pos.y = distanceFromFloor();
 
                 rb.MovePosition(pos + (v * Time.deltaTime));
-                //rb.MoveRotation(rb.rotation * deltaRotation);
-
-                // show the rotational axis
-                // lr.SetPosition(0, rb.position);
-                // lr.SetPosition(1, rb.position + rd);
-                // lr.positionCount = 2;
-                // lr.enabled = true;
+                
             }else{
+                if(bi.enteredDitch){
+                    rb.velocity = v;
+                }
                 isMoving = false;
                 externalySet = false;
                 iv = 0;
@@ -65,6 +67,13 @@ public class BowlMovement : MonoBehaviour
                 v = new Vector3(0, 0, 0);
                 av = new Vector3(0, 0, 0);
             }
+        }else if(bi.inDitch){
+            isMoving = false;
+            externalySet = false;
+            iv = 0;
+            time = 0;
+            v = new Vector3(0, 0, 0);
+            av = new Vector3(0, 0, 0);
         }
     }
 
@@ -81,12 +90,6 @@ public class BowlMovement : MonoBehaviour
         }
 
         return 0.0315f;
-    }
-
-    void OnCollisionStay(Collision collision){
-        if(collision.gameObject.name != "Rink"){
-            Debug.Log("Collision STAY!!!");
-        }
     }
 
     void OnCollisionEnter(Collision collision){

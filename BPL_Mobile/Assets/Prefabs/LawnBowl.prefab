@@ -248,6 +248,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e7e61f38dd01b9a418d8ac085a49036f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  chalked: 0
+  inDitch: 0
   toucher: 0
 --- !u!114 &-416128045470161086
 MonoBehaviour:
@@ -277,6 +279,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rb: {fileID: 5031751907397695287}
   tr: {fileID: 2475079767241360811}
+  bi: {fileID: 5030080212831173405}
   mass: 1
   isJack: 0
   lr: {fileID: -5759844349258642046}

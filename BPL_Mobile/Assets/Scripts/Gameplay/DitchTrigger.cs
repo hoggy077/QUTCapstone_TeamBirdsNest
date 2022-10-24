@@ -10,13 +10,15 @@ public class DitchTrigger : MonoBehaviour
         GameObject bowl = collider.gameObject;
         BowlID bi = bowl.GetComponent<BowlID>();
 
-        bi.inDitch = true;
+        // 
+        if(bi != null){
+            bi.enteredDitch = true;
+            collider.attachedRigidbody.angularDrag = 1;
+            collider.attachedRigidbody.drag = 1;
+            collider.attachedRigidbody.useGravity = true;
 
-        collider.attachedRigidbody.angularDrag = 1;
-        collider.attachedRigidbody.drag = 1;
-        collider.attachedRigidbody.useGravity = true;
-
-        //Confirm CrowdUpset SFX
-        AudioManager.instance.PlaySound("IFB399-CrowdNegativeSFX");
+            //Confirm CrowdUpset SFX
+            AudioManager.instance.PlaySound("IFB399-CrowdNegativeSFX");
+        }
     }
 }

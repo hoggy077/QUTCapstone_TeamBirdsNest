@@ -3,10 +3,10 @@ using UnityEngine;
 
 public class BowlPhysics{
     public static Vector2 UnityToGameCoords(Vector3 v){
-        return new Vector2(v.x, v.z + 9);
+        return new Vector2(v.x, v.z + 17);
     }
     public static Vector3 GameToUnityCoords(Vector2 v){
-        return new Vector3(v.x, 0.01f, v.y - 9);
+        return new Vector3(v.x, 0.01f, v.y - 17);
     }
 
     public static float GetBowlAngle(Vector2 direction){
