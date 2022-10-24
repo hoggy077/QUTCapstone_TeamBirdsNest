@@ -93,10 +93,16 @@ public class BowlLauncher : MonoBehaviour
                 }
             }
             else{
+                if(bi.enteredDitch){
+                    bi.inDitch = true;
+                }
                 destroyScript();
             }
         }
         else if(deliver && collided && rb.velocity.magnitude < 0.001){
+            if(bi.enteredDitch){
+                    bi.inDitch = true;
+            }
             destroyScript();
         }
     }

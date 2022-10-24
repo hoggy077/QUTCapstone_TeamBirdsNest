@@ -74,17 +74,22 @@ public class ScoringManager : MonoBehaviour
         }
     }
 
-    public void ReadTheHead()
+    public void ReadTheHead(int team1Shots, int team2Shots)
     {
         // Assembling bowls and jack references
         List<GameObject> bowls = new List<GameObject>();
         GameObject jack = mm.GetJack();
 
         // Calculating and Rearranging list from closest to furthest away from jack
-        int team1Shots = 0;
-        int team2Shots = 0;
         foreach(GameObject bowl in mm.GetLiveBowls())
         {
+            BowlID bi = bowl.GetComponent<BowlID>();
+            if(bi == null){
+                continue;
+            }
+            else if(bi.inDitch && !bi.chalked){
+                continue;
+            }
             // If its the first bowl to be read, add it on and move on
             if(bowls.Count < 1)
             {
@@ -115,15 +120,6 @@ public class ScoringManager : MonoBehaviour
                 {
                     bowls.Add(bowl);
                 }
-            }
-
-            if(bowl.GetComponent<BowlID>().GetTeam() == 1)
-            {
-                team1Shots++;
-            }
-            else
-            {
-                team2Shots++;
             }
         }
 

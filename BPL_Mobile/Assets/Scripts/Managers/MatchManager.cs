@@ -98,7 +98,7 @@ public class MatchManager : MonoBehaviour
     public void ReadHead(){
         if(scm)
         {
-            scm.ReadTheHead();
+            scm.ReadTheHead(Team1Bowls.Count, Team2Bowls.Count);
         }
     }
 
@@ -188,7 +188,7 @@ public class MatchManager : MonoBehaviour
                 }
             }
 
-            scm.ReadTheHead();
+            scm.ReadTheHead(Team1Bowls.Count, Team2Bowls.Count);
         }
 
         // Moving Camera to Overview State if Button is Pressed
