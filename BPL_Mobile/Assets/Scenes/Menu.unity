@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.3757821, g: 0.61411315, b: 0.86684006, a: 1}
+  m_IndirectSpecularColor: {r: 0.37577042, g: 0.6143065, b: 0.86705476, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -17499,37 +17499,37 @@ MonoBehaviour:
   - name: IFB399-MenuClickSFX
     clip: {fileID: 8300000, guid: 907552d6dc237874d9fb525c710aeea1, type: 3}
     volume: 0.5
-    pitch: 0
+    pitch: 1
     loop: 0
     source: {fileID: 0}
   - name: IFB399-ConfirmSFX
     clip: {fileID: 8300000, guid: e777b40ec2ae3a041aa129c6c3557122, type: 3}
     volume: 0.5
-    pitch: 0
+    pitch: 1
     loop: 0
     source: {fileID: 0}
   - name: IFB399-CrowdPositiveSFX
     clip: {fileID: 8300000, guid: da3c6fc90e98b4b47a7bb7071f057fc6, type: 3}
     volume: 0.5
-    pitch: 0
+    pitch: 1
     loop: 0
     source: {fileID: 0}
   - name: IFB399-CrowdNegativeSFX
     clip: {fileID: 8300000, guid: 01f0409cde13ebc4a88086cda79ac7c7, type: 3}
     volume: 0.5
-    pitch: 0
+    pitch: 1
     loop: 0
     source: {fileID: 0}
   - name: IFB399-MetalCollisionSFX
     clip: {fileID: 8300000, guid: 947169dd40b831949bc6cb85ca822fff, type: 3}
     volume: 0.5
-    pitch: 0
+    pitch: 1
     loop: 0
     source: {fileID: 0}
   - name: IFB399-RelaxedBGM
     clip: {fileID: 8300000, guid: b44ee226ab4a83a4e8f32654916ee3e3, type: 3}
     volume: 0.5
-    pitch: 0
+    pitch: 1
     loop: 1
     source: {fileID: 0}
   volumeSfxSlider: {fileID: 1360760082}
