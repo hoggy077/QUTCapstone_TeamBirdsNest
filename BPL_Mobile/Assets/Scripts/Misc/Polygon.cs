@@ -37,57 +37,60 @@ class Polygon{
     }
 
     public static List<List<PointD>> GetBiasRinkBoundary(Bias bias, float biasStrength){
-        float halfRinkW = 5/2;
+        
+        float deliveryLength = 39 - (20 + GameStateManager.Instance.bowlSpawnZPosition);
+
         float offset = 0.17f;
-        Vector2 point = new Vector2(0, 0);
+        double[] points = new double[8];
+
         if(bias == Bias.Right){
-            point = new Vector2(-halfRinkW + offset, 0);
+            points[0] = 4;
+            points[1] = deliveryLength - 15;
+
+            points[2] = 4;
+            points[3] = deliveryLength;
+
+            points[4] = -2;
+            points[5] = deliveryLength;
+
+            points[6] = -2.33333;
+            points[7] = deliveryLength - 15;
+
         }else{
-            point = new Vector2(halfRinkW - offset, 0);
+            points[0] = -4;
+            points[1] = deliveryLength - 15;
+
+            points[2] = 2.33333;
+            points[3] = deliveryLength - 15;
+
+            points[4] = 2;
+            points[5] = deliveryLength;
+
+            points[6] = -4;
+            points[7] = deliveryLength;
         }
 
-        Vector2[] boundaryPoints = BowlPhysics.getBoundaryPoints(point, bias, biasStrength);
-
-        double[] points = new double[(boundaryPoints.Length + 2) * 2];
-        if(bias == Bias.Right){
-            points[0] = -5*100;
-            points[1] = 0*100;
-            points[2] = -5*100;
-            points[3] = 30*100;
-            
-            int point_i = 4;
-            for(int i = boundaryPoints.Length-1; i >= 0; i--){
-                points[point_i++] = boundaryPoints[i].x * 100;
-                points[point_i++] = boundaryPoints[i].y * 100;
-            }
-        }else{
-            int point_i = 0;
-            for(int i = 0; i < boundaryPoints.Length; i++){
-                points[point_i++] = boundaryPoints[i].x * 100;
-                points[point_i++] = boundaryPoints[i].y * 100;
-            }
-
-            points[point_i++] = 5*100;
-            points[point_i++] = 30*100;
-            points[point_i++] = 5*100;
-            points[point_i++] = 0*100;
+        for(int i = 0; i < 8; i++){
+            points[i] = points[i] * 100;
         }
-
+       
         List<List<PointD>> paths = new List<List<PointD>>();
         paths.Add(Clipper.MakePath(points));
 
         List<List<PointD>> boundary = GetInternalRinkBoundary();
 
-        return Clipper.Difference(boundary, paths, FillRule.NonZero);
+        return Clipper.Intersect(boundary, paths, FillRule.NonZero);
     }
 
     public static List<List<PointD>> GetInternalRinkBoundary(){
-        float halfRinkW = 5/2;
+
+        float deliveryLength = 39 - (20 + GameStateManager.Instance.bowlSpawnZPosition);
+        float halfRinkW = 3;
         float offset = 0.17f;
 
         List<List<PointD>> paths = new List<List<PointD>>();
 
-        double[] points = new double[] {-halfRinkW + offset, 19 - offset, halfRinkW - offset, 19 - offset, halfRinkW - offset, 12 + offset, - halfRinkW + offset, 12 + offset};
+        double[] points = new double[] {-halfRinkW + offset, deliveryLength - offset, halfRinkW - offset, deliveryLength - offset, halfRinkW - offset, deliveryLength - 7 + offset, - halfRinkW + offset, deliveryLength - 7 + offset};
         for(int i = 0; i<points.Length; i++){
             points[i] = points[i] * 100;
         }
@@ -220,7 +223,7 @@ class Polygon{
     public static List<List<PointD>> GetGreenPolygonPaths(){
         List<List<PointD>> paths = new List<List<PointD>>();
 
-        double[] points = new double[] {-2.5, 0, -2.5, 10, 2.5, 10, 2.5, 0};
+        double[] points = new double[] {-3, 0, -3, 10, 3, 10, 3, 0};
         for(int i = 0; i<points.Length; i++){
             points[i] = points[i] * 100;
         }

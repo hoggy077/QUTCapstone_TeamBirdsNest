@@ -71,16 +71,20 @@ public class MatchManager : MonoBehaviour
         // create the jack and set it in the correct positionc -- unless we loaded one in from the save system boiii
         if (Jack == null && GameObject.FindGameObjectsWithTag("Jack").Length == 0)
         {
-            Jack = Instantiate(jackPrefab, BowlPhysics.GameToUnityCoords(new Vector2(0, 20)) + new Vector3(0, 0.0215f, 0), Quaternion.identity);
+            Jack = Instantiate(jackPrefab, RandomJackPosition() + new Vector3(0, 0.0215f, 0), Quaternion.identity);
         }
         else
         {
             Jack = GameObject.FindGameObjectWithTag("Jack");
         }
+
+        // get a random position for the bowl spawning
+        GameStateManager.Instance.bowlSpawnZPosition = randomBowlZPosition();
         ai = new AI();
         ai.difficulty = AIDifficulty.MEDIUM;
         mainCam = Camera.main;
-        originalCameraLocation = mainCam.transform.position;
+        originalCameraLocation = new Vector3(0, mainCam.transform.position.y, 0) + BowlPhysics.GameToUnityCoords(new Vector2(0, 0)) + new Vector3(0, 0, -1);
+        
         originalCameraRotation = mainCam.transform.rotation;
         scm = FindObjectOfType<ScoringManager>();
 
@@ -207,8 +211,24 @@ public class MatchManager : MonoBehaviour
         }
     }
 
+    private void ditchNeededBowls(){
+        foreach(GameObject go in Team1Bowls){
+            BowlID bi = go.GetComponent<BowlID>();
+
+            if(bi != null){
+                if(bi.enteredDitch){
+                    bi.inDitch = true;
+                }
+            }
+        }
+    }
+
     private void Play(){
         if(currentBowl == null){
+
+            ditchNeededBowls();
+            
+
             // Animating Scorecard if required
             PlayBetweenShotAnimation();
 
@@ -256,7 +276,7 @@ public class MatchManager : MonoBehaviour
             }
 
             // AI choose to enter Powerplay or not
-            if (!GameStateManager.Instance.isMultiplayerMode){
+            if (!GameStateManager.Instance.isMultiplayerMode && Team1Bowls.Count == 0 && Team2Bowls.Count == 0){
                 if(UnityEngine.Random.value < 1/5f && scm.team2PowerplayAvailable){
                     scm.ActivatePowerplay(2);
                 }
@@ -287,7 +307,7 @@ public class MatchManager : MonoBehaviour
 
             currentBowl = SpawnBowl();
             currentBowlTr = currentBowl.GetComponent<Transform>();
-            mainCam.transform.position = originalCameraLocation;
+            //originalCameraLocation = BowlPhysics.GameToUnityCoords(new Vector2(0, 0)) + new Vector3(0, 0, -1);
             mainCam.transform.rotation = originalCameraRotation;
             cameraBowlOffset = originalCameraLocation - currentBowl.transform.position;
             originalCameraBowlOffset = cameraBowlOffset;
@@ -295,10 +315,7 @@ public class MatchManager : MonoBehaviour
             ReadHead();
             ResumeManager.WipeSaveFile();
 
-            
-
             if (!PlayerTurn){
-
                 currentBowl.GetComponent<BowlID>().SetTeam(2);
 
                 // Saving Game and Career
@@ -315,7 +332,7 @@ public class MatchManager : MonoBehaviour
                     scm.SetTeammate(scm.team2CurrentTeammate);
 
                     Transform JackTransform = Jack.GetComponent<Transform>();
-                    ai.TakeTurn(currentBowl, JackTransform.position, Team1Bowls, Team2Bowls, 1f);
+                    ai.TakeTurn(currentBowl, JackTransform.position, Team1Bowls, Team2Bowls, 1);
                 }
                 else
                 {
@@ -480,6 +497,8 @@ public class MatchManager : MonoBehaviour
         Team1Bowls = new List<GameObject>();
         Team2Bowls = new List<GameObject>();
 
+        
+
         // Creating new Jack
         if (Jack != null)
         {
@@ -488,10 +507,42 @@ public class MatchManager : MonoBehaviour
         }
 
         if (replaceJack)
-        {
-            Jack = Instantiate(jackPrefab, BowlPhysics.GameToUnityCoords(new Vector2(0, 15)) + new Vector3(0, 0.0215f, 0), Quaternion.identity);
+        {         
+            Jack = Instantiate(jackPrefab, RandomJackPosition() + new Vector3(0, 0.0215f, 0), Quaternion.identity);
+            // get a random new bowl spawning position
+            GameStateManager.Instance.bowlSpawnZPosition = randomBowlZPosition();
             mainCam.GetComponent<CameraFollow>().LookAt(Jack.transform);
         }
+    }
+
+    private Vector3 RandomJackPosition(){
+        float rand = UnityEngine.Random.value;
+        if(rand < 1/3f){
+            return new Vector3(0, 0, 14);
+        }
+        else if(rand > 1/3f && rand <= 2/3f){
+            return new Vector3(0, 0, 16);
+        }
+        else if(rand > 2/3f && rand <= 1){
+            return new Vector3(0, 0, 18);
+        }
+
+        return new Vector3(0, 14);
+    }
+
+    private float randomBowlZPosition(){
+        float rand = UnityEngine.Random.value;
+        if(rand < 1/3f){
+            return -17;
+        }
+        else if(rand > 1/3f && rand <= 2/3f){
+            return -15;
+        }
+        else if(rand > 2/3f && rand <= 1){
+            return -13;
+        }
+
+        return -17;
     }
 
     // Function called at Loading of a previous Session

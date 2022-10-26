@@ -3,10 +3,10 @@ using UnityEngine;
 
 public class BowlPhysics{
     public static Vector2 UnityToGameCoords(Vector3 v){
-        return new Vector2(v.x, v.z + 17);
+        return new Vector2(v.x, v.z - GameStateManager.Instance.bowlSpawnZPosition);
     }
     public static Vector3 GameToUnityCoords(Vector2 v){
-        return new Vector3(v.x, 0.01f, v.y - 17);
+        return new Vector3(v.x, 0.01f, v.y + GameStateManager.Instance.bowlSpawnZPosition);
     }
 
     public static float GetBowlAngle(Vector2 direction){
@@ -64,7 +64,7 @@ public class BowlPhysics{
     public static (Vector2 point, float init_vel, float end_time) GetPointWithRadius(float WantedPointLength, float EndPointLength, Bias bias, float mu_scale){
         float mu = 0.025f + (mu_scale * 0.003f);
         float g = 9.8f; //(m/s^2) velocity due to gravity
-        float p = 3.8f; //(2.8*MU*R)/d
+        float p = 8f; //(2.8*MU*R)/d
         float init_vel = MathF.Sqrt((EndPointLength * 2 * mu * g * MathF.Sqrt(1+p*p))/p);
         float r0 = (p * (init_vel*init_vel)) / (2*mu*g); // initial radius of curvature of the path of the bowl
         
@@ -140,7 +140,7 @@ public class BowlPhysics{
     public static InitialConditions GetInitialConditions(Vector2 endPoint, Bias bias, float mu_scale){
         float mu = 0.025f + (mu_scale * 0.003f);
         float g = 9.8f;
-        float p = 3.8f;
+        float p = 8f;
         float init_vel = MathF.Sqrt((endPoint.magnitude * 2 * mu * g * MathF.Sqrt(1+p*p))/p);
         float r0 = (p * (init_vel*init_vel)) / (2*mu*g); //initial radius of curvature of the path of the bowl
         float X_end = r0/(1+(p*p));
@@ -199,7 +199,7 @@ public class BowlPhysics{
     public static float GetCurrentVelocity(float init_vel, float angle, float mu_scale, float t){
         float mu = 0.025f + (mu_scale * 0.003f);
         float g = 9.8f; //(m/s^2) velocity due to gravity
-        float p = 3.8f; //(2.8*MU*R)/d 
+        float p = 8f; //(2.8*MU*R)/d 
         float r0 = (p * (init_vel*init_vel)) / (2*mu*g); // initial radius of curvature of the path of the bowl
         float v = init_vel - mu*g*t; // velocity at particular time step
 
@@ -221,7 +221,7 @@ public class BowlPhysics{
 
         float mu = 0.025f + (mu_scale * 0.003f);
         float g = 9.8f; //(m/s^2) velocity due to gravity
-        float p = 3.8f; //(2.8*MU*R)/d 
+        float p = 8f; //(2.8*MU*R)/d 
         float r0 = (p * (init_vel*init_vel)) / (2*mu*g); // initial radius of curvature of the path of the bowl
         float delivery_end_time = BowlPhysics.DeliveryEndTime(init_vel, angle, mu_scale);
         int steps = (int)MathF.Floor(delivery_end_time/time_step);
@@ -272,7 +272,7 @@ public class BowlPhysics{
 
         float mu = 0.025f + (mu_scale * 0.003f);
         float g = 9.8f; //(m/s^2) velocity due to gravity
-        float p = 3.8f; //(2.8*MU*R)/d 
+        float p = 8f; //(2.8*MU*R)/d 
         float r0 = (p * (init_vel*init_vel)) / (2*mu*g); // initial radius of curvature of the path of the bowl
         float v = init_vel - mu*g*t; // velocity at particular time step
         float phi = (2/p)*Mathf.Log(init_vel/v); // angle between the tangent of the bowls path with the x-axis

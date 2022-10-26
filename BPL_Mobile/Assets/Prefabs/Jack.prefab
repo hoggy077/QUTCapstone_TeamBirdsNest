@@ -234,9 +234,9 @@ Rigidbody:
   m_GameObject: {fileID: 7183834311389289945}
   serializedVersion: 2
   m_Mass: 0.2
-  m_Drag: 0
+  m_Drag: 1
   m_AngularDrag: 1.5
-  m_UseGravity: 1
+  m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
@@ -269,6 +269,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rb: {fileID: 6261305836571245593}
   tr: {fileID: 7183834311389289941}
+  bi: {fileID: 0}
   mass: 0.2
   isJack: 1
   lr: {fileID: 0}

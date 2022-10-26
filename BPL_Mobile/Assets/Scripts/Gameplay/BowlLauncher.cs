@@ -176,7 +176,7 @@ public class BowlLauncher : MonoBehaviour
                     deliver = true;
                     DeliveryEndTime = BowlPhysics.DeliveryEndTime(initialVelocity, deliveryAngle, 0) - 0.75f;
                     //lineRenderer.enabled = false;
-
+                    Handheld.Vibrate();
                     rb.mass = 1;
                     rb.useGravity = false;
                     rb.isKinematic = false;
@@ -266,6 +266,7 @@ public class BowlLauncher : MonoBehaviour
     }
 
     public void MakeDelivery(float angle, float InitVel, Bias bias){
+        bowlBiasStrength = 1;
         initialVelocity = InitVel;
         deliveryAngle = angle;
         this.bias = bias;

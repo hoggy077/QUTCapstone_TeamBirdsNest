@@ -21,6 +21,7 @@ public class AI
     public bool TakeTurn(GameObject CurrentBowl, Vector3 _JackPos, List<GameObject> PlayerBowls, List<GameObject> AIBowls, float biasStrength){
         CurrentBowl.GetComponent<TrackThisThing>().IncludeInSave = true;
         Vector2 JackPos = BowlPhysics.UnityToGameCoords(_JackPos);
+        
         var (PlayerPositions, AIPositions) = gameObjectToBowlPosition(PlayerBowls, AIBowls, JackPos);
         bool playerCloser;
         bool takeAccurateShot = GetAccurateShotDecision(difficulty);
@@ -29,7 +30,7 @@ public class AI
             TakeRandomShot(CurrentBowl, 0.5f, JackPos);
         }
 
-        if( AIPositions.Count == 0 && PlayerPositions.Count == 1){ // first turn for AI, Second delivery overall
+        if(AIPositions.Count == 0 && PlayerPositions.Count == 1){ // first turn for AI, Second delivery overall
             playerCloser = true;
         }
         else{
@@ -50,16 +51,7 @@ public class AI
                 return false;
             }
         }
-
-        if(playerCloser){ // player has the closest bowl
-            // can we hit key opponents bowl away?
-            // can we hit the jack away to a ?
-        }
-        else{ // AI has the closest bowl
-            // place a bowl to protect a bowl close to jack
-        }
-
-        Debug.Log("Error, shouldn't get here, taking random shot");
+        
         TakeRandomShot(CurrentBowl, 0.5f, JackPos);
         return false;
     }
@@ -108,18 +100,19 @@ public class AI
         triangles.Sort();
 
         // foreach(GameObject g in lrs){
-        //     GameObject.Destroy(g);
-        // }
+        //         GameObject.Destroy(g);
+        //     }
         // lrs = new List<GameObject>();
+       
         // find the total area of all the triangles
         float totalArea = 0;
         foreach(Triangle t in triangles){
             totalArea += t.area;
 
-            // GameObject g = new GameObject();
-            // g.AddComponent<LineRenderer>();
-            // lrs.Add(g);
-            //TestingUtils.DrawTriangle(t, g.GetComponent<LineRenderer>());
+            // GameObject go = new GameObject();
+            // go.AddComponent<LineRenderer>();
+            // lrs.Add(go);
+            // TestingUtils.DrawTriangle(t, go.GetComponent<LineRenderer>());
         }
         
         // choose a random triangle taking into account the area of the triangle
@@ -144,7 +137,7 @@ public class AI
     // returns a set of polygons that contain valid points for the bowl to be delivered to without a collision that is closer to the
     // jack than the given radius
     public (List<List<PointD>> polygons, Bias bias) GetFurtherPolygons(Vector2 position, float radius, List<BowlPosition> bowls1, List<BowlPosition> bowls2, float biasStrength){
-        List<List<PointD>> circle = Polygon.GetCirclePolygon(position, radius-0.05f, 30);
+        List<List<PointD>> circle = Polygon.GetCirclePolygon(position, radius+0.05f, 30);
         
         // check if AI can get another bowl closer than the closest players bowl
         // meaning the AI gets another point
@@ -166,8 +159,9 @@ public class AI
             }
 
             List<List<PointD>> rinkBounds = Polygon.GetBiasRinkBoundary(bias, biasStrength);
-            List<List<PointD>> polygons = Clipper.Difference(rinkBounds, circle, FillRule.EvenOdd);
-
+            
+            List<List<PointD>> polygons = Clipper.Difference(rinkBounds, circle, FillRule.NonZero);
+            
             validPolygons = GetValidPolygons(position, polygons, bowls1, bowls2, bias, biasStrength);
 
             if(validPolygons.Count != 0){
@@ -203,7 +197,22 @@ public class AI
                 }
             }
 
-            validPolygons = GetValidPolygons(position, circle, bowls1, bowls2, bias, biasStrength);
+            List<List<PointD>> rinkBounds = Polygon.GetBiasRinkBoundary(bias, biasStrength);
+
+            List<List<PointD>> polygons = Clipper.Intersect(circle, rinkBounds, FillRule.NonZero);
+
+            validPolygons = GetValidPolygons(position, polygons, bowls1, bowls2, bias, biasStrength);
+
+            // foreach(GameObject g in lrs){
+            //     GameObject.Destroy(g);
+            // }
+            // lrs = new List<GameObject>();
+            // foreach(List<PointD> poly in validPolygons){
+            //     GameObject go = new GameObject();
+            //     go.AddComponent<LineRenderer>();
+            //     lrs.Add(go);
+            //     TestingUtils.drawPolygon(Polygon.PathToVec2(poly), go.GetComponent<LineRenderer>());
+            // }
 
             if(validPolygons.Count != 0){
                 break;
@@ -219,6 +228,17 @@ public class AI
 
         pathBoundaryPolygons = Polygon.GetPolygonPaths(bowls1, bowls2, bias, biasStrength);
 
+        // foreach(GameObject g in lrs){
+        //         GameObject.Destroy(g);
+        // }
+        // lrs = new List<GameObject>();
+        // foreach(List<PointD> poly in pathBoundaryPolygons){
+        //     GameObject go = new GameObject();
+        //     go.AddComponent<LineRenderer>();
+        //     lrs.Add(go);
+        //     TestingUtils.drawPolygon(Polygon.PathToVec2(poly), go.GetComponent<LineRenderer>());
+        // }
+
         availablePointsPolygons = Clipper.Difference(polygons, pathBoundaryPolygons, FillRule.NonZero);
         availablePointsPolygons = Clipper.Intersect(availablePointsPolygons, Polygon.GetInternalRinkBoundary(), FillRule.NonZero);
         
@@ -226,22 +246,14 @@ public class AI
     }
 
     public void TakeRandomShot(GameObject CurrentBowl, float innerRadius, Vector2 JackPos){
-        Bias bias;
-        float r = 1.5f - innerRadius;
-        // get random radius
-        float radius = UnityEngine.Random.value * r;
-        radius = radius + innerRadius;
-        // get random end position
-        Vector2 target = UnityEngine.Random.insideUnitCircle.normalized * radius;
-
-        if(target.y > 0){
-            bias = Bias.Left;
-        }else{
+        Bias bias = Bias.Left;
+        if(UnityEngine.Random.value < 0.5f){
             bias = Bias.Right;
         }
 
-        // take the shot
-        TakeAccurateShot(CurrentBowl, JackPos + target, bias);
+        List<List<PointD>> rinkBounds = Polygon.GetBiasRinkBoundary(bias, 1);
+
+        DeliverBowlWithinPolygons(CurrentBowl, rinkBounds, bias);
     }
 
     private void TakeAccurateShot(GameObject bowl, Vector2 endPoint, Bias bias){

@@ -81,6 +81,7 @@ public static class ResumeManager
                     GameStateManager.Instance.loadedEndNumber = availableSession.endNumber;
                     GameStateManager.Instance.isMultiplayerMode = availableSession.multiplayerMatch;
                     GameStateManager.Instance.isPlayerTurnLoaded = availableSession.playerTurn;
+                    GameStateManager.Instance.bowlSpawnZPosition = availableSession.bowlSpawnZPosition;
 
                     foreach (TrackedObject tObj in ((SavedSession)availableSession).trackedGameObjects)
                     {
@@ -118,7 +119,8 @@ public static class ResumeManager
             GameStateManager.Instance.loadedEndNumber = availableSession.endNumber;
             GameStateManager.Instance.isMultiplayerMode = availableSession.multiplayerMatch;
             GameStateManager.Instance.isPlayerTurnLoaded = availableSession.playerTurn;
-
+            GameStateManager.Instance.bowlSpawnZPosition = availableSession.bowlSpawnZPosition;
+            
             foreach (TrackedObject tObj in ((SavedSession)availableSession).trackedGameObjects)
             {
                 if (refList.references.Any((k) => { return k.name == tObj.referenceTerm; }))
@@ -185,7 +187,8 @@ public static class ResumeManager
             multiplayerMatch = GameStateManager.Instance.isMultiplayerMode,
             playerTurn = GameObject.FindObjectOfType<MatchManager>().PlayerTurn,
             sfxValue = AudioManager.instance.sounds[0].volume,
-            bgmValue = AudioManager.instance.sounds[5].volume
+            bgmValue = AudioManager.instance.sounds[5].volume,
+            bowlSpawnZPosition = GameStateManager.Instance.bowlSpawnZPosition
             //sensitivityValue = 
         };
         SaveSystemJson.SaveGenericJson(ss, "lastSession.sav");
@@ -227,6 +230,7 @@ public class SavedSession
     public bool playerTurn;
     public float sfxValue, bgmValue;
     public float sensitivityValue;
+    public float bowlSpawnZPosition;
 }
 
 [Serializable]
